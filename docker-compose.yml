@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: comic-scanner-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: comic_scanner
+      POSTGRES_USER: comic_user
+      POSTGRES_PASSWORD: comic_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U comic_user -d comic_scanner"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
