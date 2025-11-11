@@ -1,4 +1,5 @@
 import { jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import type { Metadata } from './types';
 
 export const comics = pgTable('comics', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -9,6 +10,6 @@ export const comics = pgTable('comics', {
   number: varchar('number', { length: 50 }),
   volume: varchar('volume', { length: 50 }),
   publisher: varchar('publisher', { length: 200 }),
-  metadata: jsonb('metadata'),
+  metadata: jsonb('metadata').$type<Metadata>().notNull().default({}),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
