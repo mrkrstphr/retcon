@@ -2,14 +2,7 @@ import { existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import StreamZip from 'node-stream-zip';
 import { basename, extname, join } from 'path';
-
-// Try to import sharp, but make it optional
-let sharp: any = null;
-try {
-  sharp = require('sharp');
-} catch (error) {
-  console.warn('Sharp not available - cover images will not be resized');
-}
+import sharp from 'sharp';
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const MAX_WIDTH = 300;
@@ -71,41 +64,21 @@ async function getFirstImageFromArchive(
 
 /**
  * Resize image to fit within max dimensions while preserving aspect ratio
+ * Always converts to JPG format for consistency
  */
-async function resizeImage(
-  imageBuffer: Buffer,
-  originalFileName: string,
-): Promise<{ buffer: Buffer; extension: string }> {
-  if (!sharp) {
-    // If Sharp is not available, return original image
-    const originalExt = extname(originalFileName).toLowerCase();
-    return {
-      buffer: imageBuffer,
-      extension: originalExt || '.jpg',
-    };
-  }
-
+async function resizeImage(imageBuffer: Buffer): Promise<Buffer> {
   try {
-    const resizedBuffer = await sharp(imageBuffer)
+    return await sharp(imageBuffer)
       .resize(MAX_WIDTH, MAX_HEIGHT, {
         fit: 'inside',
         withoutEnlargement: true,
       })
-      .jpeg({ quality: 85 }) // Convert to JPEG for consistent format
+      .jpeg({ quality: 85 }) // Always convert to JPEG
       .toBuffer();
-
-    return {
-      buffer: resizedBuffer,
-      extension: '.jpg',
-    };
   } catch (error) {
     console.error('   ❌ Error resizing image:', error);
     // If Sharp fails, return original buffer
-    const originalExt = extname(originalFileName).toLowerCase();
-    return {
-      buffer: imageBuffer,
-      extension: originalExt || '.jpg',
-    };
+    return imageBuffer;
   }
 }
 
@@ -124,13 +97,13 @@ export async function extractCover(
       return null;
     }
 
-    // Resize the image
-    const resizedImage = await resizeImage(imageData.data, imageData.name);
+    // Resize the image (always converts to JPG)
+    const resizedImageBuffer = await resizeImage(imageData.data);
 
-    // Determine output path
+    // Determine output path - always use .jpg extension
     const subdirectory = id[0].toLowerCase();
     const outputDir = join(coversDirectory, subdirectory);
-    const outputFileName = `${id}${resizedImage.extension}`;
+    const outputFileName = `${id}.jpg`;
     const outputPath = join(outputDir, outputFileName);
 
     // Create directory if it doesn't exist
@@ -139,7 +112,7 @@ export async function extractCover(
     }
 
     // Save the resized image
-    await writeFile(outputPath, resizedImage.buffer);
+    await writeFile(outputPath, resizedImageBuffer);
 
     return outputPath;
   } catch (error) {
@@ -162,17 +135,11 @@ export async function deleteCover(
   try {
     const subdirectory = id[0].toLowerCase();
     const outputDir = join(coversDirectory, subdirectory);
+    const coverPath = join(outputDir, `${id}.jpg`);
 
-    // Try common image extensions
-    const extensions = ['.jpg', '.jpeg', '.png', '.webp'];
-
-    for (const ext of extensions) {
-      const coverPath = join(outputDir, `${id}${ext}`);
-
-      if (existsSync(coverPath)) {
-        await unlink(coverPath);
-        return true;
-      }
+    if (existsSync(coverPath)) {
+      await unlink(coverPath);
+      return true;
     }
 
     return false; // No cover file found
