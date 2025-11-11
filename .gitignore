@@ -11,6 +11,8 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+docker-compose.yml
+
 # Build outputs
 dist/
 build/
@@ -33,6 +35,8 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
+pg_data
+data
 
 # Logs
 logs/

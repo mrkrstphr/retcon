@@ -9,7 +9,10 @@
     "start": "node --env-file=.env dist/index.js",
     "dev": "node --env-file=.env --import tsx src/index.ts",
     "watch": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file=.env --import tsx src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio"
   },
   "keywords": [
     "comics",
@@ -24,11 +27,16 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "drizzle-kit": "^0.24.0",
     "tsx": "^4.6.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "chalk": "^4.1.2"
+    "chalk": "^4.1.2",
+    "drizzle-orm": "^0.33.0",
+    "fast-xml-parser": "^4.3.0",
+    "node-stream-zip": "^1.15.0",
+    "postgres": "^3.4.0"
   },
   "engines": {
     "node": ">=18.0.0"
