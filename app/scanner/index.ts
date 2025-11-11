@@ -110,11 +110,60 @@ async function processComicFiles(
 async function main() {
   // Parse command line arguments
   const args = process.argv.slice(2);
-  const forceUpdate = args.includes('--force-update');
 
-  // Default scan directory - can be overridden later with CLI args
-  const scanDirectory = process.env.SCAN_DIRECTORY || './comics';
+  // Check for help flag
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(chalk.blue.bold(`\n📚 ${APP_NAME} - Scanner`));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log('\nUsage: npm run scan [options]');
+    console.log('\nOptions:');
+    console.log(
+      '  --force-update     Re-process all files regardless of modification time',
+    );
+    console.log(
+      '  --no-cleanup       Skip deletion of missing files from database',
+    );
+    console.log('  --dir, --directory Override scan directory path');
+    console.log('  --help, -h         Show this help message');
+    console.log('\nExamples:');
+    console.log('  npm run scan');
+    console.log('  npm run scan -- --dir "/path/to/comics"');
+    console.log('  npm run scan -- --force-update --no-cleanup');
+    console.log('  npm run scan -- --dir "/new/location" --no-cleanup\n');
+    return;
+  }
+
+  const forceUpdate = args.includes('--force-update');
+  const noCleanup = args.includes('--no-cleanup');
+
+  // Check for directory override
+  let scanDirectory = process.env.SCAN_DIRECTORY || './comics';
+  const dirIndex = args.findIndex(
+    (arg) => arg === '--dir' || arg === '--directory',
+  );
+  if (dirIndex !== -1 && args[dirIndex + 1]) {
+    scanDirectory = args[dirIndex + 1];
+  }
+
   const absolutePath = resolve(scanDirectory);
+
+  // Validate directory exists
+  try {
+    const stats = await stat(absolutePath);
+    if (!stats.isDirectory()) {
+      console.error(
+        chalk.red(`❌ Error: "${absolutePath}" is not a directory`),
+      );
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(
+      chalk.red(
+        `❌ Error: Directory "${absolutePath}" does not exist or is not accessible`,
+      ),
+    );
+    process.exit(1);
+  }
 
   console.log(chalk.blue.bold(`\n📚 ${APP_NAME}`));
   console.log(chalk.gray('─'.repeat(50)));
@@ -122,6 +171,12 @@ async function main() {
   if (forceUpdate) {
     console.log(
       `🔄 ${chalk.yellow('FORCE UPDATE MODE:')} ${chalk.white('Re-processing all files regardless of modification time')}`,
+    );
+  }
+
+  if (noCleanup) {
+    console.log(
+      `🚫 ${chalk.yellow('NO CLEANUP MODE:')} ${chalk.white('Skipping deletion of missing files from database')}`,
     );
   }
 
@@ -146,24 +201,32 @@ async function main() {
 
   console.log(); // New line after dots
 
-  // Clean up missing files from database
-  console.log(`\n🧹 ${chalk.cyan('Cleaning up missing files...')}`);
+  let deletedCount = 0;
 
-  // First, get records that will be deleted to clean up their covers
-  const toDeleteRecords = await findComicsToDelete(syncTime);
-  const deletedCount = toDeleteRecords.length;
+  if (!noCleanup) {
+    // Clean up missing files from database
+    console.log(`\n🧹 ${chalk.cyan('Cleaning up missing files...')}`);
 
-  // Delete cover files for comics that will be removed
-  if (deletedCount > 0) {
-    const coversDirectory = process.env.COVERS_DIRECTORY;
-    if (coversDirectory) {
-      for (const record of toDeleteRecords) {
-        await deleteCover(record.id, coversDirectory);
+    // First, get records that will be deleted to clean up their covers
+    const toDeleteRecords = await findComicsToDelete(syncTime);
+    deletedCount = toDeleteRecords.length;
+
+    // Delete cover files for comics that will be removed
+    if (deletedCount > 0) {
+      const coversDirectory = process.env.COVERS_DIRECTORY;
+      if (coversDirectory) {
+        for (const record of toDeleteRecords) {
+          await deleteCover(record.id, coversDirectory);
+        }
       }
-    }
 
-    // Then delete the database records
-    await deleteComicsOlderThan(syncTime);
+      // Then delete the database records
+      await deleteComicsOlderThan(syncTime);
+    }
+  } else {
+    console.log(
+      `\n🚫 ${chalk.yellow('Skipping cleanup of missing files (--no-cleanup flag active)')}`,
+    );
   }
 
   if (totalFiles === 0) {
@@ -184,7 +247,7 @@ async function main() {
         deletedCount,
       )} ${chalk.cyan('missing comic(s) from database!')}`,
     );
-  } else {
+  } else if (!noCleanup) {
     console.log(`✅ ${chalk.gray('No missing comics to remove.')}`);
   }
 
