@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
 import type { Route } from './+types/comic.$id';
@@ -66,7 +67,7 @@ function Metadata({ metadata }: { metadata: any }) {
     <>
       {metadata?.summary && (
         <div className="prose dark:prose-invert mb-8">
-          <Markdown>{metadata.summary}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]}>{metadata.summary}</Markdown>
         </div>
       )}
 
