@@ -1,4 +1,4 @@
-import { getComicCount, getRecentComics, getLastScanTime } from '../db/queries';
+import { getComicCount, getLastScanTime, getRecentComics } from '../db/queries';
 import type { Route } from './+types/home';
 
 export function meta({}: Route.MetaArgs) {
@@ -21,12 +21,18 @@ export async function loader({}: Route.LoaderArgs) {
   return { comicCount, recentComics, lastScanTime };
 }
 
+// Helper function to generate cover image path
+const getCoverPath = (id: string) => {
+  const subdirectory = id[0].toLowerCase();
+  return `/covers/${subdirectory}/${id}.jpg`;
+};
+
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { comicCount, recentComics, lastScanTime } = loaderData;
 
   return (
     <div className="py-16">
-      <div className="text-center max-w-4xl mx-auto px-4">
+      <div className="text-center max-w-6xl mx-auto px-4">
         <h1 className="text-4xl font-bold mb-8">Comic Scanner</h1>
 
         <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8 mb-8">
@@ -43,36 +49,50 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
               Recently Added Comics
             </h2>
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {recentComics.map((comic) => (
                 <div
                   key={comic.id}
-                  className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <div className="flex-1 text-left">
-                    <div className="font-medium text-slate-900 dark:text-slate-100">
-                      {comic.series && comic.number
-                        ? `${comic.series} #${comic.number}${comic.volume ? ` (Vol. ${comic.volume})` : ''}`
-                        : comic.fileName
-                            .split('/')
-                            .pop()
-                            ?.replace(/\.[^/.]+$/, '') || comic.fileName}
+                  <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+                    <img
+                      src={getCoverPath(comic.id)}
+                      alt={
+                        comic.series && comic.number
+                          ? `${comic.series} #${comic.number}`
+                          : 'Comic cover'
+                      }
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => {
+                        // Hide broken images
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  <div className="text-sm text-center">
+                    <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
+                      <div className="line-clamp-2 leading-tight">
+                        {comic.series && comic.number
+                          ? `${comic.series} #${comic.number}`
+                          : comic.fileName
+                              .split('/')
+                              .pop()
+                              ?.replace(/\.[^/.]+$/, '') || comic.fileName}
+                      </div>
                     </div>
                     {comic.publisher && (
-                      <div className="text-sm text-slate-600 dark:text-slate-400">
+                      <div className="text-xs text-slate-600 dark:text-slate-400 truncate">
                         {comic.publisher}
                       </div>
                     )}
-                  </div>
-                  <div className="text-sm text-slate-500 dark:text-slate-500">
-                    {new Date(comic.lastSynced).toLocaleDateString()}
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
-        
+
         {lastScanTime && (
           <div className="mt-8 text-center">
             <p className="text-xs text-slate-500 dark:text-slate-400">
