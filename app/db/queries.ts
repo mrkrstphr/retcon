@@ -1,13 +1,27 @@
-import { eq, lt, count } from 'drizzle-orm';
+import { count, desc, eq, lt } from 'drizzle-orm';
 import { db } from './index.js';
 import { comics } from './schema.js';
 
 export async function getComicCount() {
-  const result = await db
-    .select({ count: count() })
-    .from(comics);
-  
+  const result = await db.select({ count: count() }).from(comics);
+
   return result[0]?.count || 0;
+}
+
+export async function getRecentComics(limit: number = 10) {
+  return await db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      series: comics.series,
+      number: comics.number,
+      volume: comics.volume,
+      publisher: comics.publisher,
+      lastSynced: comics.lastSynced,
+    })
+    .from(comics)
+    .orderBy(desc(comics.lastSynced))
+    .limit(limit);
 }
 
 export async function findComicByFileName(fileName: string) {
