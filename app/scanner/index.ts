@@ -10,7 +10,7 @@ import {
   updateComicLastSynced,
   updateComicMetadata,
 } from '../db/queries.js';
-import { extractComicMetadata, parseComicInfo } from '../lib/metadata.js';
+import { extractComicMetadata } from '../lib/metadata.js';
 
 async function processComicFiles(
   directory: string,
@@ -40,8 +40,7 @@ async function processComicFiles(
 
           if (existingFile.length === 0) {
             // Scenario 1: New file - extract metadata and insert
-            const metadata = await extractComicMetadata(fullPath);
-            const comicInfo = parseComicInfo(metadata);
+            const comicInfo = await extractComicMetadata(fullPath);
 
             await insertComic({
               fileName: fullPath,
@@ -58,8 +57,7 @@ async function processComicFiles(
               await updateComicLastSynced(fullPath, syncTime);
             } else {
               // Scenario 3: Modified file - re-extract metadata and update
-              const metadata = await extractComicMetadata(fullPath);
-              const comicInfo = parseComicInfo(metadata);
+              const comicInfo = await extractComicMetadata(fullPath);
 
               await updateComicMetadata(fullPath, {
                 fileModified: stats.mtime,
@@ -80,6 +78,7 @@ async function processComicFiles(
 
   return processedCount;
 }
+
 async function main() {
   // Default scan directory - can be overridden later with CLI args
   const scanDirectory = process.env.SCAN_DIRECTORY || './comics';
