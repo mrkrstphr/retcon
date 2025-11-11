@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
 import { v4 as uuid } from 'uuid';
+import { APP_NAME } from '../constants.js';
 import { client } from '../db/index.js';
 import {
   deleteComicsOlderThan,
@@ -13,14 +14,13 @@ import {
 } from '../db/queries.js';
 import { deleteCover, extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
-import { APP_NAME } from '../constants.js';
 
 async function processComicFiles(
   directory: string,
   syncTime: Date,
+  forceUpdate: boolean = false,
 ): Promise<number> {
   let processedCount = 0;
-
   try {
     const items = await readdir(directory);
 
@@ -30,7 +30,11 @@ async function processComicFiles(
 
       if (stats.isDirectory()) {
         // Recursively scan subdirectories
-        const subCount = await processComicFiles(fullPath, syncTime);
+        const subCount = await processComicFiles(
+          fullPath,
+          syncTime,
+          forceUpdate,
+        );
         processedCount += subCount;
       } else if (stats.isFile()) {
         // Check if file has CBZ or CBR extension
@@ -63,11 +67,14 @@ async function processComicFiles(
             const existing = existingFile[0];
             const existingModified = new Date(existing.fileModified);
 
-            if (existingModified.getTime() === stats.mtime.getTime()) {
-              // Scenario 2: Unchanged file - just update lastSynced
+            if (
+              !forceUpdate &&
+              existingModified.getTime() === stats.mtime.getTime()
+            ) {
+              // Scenario 2: Unchanged file - just update lastSynced (unless force update)
               await updateComicLastSynced(fullPath, syncTime);
             } else {
-              // Scenario 3: Modified file - re-extract metadata and update
+              // Scenario 3: Modified file OR force update - re-extract metadata and update
               const comicInfo = await extractComicMetadata(fullPath);
 
               await updateComicMetadata(fullPath, {
@@ -76,7 +83,7 @@ async function processComicFiles(
                 ...comicInfo,
               });
 
-              // Re-extract cover image since file changed
+              // Re-extract cover image since file changed or force update
               const coversDirectory = process.env.COVERS_DIRECTORY;
               if (coversDirectory) {
                 await extractCover(
@@ -101,12 +108,22 @@ async function processComicFiles(
 }
 
 async function main() {
+  // Parse command line arguments
+  const args = process.argv.slice(2);
+  const forceUpdate = args.includes('--force-update');
+
   // Default scan directory - can be overridden later with CLI args
   const scanDirectory = process.env.SCAN_DIRECTORY || './comics';
   const absolutePath = resolve(scanDirectory);
 
   console.log(chalk.blue.bold(`\n📚 ${APP_NAME}`));
   console.log(chalk.gray('─'.repeat(50)));
+
+  if (forceUpdate) {
+    console.log(
+      `🔄 ${chalk.yellow('FORCE UPDATE MODE:')} ${chalk.white('Re-processing all files regardless of modification time')}`,
+    );
+  }
 
   console.log(
     `\n🔍 ${chalk.cyan('Scanning directory:')} ${chalk.yellow(absolutePath)}`,
@@ -121,7 +138,11 @@ async function main() {
 
   // Create a single timestamp for this scan operation
   const syncTime = new Date();
-  const totalFiles = await processComicFiles(absolutePath, syncTime);
+  const totalFiles = await processComicFiles(
+    absolutePath,
+    syncTime,
+    forceUpdate,
+  );
 
   console.log(); // New line after dots
 

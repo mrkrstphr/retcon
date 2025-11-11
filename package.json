@@ -7,7 +7,9 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
     "scan": "node --env-file=.env --import tsx app/scanner/index.ts",
+    "scan:force": "node --env-file=.env --import tsx app/scanner/index.ts --force-update",
     "typecheck": "react-router typegen && tsc",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env --import tsx app/db/migrate.ts",
