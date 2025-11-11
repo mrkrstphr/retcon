@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
+import { v4 as uuid } from 'uuid';
 import { client } from '../db/index.js';
 import {
   deleteComicsOlderThan,
@@ -10,6 +11,7 @@ import {
   updateComicLastSynced,
   updateComicMetadata,
 } from '../db/queries.js';
+import { extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
 
 async function processComicFiles(
@@ -39,15 +41,23 @@ async function processComicFiles(
           const existingFile = await findComicByFileName(fullPath);
 
           if (existingFile.length === 0) {
+            const id = uuid();
             // Scenario 1: New file - extract metadata and insert
             const comicInfo = await extractComicMetadata(fullPath);
 
             await insertComic({
+              id,
               fileName: fullPath,
               fileModified: stats.mtime,
               lastSynced: syncTime,
               ...comicInfo,
             });
+
+            // Extract cover image
+            const coversDirectory = process.env.COVERS_DIRECTORY;
+            if (coversDirectory) {
+              await extractCover(id, fullPath, coversDirectory);
+            }
           } else {
             const existing = existingFile[0];
             const existingModified = new Date(existing.fileModified);
@@ -64,6 +74,16 @@ async function processComicFiles(
                 lastSynced: syncTime,
                 ...comicInfo,
               });
+
+              // Re-extract cover image since file changed
+              const coversDirectory = process.env.COVERS_DIRECTORY;
+              if (coversDirectory) {
+                await extractCover(
+                  existingFile[0].id,
+                  fullPath,
+                  coversDirectory,
+                );
+              }
             }
           }
 
