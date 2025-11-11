@@ -1,7 +1,7 @@
-import { pgTable, serial, timestamp, varchar, jsonb } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const comics = pgTable('comics', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   fileName: varchar('file_name', { length: 500 }).notNull(),
   fileModified: timestamp('file_modified').notNull(),
   lastSynced: timestamp('last_synced').notNull(),
