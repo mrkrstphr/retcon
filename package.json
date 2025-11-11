@@ -1,7 +1,7 @@
 {
-  "name": "comic-scanner",
+  "name": "rack-manager",
   "version": "1.0.0",
-  "description": "A TypeScript application that scans directories for comic book files (CBZ/CBR), extracts metadata, and stores it in PostgreSQL",
+  "description": "A comic book collection manager that scans directories for comic files (CBZ/CBR), extracts metadata, and provides a web interface for browsing your collection",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {

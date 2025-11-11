@@ -1,12 +1,13 @@
 import { getComicCount, getLastScanTime, getRecentComics } from '../db/queries';
+import { APP_NAME } from '../constants';
 import type { Route } from './+types/home';
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Comic Scanner - Home' },
+    { title: `${APP_NAME} - Home` },
     {
       name: 'description',
-      content: 'Your comic book collection scanner and catalog',
+      content: 'Organize and browse your comic book collection',
     },
   ];
 }
@@ -33,7 +34,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   return (
     <div className="py-16">
       <div className="text-center max-w-6xl mx-auto px-4">
-        <h1 className="text-4xl font-bold mb-8">Comic Scanner</h1>
+        <h1 className="text-4xl font-bold mb-8">{APP_NAME}</h1>
 
         <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8 mb-8">
           <h2 className="text-lg font-medium text-slate-600 dark:text-slate-200 mb-2">

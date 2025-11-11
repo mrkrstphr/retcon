@@ -1,6 +1,14 @@
-# comic-scanner
+# Rack Manager
 
-This app will scan a specified directory, find all CBZ or CBR files, read their metadata, either directly from the file or from an internal ComicInfo.xml file, and save them to a PostgreSQL database.
+A comic book collection manager that scans directories for comic files (CBZ/CBR), extracts metadata, and provides a web interface for browsing your collection.
+
+## Features
+
+- **Smart Scanning**: Efficiently processes CBZ and CBR files with intelligent sync logic
+- **Metadata Extraction**: Supports ComicInfo.xml and ComicBookInfo formats
+- **Cover Extraction**: Automatically generates optimized cover images
+- **Web Interface**: Beautiful card-based view of your collection
+- **PostgreSQL Storage**: Reliable database backend with full-text search capabilities
 
 For each file:
 

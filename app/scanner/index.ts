@@ -13,6 +13,7 @@ import {
 } from '../db/queries.js';
 import { deleteCover, extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
+import { APP_NAME } from '../constants.js';
 
 async function processComicFiles(
   directory: string,
@@ -104,7 +105,7 @@ async function main() {
   const scanDirectory = process.env.SCAN_DIRECTORY || './comics';
   const absolutePath = resolve(scanDirectory);
 
-  console.log(chalk.blue.bold('\n📚 Comic Scanner v1.0.0'));
+  console.log(chalk.blue.bold(`\n📚 ${APP_NAME}`));
   console.log(chalk.gray('─'.repeat(50)));
 
   console.log(
