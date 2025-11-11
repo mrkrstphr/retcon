@@ -1,4 +1,4 @@
-import { count, desc, eq, lt } from 'drizzle-orm';
+import { count, desc, eq, ilike, lt, or } from 'drizzle-orm';
 import { db } from './index.js';
 import { comics } from './schema.js';
 
@@ -86,4 +86,33 @@ export async function getLastScanTime() {
     .limit(1);
 
   return result[0]?.lastSynced || null;
+}
+
+export async function searchComics(searchTerm: string, limit: number = 50) {
+  if (!searchTerm.trim()) {
+    return [];
+  }
+
+  const searchPattern = `%${searchTerm.toLowerCase()}%`;
+
+  return await db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      series: comics.series,
+      number: comics.number,
+      volume: comics.volume,
+      publisher: comics.publisher,
+      lastSynced: comics.lastSynced,
+    })
+    .from(comics)
+    .where(
+      or(
+        ilike(comics.series, searchPattern),
+        ilike(comics.fileName, searchPattern),
+        ilike(comics.publisher, searchPattern),
+      ),
+    )
+    .orderBy(desc(comics.lastSynced))
+    .limit(limit);
 }
