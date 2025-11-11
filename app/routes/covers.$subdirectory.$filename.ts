@@ -1,11 +1,11 @@
-import { type LoaderFunctionArgs } from 'react-router';
+import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { existsSync } from 'fs';
+import { type LoaderFunctionArgs } from 'react-router';
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { subdirectory, filename } = params;
-  
+
   if (!subdirectory || !filename) {
     throw new Response('Not Found', { status: 404 });
   }
@@ -16,14 +16,14 @@ export async function loader({ params }: LoaderFunctionArgs) {
   }
 
   const filePath = join(coversDirectory, subdirectory, filename);
-  
+
   if (!existsSync(filePath)) {
     throw new Response('Cover not found', { status: 404 });
   }
 
   try {
     const fileBuffer = await readFile(filePath);
-    
+
     return new Response(fileBuffer, {
       headers: {
         'Content-Type': 'image/jpeg',

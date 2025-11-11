@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useFetcher } from 'react-router';
 import { APP_NAME } from '../constants';
 import {
   getComicCount,
   getLastScanTime,
   getRecentComics,
+  getSearchCount,
   searchComics,
 } from '../db/queries';
 import type { Route } from './+types/home';
@@ -36,13 +37,33 @@ export async function loader({}: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const searchTerm = formData.get('search') as string;
+  const offset = parseInt((formData.get('offset') as string) || '0');
+  const limit = 25;
 
   if (!searchTerm || searchTerm.trim() === '') {
-    return { searchResults: [], searchTerm: '' };
+    return {
+      searchResults: [],
+      searchTerm: '',
+      hasMore: false,
+      offset: 0,
+      totalCount: 0,
+    };
   }
 
-  const searchResults = await searchComics(searchTerm.trim());
-  return { searchResults, searchTerm: searchTerm.trim() };
+  const [searchResults, totalCount] = await Promise.all([
+    searchComics(searchTerm.trim(), limit, offset),
+    offset === 0 ? getSearchCount(searchTerm.trim()) : Promise.resolve(0), // Only get count on first page
+  ]);
+
+  const hasMore = searchResults.length === limit; // If we get full page, there might be more
+
+  return {
+    searchResults,
+    searchTerm: searchTerm.trim(),
+    hasMore,
+    offset,
+    totalCount,
+  };
 }
 
 // Helper function to generate cover image path
@@ -55,7 +76,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { comicCount, recentComics, lastScanTime } = loaderData;
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [allSearchResults, setAllSearchResults] = useState<any[]>([]);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [totalSearchCount, setTotalSearchCount] = useState(0);
   const fetcher = useFetcher<typeof action>();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Debounce search term
   useEffect(() => {
@@ -66,21 +94,125 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Trigger search when debounced term changes
+  // Reset pagination when search term changes
   useEffect(() => {
     if (debouncedSearchTerm.trim()) {
+      setAllSearchResults([]);
+      setCurrentOffset(0);
+      setIsLoadingMore(false);
+      setTotalSearchCount(0); // Reset total count
       const formData = new FormData();
       formData.append('search', debouncedSearchTerm);
+      formData.append('offset', '0');
+      fetcher.submit(formData, { method: 'POST' });
+    } else {
+      setAllSearchResults([]);
+      setCurrentOffset(0);
+      setHasMore(false);
+      setIsLoadingMore(false);
+      setTotalSearchCount(0);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Handle search results
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const {
+        searchResults,
+        hasMore: newHasMore,
+        offset,
+        totalCount,
+      } = fetcher.data;
+
+      // Batch all state updates to prevent multiple re-renders
+      if (offset === 0) {
+        // New search - replace all results
+        setAllSearchResults(searchResults);
+        setHasMore(newHasMore);
+        setCurrentOffset(offset + searchResults.length);
+        setIsLoadingMore(false);
+        if (totalCount !== undefined) {
+          setTotalSearchCount(totalCount);
+        }
+      } else {
+        // Load more - append results and restore scroll position
+        setAllSearchResults((prev) => {
+          const newResults = [...prev, ...searchResults];
+
+          // Restore scroll position after next render
+          if (scrollPosition > 0) {
+            requestAnimationFrame(() => {
+              window.scrollTo(0, scrollPosition);
+              setScrollPosition(0);
+            });
+          }
+
+          return newResults;
+        });
+
+        setHasMore(newHasMore);
+        setCurrentOffset(offset + searchResults.length);
+        setIsLoadingMore(false);
+      }
+    }
+  }, [fetcher.data, fetcher.state, scrollPosition]);
+
+  // Load more function
+  const loadMore = useCallback(() => {
+    if (
+      debouncedSearchTerm.trim() &&
+      hasMore &&
+      !isLoadingMore &&
+      fetcher.state === 'idle'
+    ) {
+      // Store current scroll position before making request
+      setScrollPosition(window.scrollY);
+      setIsLoadingMore(true);
+
+      const formData = new FormData();
+      formData.append('search', debouncedSearchTerm);
+      formData.append('offset', currentOffset.toString());
+
+      // Submit the form data
       fetcher.submit(formData, { method: 'POST' });
     }
-  }, [debouncedSearchTerm]); // Remove fetcher dependency
+  }, [
+    debouncedSearchTerm,
+    hasMore,
+    isLoadingMore,
+    fetcher.state,
+    currentOffset,
+  ]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '100px', // Trigger 100px before the element comes into view
+      },
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const isSearching = !!searchTerm.trim();
-  const searchResults = fetcher.data?.searchResults || [];
-  const displayComics = isSearching ? searchResults : recentComics;
-  const isLoading = fetcher.state === 'submitting';
+  const displayComics = isSearching ? allSearchResults : recentComics;
+  const isInitialLoading =
+    fetcher.state === 'submitting' && currentOffset === 0;
   const hasSearchCompleted =
-    isSearching && fetcher.state === 'idle' && fetcher.data !== undefined;
+    isSearching &&
+    (fetcher.state === 'idle' || isLoadingMore) &&
+    (fetcher.data !== undefined || allSearchResults.length > 0);
 
   return (
     <div className="py-16">
@@ -127,7 +259,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 placeholder="Search by series, filename, or publisher..."
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {searchTerm && !isLoading && (
+                {searchTerm && !isInitialLoading && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
@@ -149,7 +281,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     </svg>
                   </button>
                 )}
-                {isLoading && (
+                {isInitialLoading && (
                   <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                 )}
               </div>
@@ -158,7 +290,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
 
         {/* Loading state when searching */}
-        {isSearching && isLoading && (
+        {isSearching && isInitialLoading && (
           <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
             <div className="text-center text-slate-500 dark:text-slate-400">
               <div className="flex items-center justify-center mb-4">
@@ -170,60 +302,84 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         )}
 
         {/* Results (either search results or recent comics) */}
-        {(!isSearching ||
-          (isSearching && hasSearchCompleted && searchResults.length > 0)) &&
-          displayComics.length > 0 && (
-            <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
-              <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
-                {isSearching
-                  ? `Search Results (${searchResults.length})`
-                  : 'Recently Added Comics'}
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {displayComics.map((comic) => (
-                  <div
-                    key={comic.id}
-                    className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
-                      <img
-                        src={getCoverPath(comic.id)}
-                        alt={
-                          comic.series && comic.number
-                            ? `${comic.series} #${comic.number}`
-                            : 'Comic cover'
-                        }
-                        className="w-full h-full object-cover object-top"
-                        onError={(e) => {
-                          // Hide broken images
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                    <div className="text-sm text-center">
-                      <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                        <div className="line-clamp-2 leading-tight">
-                          {comic.series && comic.number
-                            ? `${comic.series} #${comic.number}`
-                            : comic.fileName
-                                .split('/')
-                                .pop()
-                                ?.replace(/\.[^/.]+$/, '') || comic.fileName}
-                        </div>
-                      </div>
-                      {comic.publisher && (
-                        <div className="text-xs text-slate-600 dark:text-slate-400 truncate">
-                          {comic.publisher}
-                        </div>
-                      )}
-                    </div>
+        {displayComics.length > 0 && !isInitialLoading && (
+          <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
+              {isSearching
+                ? `Search Results (${totalSearchCount > 0 ? totalSearchCount : allSearchResults.length})`
+                : 'Recently Added Comics'}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {displayComics.map((comic) => (
+                <Link
+                  key={comic.id}
+                  to={`/comic/${comic.id}`}
+                  className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
+                >
+                  <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+                    <img
+                      src={getCoverPath(comic.id)}
+                      alt={
+                        comic.series && comic.number
+                          ? `${comic.series} #${comic.number}`
+                          : 'Comic cover'
+                      }
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => {
+                        // Hide broken images
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
                   </div>
-                ))}
-              </div>
+                  <div className="text-sm text-center">
+                    <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
+                      <div className="line-clamp-2 leading-tight">
+                        {comic.series && comic.number
+                          ? `${comic.series} #${comic.number}`
+                          : comic.fileName
+                              .split('/')
+                              .pop()
+                              ?.replace(/\.[^/.]+$/, '') || comic.fileName}
+                      </div>
+                    </div>
+                    {comic.publisher && (
+                      <div className="text-xs text-slate-600 dark:text-slate-400 truncate">
+                        {comic.publisher}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
             </div>
-          )}
 
-        {isSearching && hasSearchCompleted && searchResults.length === 0 && (
+            {/* Load more section for search results */}
+            {isSearching && (
+              <div className="mt-8">
+                {hasMore && (
+                  <div ref={loadMoreRef} className="text-center">
+                    {isLoadingMore ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>
+                        <span className="text-slate-600 dark:text-slate-400">
+                          Loading more comics...
+                        </span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={loadMore}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors"
+                      >
+                        Load More
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {isSearching && hasSearchCompleted && allSearchResults.length === 0 && (
           <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
             <div className="text-center text-slate-500 dark:text-slate-400">
               <svg

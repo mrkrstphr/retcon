@@ -32,6 +32,16 @@ export async function findComicByFileName(fileName: string) {
     .limit(1);
 }
 
+export async function getComicById(id: string) {
+  const result = await db
+    .select()
+    .from(comics)
+    .where(eq(comics.id, id))
+    .limit(1);
+
+  return result[0] || null;
+}
+
 export async function insertComic(data: {
   fileName: string;
   fileModified: Date;
@@ -88,7 +98,12 @@ export async function getLastScanTime() {
   return result[0]?.lastSynced || null;
 }
 
-export async function searchComics(searchTerm: string, limit: number = 50) {
+export async function searchComics(
+  searchTerm: string,
+  limit: number = 25,
+  offset: number = 0,
+) {
+  await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate async delay
   if (!searchTerm.trim()) {
     return [];
   }
@@ -114,5 +129,27 @@ export async function searchComics(searchTerm: string, limit: number = 50) {
       ),
     )
     .orderBy(desc(comics.lastSynced))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getSearchCount(searchTerm: string) {
+  if (!searchTerm.trim()) {
+    return 0;
+  }
+
+  const searchPattern = `%${searchTerm.toLowerCase()}%`;
+
+  const result = await db
+    .select({ count: count() })
+    .from(comics)
+    .where(
+      or(
+        ilike(comics.series, searchPattern),
+        ilike(comics.fileName, searchPattern),
+        ilike(comics.publisher, searchPattern),
+      ),
+    );
+
+  return result[0]?.count || 0;
 }
