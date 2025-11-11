@@ -1,6 +1,14 @@
-import { eq, lt } from 'drizzle-orm';
+import { eq, lt, count } from 'drizzle-orm';
 import { db } from './index.js';
 import { comics } from './schema.js';
+
+export async function getComicCount() {
+  const result = await db
+    .select({ count: count() })
+    .from(comics);
+  
+  return result[0]?.count || 0;
+}
 
 export async function findComicByFileName(fileName: string) {
   return await db

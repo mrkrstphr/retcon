@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
-import { client } from './db/index.js';
+import { client } from '../db/index.js';
 import {
   deleteComicsOlderThan,
   findComicByFileName,
@@ -9,8 +9,8 @@ import {
   insertComic,
   updateComicLastSynced,
   updateComicMetadata,
-} from './db/queries.js';
-import { extractComicMetadata, parseComicInfo } from './lib/metadata.js';
+} from '../db/queries.js';
+import { extractComicMetadata, parseComicInfo } from '../lib/metadata.js';
 
 async function processComicFiles(
   directory: string,
