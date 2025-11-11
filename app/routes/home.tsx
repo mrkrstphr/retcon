@@ -1,4 +1,4 @@
-import { getComicCount, getRecentComics } from '../db/queries';
+import { getComicCount, getRecentComics, getLastScanTime } from '../db/queries';
 import type { Route } from './+types/home';
 
 export function meta({}: Route.MetaArgs) {
@@ -12,16 +12,17 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({}: Route.LoaderArgs) {
-  const [comicCount, recentComics] = await Promise.all([
+  const [comicCount, recentComics, lastScanTime] = await Promise.all([
     getComicCount(),
     getRecentComics(10),
+    getLastScanTime(),
   ]);
 
-  return { comicCount, recentComics };
+  return { comicCount, recentComics, lastScanTime };
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { comicCount, recentComics } = loaderData;
+  const { comicCount, recentComics, lastScanTime } = loaderData;
 
   return (
     <div className="py-16">
@@ -69,6 +70,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+        
+        {lastScanTime && (
+          <div className="mt-8 text-center">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Last scan: {new Date(lastScanTime).toLocaleString()}
+            </p>
           </div>
         )}
       </div>

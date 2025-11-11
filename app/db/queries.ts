@@ -77,3 +77,13 @@ export async function findComicsToDelete(syncTime: Date) {
 export async function deleteComicsOlderThan(syncTime: Date) {
   return await db.delete(comics).where(lt(comics.lastSynced, syncTime));
 }
+
+export async function getLastScanTime() {
+  const result = await db
+    .select({ lastSynced: comics.lastSynced })
+    .from(comics)
+    .orderBy(desc(comics.lastSynced))
+    .limit(1);
+
+  return result[0]?.lastSynced || null;
+}
