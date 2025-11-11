@@ -11,7 +11,7 @@ import {
   updateComicLastSynced,
   updateComicMetadata,
 } from '../db/queries.js';
-import { extractCover } from '../lib/covers.js';
+import { deleteCover, extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
 
 async function processComicFiles(
@@ -127,12 +127,20 @@ async function main() {
   // Clean up missing files from database
   console.log(`\n🧹 ${chalk.cyan('Cleaning up missing files...')}`);
 
-  // First, count how many records will be deleted
-  const toDeleteCount = await findComicsToDelete(syncTime);
-  const deletedCount = toDeleteCount.length;
+  // First, get records that will be deleted to clean up their covers
+  const toDeleteRecords = await findComicsToDelete(syncTime);
+  const deletedCount = toDeleteRecords.length;
 
-  // Then delete them
+  // Delete cover files for comics that will be removed
   if (deletedCount > 0) {
+    const coversDirectory = process.env.COVERS_DIRECTORY;
+    if (coversDirectory) {
+      for (const record of toDeleteRecords) {
+        await deleteCover(record.id, coversDirectory);
+      }
+    }
+
+    // Then delete the database records
     await deleteComicsOlderThan(syncTime);
   }
 

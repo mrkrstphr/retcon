@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, unlink, writeFile } from 'fs/promises';
 import StreamZip from 'node-stream-zip';
 import { basename, extname, join } from 'path';
 
@@ -145,5 +145,39 @@ export async function extractCover(
   } catch (error) {
     console.error(`   ❌ Error extracting cover from ${comicFilePath}:`, error);
     return null;
+  }
+}
+
+/**
+ * Delete cover image file for a comic
+ */
+export async function deleteCover(
+  id: string,
+  coversDirectory: string,
+): Promise<boolean> {
+  if (!coversDirectory) {
+    return false;
+  }
+
+  try {
+    const subdirectory = id[0].toLowerCase();
+    const outputDir = join(coversDirectory, subdirectory);
+
+    // Try common image extensions
+    const extensions = ['.jpg', '.jpeg', '.png', '.webp'];
+
+    for (const ext of extensions) {
+      const coverPath = join(outputDir, `${id}${ext}`);
+
+      if (existsSync(coverPath)) {
+        await unlink(coverPath);
+        return true;
+      }
+    }
+
+    return false; // No cover file found
+  } catch (error) {
+    console.error(`   ❌ Error deleting cover for ${id}:`, error);
+    return false;
   }
 }
