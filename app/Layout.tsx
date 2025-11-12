@@ -1,3 +1,4 @@
+import { ImBooks } from 'react-icons/im';
 import { Link, Outlet, useLocation, type LinkProps } from 'react-router';
 import { APP_NAME } from './constants';
 
@@ -25,7 +26,8 @@ export default function Layout() {
     <div className="py-8">
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-4xl text-center font-bold mb-4">
-          <Link to="/" className="no-underline!">
+          <Link to="/" className="no-underline! inline-flex items-center gap-2">
+            <ImBooks />
             {APP_NAME}
           </Link>
         </h1>

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { IoMdClose, IoMdSearch } from 'react-icons/io';
+import { LuBookDashed } from 'react-icons/lu';
 import { Link, useFetcher } from 'react-router';
 import { getCoverPath } from '~/lib/getCoverPath';
 import { APP_NAME } from '../constants';
@@ -228,19 +230,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg
-                className="h-5 w-5 text-slate-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+              <IoMdSearch className="h-5 w-5 text-slate-400" />
             </div>
             <input
               type="text"
@@ -258,19 +248,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none focus:text-slate-600 dark:focus:text-slate-200 mr-2"
                   aria-label="Clear search"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <IoMdClose className="h-5 w-5" />
                 </button>
               )}
               {isInitialLoading && (
@@ -374,19 +352,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       {isSearching && hasSearchCompleted && allSearchResults.length === 0 && (
         <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
           <div className="text-center text-slate-500 dark:text-slate-400">
-            <svg
-              className="mx-auto h-12 w-12 mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <LuBookDashed className="mx-auto h-12 w-12 mb-4" />
             <p>No comics found matching "{searchTerm}"</p>
           </div>
         </div>
