@@ -16,6 +16,7 @@ import {
   updateComicMetadata,
 } from '../db/queries.js';
 import { deleteCover, extractCover } from '../lib/covers.js';
+import { getSortedImagesFromZip } from '../lib/getSortedImagesFromZip.js';
 import { extractComicMetadata } from '../lib/metadata.js';
 import { createComicSlug } from '../lib/slugs.js';
 
@@ -115,12 +116,25 @@ async function processComicFiles(
               fullPath,
             );
 
+            // Calculate page count from archive
+            let pageCount = 0;
+            try {
+              const images = await getSortedImagesFromZip(fullPath);
+              pageCount = images.length;
+            } catch (error) {
+              console.warn(
+                `   ⚠️  Could not get page count for ${fullPath}:`,
+                error,
+              );
+            }
+
             const [{ insertedId: id }] = await insertComic({
               fileName: fullPath,
               fileModified: stats.mtime,
               lastSynced: syncTime,
               ...comicInfo,
               slug,
+              pageCount,
               publisherId,
               seriesId,
             });
@@ -164,11 +178,24 @@ async function processComicFiles(
                 fullPath,
               );
 
+              // Calculate page count from archive
+              let pageCount = 0;
+              try {
+                const images = await getSortedImagesFromZip(fullPath);
+                pageCount = images.length;
+              } catch (error) {
+                console.warn(
+                  `   ⚠️  Could not get page count for ${fullPath}:`,
+                  error,
+                );
+              }
+
               await updateComicMetadata(fullPath, {
                 fileModified: stats.mtime,
                 lastSynced: syncTime,
                 ...comicInfo,
                 slug,
+                pageCount,
                 publisherId,
                 seriesId,
               });

@@ -41,6 +41,8 @@ export async function getComicById(id: number) {
     .select({
       id: comics.id,
       fileName: comics.fileName,
+      slug: comics.slug,
+      pageCount: comics.pageCount,
       fileModified: comics.fileModified,
       lastSynced: comics.lastSynced,
       series: series.name,
@@ -66,6 +68,7 @@ export async function insertComic(data: {
   fileModified: Date;
   lastSynced: Date;
   slug: string;
+  pageCount: number;
   series?: string | null;
   number?: string | null;
   volume?: string | null;
@@ -95,6 +98,7 @@ export async function updateComicMetadata(
     fileModified: Date;
     lastSynced: Date;
     slug: string;
+    pageCount: number;
     series?: string | null;
     number?: string | null;
     volume?: string | null;

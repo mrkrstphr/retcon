@@ -1,0 +1,1 @@
+ALTER TABLE "comics" ADD COLUMN "page_count" integer DEFAULT 0 NOT NULL;

@@ -35,6 +35,7 @@ export const comics = pgTable('comics', {
   slug: varchar('slug', { length: 400 }).notNull(),
   number: varchar('number', { length: 50 }),
   volume: varchar('volume', { length: 50 }),
+  pageCount: integer('page_count').default(0).notNull(),
   publisherId: bigint('publisher_id', { mode: 'number' }).references(
     () => publishers.id,
   ),

@@ -26,6 +26,10 @@ export const loader = async ({ params }: Route.LoaderArgs) => {
     throw new Response('Comic not found', { status: 404 });
   }
 
+  if (comic.pageCount < pageNumber) {
+    throw new Response('Page not found', { status: 404 });
+  }
+
   try {
     // Get all image files from the comic archive
     const imageFiles = await getSortedImagesFromZip(comic.fileName);
