@@ -7,7 +7,7 @@ import {
   getPublisherComicCount,
   getPublisherSeriesWithCounts,
 } from '../db/queries';
-import type { Route } from './+types/publishers.$slug';
+import type { Route } from './+types/PublisherDetails';
 
 export function meta({ params }: Route.MetaArgs) {
   return [

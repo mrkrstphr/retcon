@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { getCoverPath } from '~/lib/getCoverPath';
 import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
-import type { Route } from './+types/comic.$id';
+import type { Route } from './+types/ComicDetails';
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [

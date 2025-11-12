@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { NoResults } from '~/components/NoResults';
 import { APP_NAME } from '../constants';
 import { getPublishersWithCounts } from '../db/queries';
-import type { Route } from './+types/publishers';
+import type { Route } from './+types/Publishers';
 
 export function meta() {
   return [
