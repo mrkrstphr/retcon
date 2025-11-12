@@ -3,6 +3,7 @@ import { IoMdClose, IoMdSearch } from 'react-icons/io';
 import { Link, useFetcher } from 'react-router';
 import { NoResults } from '~/components/NoResults';
 import { getCoverPath } from '~/lib/getCoverPath';
+import { comicDetailsHref } from '~/lib/links';
 import { APP_NAME } from '../constants';
 import {
   getComicCount,
@@ -283,7 +284,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             {displayComics.map((comic) => (
               <Link
                 key={comic.id}
-                to={`/comic/${comic.id}`}
+                to={comicDetailsHref(comic)}
                 className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
               >
                 <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">

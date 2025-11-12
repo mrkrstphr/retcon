@@ -2,6 +2,7 @@ import Markdown from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { getCoverPath } from '~/lib/getCoverPath';
+import { sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
 import type { Route } from './+types/ComicDetails';
@@ -19,7 +20,8 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const comic = await getComicById(Number(params.id));
+  const id = sqidToId(params.sqid);
+  const comic = await getComicById(id);
 
   if (!comic) {
     throw new Response('Comic not found', { status: 404 });

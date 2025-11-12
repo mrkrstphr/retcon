@@ -28,9 +28,10 @@ type Pages = {
       "slug": string;
     };
   };
-  "/comic/:id": {
+  "/comic/:sqid/:slug": {
     params: {
-      "id": string;
+      "sqid": string;
+      "slug": string;
     };
   };
   "/login": {
@@ -44,11 +45,11 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:id" | "/login" | "/logout";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page";
   };
   "./Layout.tsx": {
     id: "Layout";
-    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:id";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug";
   };
   "routes/Home.tsx": {
     id: "routes/Home";
@@ -68,7 +69,7 @@ type RouteFiles = {
   };
   "routes/ComicDetails.tsx": {
     id: "routes/ComicDetails";
-    page: "/comic/:id";
+    page: "/comic/:sqid/:slug";
   };
   "./AuthLayout.tsx": {
     id: "AuthLayout";

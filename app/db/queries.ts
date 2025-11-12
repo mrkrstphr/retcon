@@ -14,6 +14,7 @@ export async function getRecentComics(limit: number = 10) {
     .select({
       id: comics.id,
       fileName: comics.fileName,
+      slug: comics.slug,
       series: series.name,
       number: comics.number,
       volume: comics.volume,
@@ -139,6 +140,7 @@ export async function searchComics(
     .select({
       id: comics.id,
       fileName: comics.fileName,
+      slug: comics.slug,
       series: series.name,
       number: comics.number,
       volume: comics.volume,
