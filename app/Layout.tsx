@@ -1,6 +1,16 @@
+import { useState } from 'react';
+import { HiUserCircle } from 'react-icons/hi';
 import { ImBooks } from 'react-icons/im';
-import { Link, Outlet, useLocation, type LinkProps } from 'react-router';
+import {
+  Link,
+  Outlet,
+  redirect,
+  useLocation,
+  type LinkProps,
+} from 'react-router';
+import type { Route } from './+types/Layout';
 import { APP_NAME } from './constants';
+import { getUser } from './lib/getUser';
 
 const NavLink = ({ to, children }: LinkProps) => {
   const location = useLocation();
@@ -19,19 +29,60 @@ const NavLink = ({ to, children }: LinkProps) => {
   );
 };
 
-export default function Layout() {
+async function protectRoute(request: Request) {
+  const user = await getUser(request);
+
+  if (!user) {
+    throw redirect('/login');
+  }
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  await protectRoute(request);
+
+  const user = await getUser(request);
+
+  return { user };
+}
+
+export default function Layout({ loaderData }: Route.ComponentProps) {
+  const { user } = loaderData;
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
   return (
     <div className="py-8">
       <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-4xl text-center font-bold mb-4">
-          <Link to="/" className="no-underline! inline-flex items-center gap-2">
-            <ImBooks />
-            {APP_NAME}
-          </Link>
-        </h1>
+        <div className="w-full flex items-center gap-2">
+          <h1 className="text-4xl font-bold mb-4 flex-1">
+            <Link
+              to="/"
+              className="no-underline! inline-flex items-center gap-2"
+            >
+              <ImBooks />
+              {APP_NAME}
+            </Link>
+          </h1>
+
+          <div className="relative">
+            <HiUserCircle
+              className="size-8 hover:text-orange-600 dark:hover:text-orange-400 cursor-pointer"
+              onClick={() => setUserMenuOpen((open) => !open)}
+            />
+            {userMenuOpen && (
+              <div className="bg-slate-950 border border-slate-800 p-2 rounded-md shadow absolute right-0 mt-1">
+                <div className="whitespace-nowrap p-2">
+                  Hello, {user.email.substr(0, user.email.indexOf('@'))}
+                </div>
+                <div className="bg-slate-900 rounded-md p-4">
+                  <Link to="/logout">Logout</Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Navigation */}
-        <nav className="flex justify-center mb-8">
+        <nav className="flex align-center mb-8 w-full">
           <div className="flex space-x-6">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/publishers">Publishers</NavLink>

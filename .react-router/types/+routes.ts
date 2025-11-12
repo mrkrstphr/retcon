@@ -33,12 +33,18 @@ type Pages = {
       "id": string;
     };
   };
+  "/login": {
+    params: {};
+  };
+  "/logout": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:id";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:id" | "/login" | "/logout";
   };
   "./Layout.tsx": {
     id: "Layout";
@@ -64,6 +70,18 @@ type RouteFiles = {
     id: "routes/ComicDetails";
     page: "/comic/:id";
   };
+  "./AuthLayout.tsx": {
+    id: "AuthLayout";
+    page: "/login";
+  };
+  "routes/Login.tsx": {
+    id: "routes/Login";
+    page: "/login";
+  };
+  "routes/Logout.tsx": {
+    id: "routes/Logout";
+    page: "/logout";
+  };
 };
 
 type RouteModules = {
@@ -74,4 +92,7 @@ type RouteModules = {
   "routes/PublisherDetails": typeof import("./app/routes/PublisherDetails.tsx");
   "routes/SeriesDetails": typeof import("./app/routes/SeriesDetails.tsx");
   "routes/ComicDetails": typeof import("./app/routes/ComicDetails.tsx");
+  "AuthLayout": typeof import("./app/./AuthLayout.tsx");
+  "routes/Login": typeof import("./app/routes/Login.tsx");
+  "routes/Logout": typeof import("./app/routes/Logout.tsx");
 };

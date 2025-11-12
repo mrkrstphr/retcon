@@ -1,6 +1,8 @@
 import {
   bigint,
   bigserial,
+  boolean,
+  integer,
   jsonb,
   pgTable,
   timestamp,
@@ -38,4 +40,22 @@ export const comics = pgTable('comics', {
   seriesId: bigint('series_id', { mode: 'number' }).references(() => series.id),
   metadata: jsonb('metadata').$type<Metadata>().notNull().default({}),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const users = pgTable('users', {
+  id: bigserial('id', { mode: 'number' }).primaryKey().notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const userComics = pgTable('user_comics', {
+  id: bigserial('id', { mode: 'number' }).primaryKey().notNull(),
+  userId: bigint('user_id', { mode: 'number' }).references(() => users.id),
+  comicId: bigint('comic_id', { mode: 'number' }).references(() => comics.id),
+  isRead: boolean('is_read').default(false).notNull(),
+  currentPage: integer('current_page').default(1).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

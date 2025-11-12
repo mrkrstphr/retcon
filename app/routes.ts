@@ -13,4 +13,6 @@ export default [
     route('series/:sqid/:slug', 'routes/SeriesDetails.tsx'),
     route('comic/:id', 'routes/ComicDetails.tsx'),
   ]),
+  layout('./AuthLayout.tsx', [route('login', 'routes/Login.tsx')]),
+  route('logout', 'routes/Logout.tsx'),
 ] satisfies RouteConfig;
