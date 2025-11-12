@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
-import { v4 as uuid } from 'uuid';
 import { APP_NAME } from '../constants.js';
 import { client } from '../db/index.js';
 import {
@@ -20,7 +19,7 @@ import { deleteCover, extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
 
 // Global publisher map for efficient lookups
-type PublisherMap = Map<string, string>; // {[name]: id}
+type PublisherMap = Map<string, number>; // {[name]: id}
 
 /**
  * Get or create a publisher and return its ID
@@ -28,7 +27,7 @@ type PublisherMap = Map<string, string>; // {[name]: id}
 async function getOrCreatePublisher(
   publisherName: string,
   publisherMap: PublisherMap,
-): Promise<string | null> {
+): Promise<number | null> {
   if (!publisherName?.trim()) {
     return null;
   }
@@ -43,7 +42,7 @@ async function getOrCreatePublisher(
   // Try to find existing publisher in database
   let existingPublisher = await findPublisherByName(trimmedName);
 
-  let publisherId: string;
+  let publisherId: number;
 
   // If not found, create new publisher
   if (!existingPublisher) {
@@ -92,7 +91,6 @@ async function processComicFiles(
           const existingFile = await findComicByFileName(fullPath);
 
           if (existingFile.length === 0) {
-            const id = uuid();
             // Scenario 1: New file - extract metadata and insert
             const comicInfo = await extractComicMetadata(fullPath);
 
@@ -109,8 +107,7 @@ async function processComicFiles(
             );
             const seriesId = seriesRecord?.id || null;
 
-            await insertComic({
-              id,
+            const [{ insertedId: id }] = await insertComic({
               fileName: fullPath,
               fileModified: stats.mtime,
               lastSynced: syncTime,

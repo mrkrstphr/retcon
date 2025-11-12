@@ -1,4 +1,4 @@
-export const getCoverPath = (id: string) => {
-  const subdirectory = id[0].toLowerCase();
+export const getCoverPath = (id: number) => {
+  const subdirectory = id.toString()[0].toLowerCase();
   return `/covers/${subdirectory}/${id}.jpg`;
 };

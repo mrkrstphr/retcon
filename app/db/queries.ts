@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, lt, or } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, lt, or, sql } from 'drizzle-orm';
 import { createSlug, normalizePublisherName } from '../lib/slugs.js';
 import { db } from './index.js';
 import { comics, publishers, series } from './schema.js';
@@ -35,7 +35,7 @@ export async function findComicByFileName(fileName: string) {
     .limit(1);
 }
 
-export async function getComicById(id: string) {
+export async function getComicById(id: number) {
   const result = await db
     .select({
       id: comics.id,
@@ -46,7 +46,7 @@ export async function getComicById(id: string) {
       number: comics.number,
       volume: comics.volume,
       publisher: publishers.name,
-      publisherId: comics.publisherId,
+      publisherSlug: publishers.slug,
       seriesId: comics.seriesId,
       metadata: comics.metadata,
       createdAt: comics.createdAt,
@@ -67,11 +67,14 @@ export async function insertComic(data: {
   series?: string | null;
   number?: string | null;
   volume?: string | null;
-  publisherId?: string | null;
-  seriesId?: string | null;
+  publisherId?: number | null;
+  seriesId?: number | null;
   metadata?: any;
 }) {
-  return await db.insert(comics).values(data);
+  return await db
+    .insert(comics)
+    .values(data)
+    .returning({ insertedId: comics.id });
 }
 
 export async function updateComicLastSynced(
@@ -92,8 +95,8 @@ export async function updateComicMetadata(
     series?: string | null;
     number?: string | null;
     volume?: string | null;
-    publisherId?: string | null;
-    seriesId?: string | null;
+    publisherId?: number | null;
+    seriesId?: number | null;
     metadata?: any;
   },
 ) {
@@ -190,7 +193,11 @@ export async function getPublishersWithCounts() {
     .groupBy(publishers.id, publishers.name, publishers.slug)
     .orderBy(desc(count()), publishers.name);
 
-  return result.map(({ publisher, slug, count }) => ({ publisher, slug, count }));
+  return result.map(({ publisher, slug, count }) => ({
+    publisher,
+    slug,
+    count,
+  }));
 }
 
 // Publisher functions
@@ -235,7 +242,7 @@ export async function createPublisher(name: string) {
   return result[0];
 }
 
-export async function getPublisherById(id: string) {
+export async function getPublisherById(id: number) {
   const result = await db
     .select()
     .from(publishers)
@@ -246,11 +253,11 @@ export async function getPublisherById(id: string) {
 }
 
 // Series functions
-export async function findSeriesByName(name: string, publisherId?: string) {
+export async function findSeriesByName(name: string, publisherId?: number) {
   const normalizedName = name.trim();
-  
+
   const conditions = [eq(series.name, normalizedName)];
-  
+
   // If publisherId is provided, also filter by publisher
   if (publisherId) {
     conditions.push(eq(series.publisherId, publisherId));
@@ -265,7 +272,7 @@ export async function findSeriesByName(name: string, publisherId?: string) {
   return result[0] || null;
 }
 
-export async function createSeries(name: string, publisherId?: string) {
+export async function createSeries(name: string, publisherId?: number) {
   const normalizedName = name.trim();
   const slug = createSlug(normalizedName);
 
@@ -287,14 +294,14 @@ export async function createSeries(name: string, publisherId?: string) {
   return result[0];
 }
 
-export async function getOrCreateSeries(name: string, publisherId?: string) {
+export async function getOrCreateSeries(name: string, publisherId?: number) {
   if (!name?.trim()) {
     return null;
   }
 
   // Try to find existing series
   let existingSeries = await findSeriesByName(name, publisherId);
-  
+
   // If not found, create new series
   if (!existingSeries) {
     existingSeries = await createSeries(name, publisherId);
@@ -303,10 +310,19 @@ export async function getOrCreateSeries(name: string, publisherId?: string) {
   return existingSeries;
 }
 
-export async function getSeriesById(id: string) {
+export async function getSeriesById(id: number) {
   const result = await db
-    .select()
+    .select({
+      id: series.id,
+      name: series.name,
+      slug: series.slug,
+      publisherId: series.publisherId,
+      publisher: publishers.name,
+      publisherSlug: publishers.slug,
+      createdAt: series.createdAt,
+    })
     .from(series)
+    .leftJoin(publishers, eq(series.publisherId, publishers.id))
     .where(eq(series.id, id))
     .limit(1);
 
@@ -324,7 +340,7 @@ export async function getPublisherBySlug(slug: string) {
   return result[0] || null;
 }
 
-export async function getPublisherSeriesWithCounts(publisherId: string) {
+export async function getPublisherSeriesWithCounts(publisherId: number) {
   const result = await db
     .select({
       id: series.id,
@@ -341,11 +357,48 @@ export async function getPublisherSeriesWithCounts(publisherId: string) {
   return result;
 }
 
-export async function getPublisherComicCount(publisherId: string) {
+export async function getPublisherComicCount(publisherId: number) {
   const result = await db
     .select({ count: count() })
     .from(comics)
     .where(eq(comics.publisherId, publisherId));
+
+  return result[0]?.count || 0;
+}
+
+// Series details queries
+
+export async function getSeriesComics(
+  seriesId: number,
+  limit: number = 25,
+  offset: number = 0,
+) {
+  return await db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      number: comics.number,
+      volume: comics.volume,
+      metadata: comics.metadata,
+      createdAt: comics.createdAt,
+    })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId))
+    .orderBy(
+      // Sort by number (numeric), then by created date
+      sql`CASE WHEN ${comics.number} ~ '^[0-9]+$' THEN CAST(${comics.number} AS INTEGER) ELSE 999999 END`,
+      comics.number,
+      desc(comics.createdAt),
+    )
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getSeriesComicCount(seriesId: number) {
+  const result = await db
+    .select({ count: count() })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId));
 
   return result[0]?.count || 0;
 }

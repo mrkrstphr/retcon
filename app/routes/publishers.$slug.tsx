@@ -1,38 +1,15 @@
 import { Link } from 'react-router';
 import { NoResults } from '~/components/NoResults';
+import { sqids } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
 import {
   getPublisherBySlug,
   getPublisherComicCount,
   getPublisherSeriesWithCounts,
 } from '../db/queries';
+import type { Route } from './+types/publishers.$slug';
 
-type LoaderData = {
-  publisher: {
-    id: string;
-    name: string;
-    slug: string;
-    createdAt: Date;
-  };
-  totalComics: number;
-  allSeries: {
-    id: string;
-    name: string;
-    slug: string;
-    comicCount: number;
-  }[];
-  series: {
-    id: string;
-    name: string;
-    slug: string;
-    comicCount: number;
-  }[];
-  currentPage: number;
-  totalPages: number;
-  totalSeries: number;
-};
-
-export function meta({ params }: { params: { slug: string } }) {
+export function meta({ params }: Route.MetaArgs) {
   return [
     { title: `Publisher: ${decodeURIComponent(params.slug)} - ${APP_NAME}` },
     {
@@ -48,7 +25,7 @@ export async function loader({
 }: {
   params: { slug: string };
   request: Request;
-}): Promise<LoaderData> {
+}) {
   const publisher = await getPublisherBySlug(params.slug);
 
   if (!publisher) {
@@ -82,11 +59,7 @@ export async function loader({
   };
 }
 
-export default function PublisherDetails({
-  loaderData,
-}: {
-  loaderData: LoaderData;
-}) {
+export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
   const {
     publisher,
     totalComics,
@@ -159,7 +132,7 @@ export default function PublisherDetails({
                   >
                     <td className="px-8 py-4 whitespace-nowrap">
                       <Link
-                        to={`/series/${seriesItem.slug}`}
+                        to={`/series/${sqids.encode([seriesItem.id])}/${seriesItem.slug}`}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
                       >
                         {seriesItem.name}

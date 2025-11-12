@@ -2,16 +2,7 @@ import { Link } from 'react-router';
 import { NoResults } from '~/components/NoResults';
 import { APP_NAME } from '../constants';
 import { getPublishersWithCounts } from '../db/queries';
-
-type PublisherData = {
-  publisher: string;
-  slug: string;
-  count: number;
-};
-
-type LoaderData = {
-  publishers: PublisherData[];
-};
+import type { Route } from './+types/publishers';
 
 export function meta() {
   return [
@@ -23,7 +14,7 @@ export function meta() {
   ];
 }
 
-export async function loader(): Promise<LoaderData> {
+export async function loader() {
   const publishers = await getPublishersWithCounts();
   return { publishers };
 }
@@ -55,7 +46,7 @@ const getPublisherColor = (publisherName: string): string => {
   return colors[charCode % colors.length];
 };
 
-export default function Publishers({ loaderData }: { loaderData: LoaderData }) {
+export default function Publishers({ loaderData }: Route.ComponentProps) {
   const { publishers } = loaderData;
   return (
     <div>
@@ -73,7 +64,7 @@ export default function Publishers({ loaderData }: { loaderData: LoaderData }) {
       {publishers.length > 0 ? (
         <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {publishers.map(({ publisher, slug, count }: PublisherData) => (
+            {publishers.map(({ publisher, slug, count }) => (
               <Link
                 key={publisher}
                 to={`/publishers/${slug}`}

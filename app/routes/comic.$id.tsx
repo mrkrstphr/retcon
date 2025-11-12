@@ -6,9 +6,11 @@ import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
 import type { Route } from './+types/comic.$id';
 
-export function meta({ params }: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: `Comic Details - ${APP_NAME}` },
+    {
+      title: `${loaderData.comic.series} #${loaderData.comic.number} - ${APP_NAME}`,
+    },
     {
       name: 'description',
       content: 'View comic book details and metadata',
@@ -17,7 +19,7 @@ export function meta({ params }: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const comic = await getComicById(params.id);
+  const comic = await getComicById(Number(params.id));
 
   if (!comic) {
     throw new Response('Comic not found', { status: 404 });
@@ -143,7 +145,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
                   {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
                   {comic.publisher ? (
                     <span>
-                      <Link to={`/publishers/${comic.publisherId}`}>
+                      <Link to={`/publishers/${comic.publisherSlug}`}>
                         {comic.publisher}
                       </Link>
                     </span>

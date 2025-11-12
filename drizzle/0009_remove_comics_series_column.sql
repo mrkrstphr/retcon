@@ -1,1 +1,0 @@
-ALTER TABLE "comics" DROP COLUMN IF EXISTS "series";

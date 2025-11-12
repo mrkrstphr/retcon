@@ -86,7 +86,7 @@ async function resizeImage(imageBuffer: Buffer): Promise<Buffer> {
  * Extract and save cover image from a comic file
  */
 export async function extractCover(
-  id: string,
+  id: number,
   comicFilePath: string,
   coversDirectory: string,
 ): Promise<string | null> {
@@ -101,7 +101,7 @@ export async function extractCover(
     const resizedImageBuffer = await resizeImage(imageData.data);
 
     // Determine output path - always use .jpg extension
-    const subdirectory = id[0].toLowerCase();
+    const subdirectory = id.toString()[0].toLowerCase();
     const outputDir = join(coversDirectory, subdirectory);
     const outputFileName = `${id}.jpg`;
     const outputPath = join(outputDir, outputFileName);
@@ -125,7 +125,7 @@ export async function extractCover(
  * Delete cover image file for a comic
  */
 export async function deleteCover(
-  id: string,
+  id: number,
   coversDirectory: string,
 ): Promise<boolean> {
   if (!coversDirectory) {
@@ -133,7 +133,7 @@ export async function deleteCover(
   }
 
   try {
-    const subdirectory = id[0].toLowerCase();
+    const subdirectory = id.toString()[0].toLowerCase();
     const outputDir = join(coversDirectory, subdirectory);
     const coverPath = join(outputDir, `${id}.jpg`);
 

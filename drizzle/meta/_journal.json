@@ -5,71 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1762816415513,
+      "when": 1762910776869,
       "tag": "0000_initial",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1762816753231,
-      "tag": "0001_add_file_tracking_columns",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1762816800491,
-      "tag": "0002_remove_updated_at_add_file_columns",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1762819698709,
-      "tag": "0003_add_metadata_columns",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1762830416287,
-      "tag": "0004_switch_to_uuid",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1762873977920,
-      "tag": "0005_metadata",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1762884620252,
-      "tag": "0006_add_publishers_table",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1762887902495,
-      "tag": "0007_remove_publisher_column",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1762889960851,
-      "tag": "0008_add_series_table",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1762895438253,
-      "tag": "0009_remove_comics_series_column",
       "breakpoints": true
     }
   ]
