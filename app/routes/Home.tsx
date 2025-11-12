@@ -11,7 +11,7 @@ import {
   getSearchCount,
   searchComics,
 } from '../db/queries';
-import type { Route } from './+types/home';
+import type { Route } from './+types/Home';
 
 export function meta({}: Route.MetaArgs) {
   return [

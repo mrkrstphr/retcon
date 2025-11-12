@@ -7,10 +7,10 @@ import {
 
 export default [
   layout('./Layout.tsx', [
-    index('routes/home.tsx'),
-    route('publishers', 'routes/publishers.tsx'),
-    route('publishers/:slug', 'routes/publishers.$slug.tsx'),
+    index('routes/Home.tsx'),
+    route('publishers', 'routes/Publishers.tsx'),
+    route('publishers/:slug', 'routes/PublisherDetails.tsx'),
     route('series/:sqid/:slug', 'routes/SeriesDetails.tsx'),
-    route('comic/:id', 'routes/comic.$id.tsx'),
+    route('comic/:id', 'routes/ComicDetails.tsx'),
   ]),
 ] satisfies RouteConfig;
