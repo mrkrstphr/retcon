@@ -26,3 +26,27 @@ export function createSlug(name: string): string {
 export function normalizePublisherName(name: string): string {
   return name.trim();
 }
+
+/**
+ * Generate a slug for a comic based on series name and number, or filename as fallback
+ */
+export function createComicSlug(
+  seriesName: string | null,
+  number: string | null,
+  fileName: string,
+): string {
+  if (seriesName && number) {
+    // Use series name + number: "batman-detective-comics-1"
+    return createSlug(`${seriesName}-${number}`);
+  } else if (seriesName) {
+    // Use series name only: "batman-detective-comics"
+    return createSlug(seriesName);
+  } else {
+    // Fallback to filename without extension
+    const baseName = fileName
+      .split('/')
+      .pop()
+      ?.replace(/\.[^/.]+$/, '') || fileName;
+    return createSlug(baseName);
+  }
+}

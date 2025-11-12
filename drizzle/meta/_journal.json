@@ -15,6 +15,13 @@
       "when": 1762916469845,
       "tag": "0001_users",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762968082782,
+      "tag": "0002_comic_slugs",
+      "breakpoints": true
     }
   ]
 }

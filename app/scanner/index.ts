@@ -17,6 +17,7 @@ import {
 } from '../db/queries.js';
 import { deleteCover, extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
+import { createComicSlug } from '../lib/slugs.js';
 
 // Global publisher map for efficient lookups
 type PublisherMap = Map<string, number>; // {[name]: id}
@@ -107,11 +108,19 @@ async function processComicFiles(
             );
             const seriesId = seriesRecord?.id || null;
 
+            // Generate comic slug
+            const slug = createComicSlug(
+              seriesRecord?.name || null,
+              comicInfo.number,
+              fullPath,
+            );
+
             const [{ insertedId: id }] = await insertComic({
               fileName: fullPath,
               fileModified: stats.mtime,
               lastSynced: syncTime,
               ...comicInfo,
+              slug,
               publisherId,
               seriesId,
             });
@@ -148,10 +157,18 @@ async function processComicFiles(
               );
               const seriesId = seriesRecord?.id || null;
 
+              // Generate comic slug
+              const slug = createComicSlug(
+                seriesRecord?.name || null,
+                comicInfo.number,
+                fullPath,
+              );
+
               await updateComicMetadata(fullPath, {
                 fileModified: stats.mtime,
                 lastSynced: syncTime,
                 ...comicInfo,
+                slug,
                 publisherId,
                 seriesId,
               });

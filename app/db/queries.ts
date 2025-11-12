@@ -64,6 +64,7 @@ export async function insertComic(data: {
   fileName: string;
   fileModified: Date;
   lastSynced: Date;
+  slug: string;
   series?: string | null;
   number?: string | null;
   volume?: string | null;
@@ -92,6 +93,7 @@ export async function updateComicMetadata(
   data: {
     fileModified: Date;
     lastSynced: Date;
+    slug: string;
     series?: string | null;
     number?: string | null;
     volume?: string | null;

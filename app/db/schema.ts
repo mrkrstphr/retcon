@@ -32,6 +32,7 @@ export const comics = pgTable('comics', {
   fileName: varchar('file_name', { length: 500 }).notNull(),
   fileModified: timestamp('file_modified').notNull(),
   lastSynced: timestamp('last_synced').notNull(),
+  slug: varchar('slug', { length: 400 }).notNull(),
   number: varchar('number', { length: 50 }),
   volume: varchar('volume', { length: 50 }),
   publisherId: bigint('publisher_id', { mode: 'number' }).references(
