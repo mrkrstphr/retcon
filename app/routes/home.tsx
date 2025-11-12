@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IoMdClose, IoMdSearch } from 'react-icons/io';
-import { LuBookDashed } from 'react-icons/lu';
 import { Link, useFetcher } from 'react-router';
+import { NoResults } from '~/components/NoResults';
 import { getCoverPath } from '~/lib/getCoverPath';
 import { APP_NAME } from '../constants';
 import {
@@ -350,12 +350,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       )}
 
       {isSearching && hasSearchCompleted && allSearchResults.length === 0 && (
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
-          <div className="text-center text-slate-500 dark:text-slate-400">
-            <LuBookDashed className="mx-auto h-12 w-12 mb-4" />
-            <p>No comics found matching "{searchTerm}"</p>
-          </div>
-        </div>
+        <NoResults
+          title={`No comics found matching "${searchTerm}"`}
+          details="Try searching with different keywords or check your collection for the comic you're looking for."
+        />
       )}
 
       {lastScanTime && (

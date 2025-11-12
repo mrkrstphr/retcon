@@ -1,5 +1,5 @@
-import { LuBookDashed } from 'react-icons/lu';
 import { Link } from 'react-router';
+import { NoResults } from '~/components/NoResults';
 import { APP_NAME } from '../constants';
 import {
   getPublisherBySlug,
@@ -238,15 +238,10 @@ export default function PublisherDetails({
           )}
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
-          <div className="text-center text-slate-500 dark:text-slate-400">
-            <LuBookDashed className="mx-auto h-12 w-12 mb-4" />
-            <p>No series found for this publisher</p>
-            <p className="text-sm mt-2">
-              Series will appear here once comics are scanned
-            </p>
-          </div>
-        </div>
+        <NoResults
+          title="No series found for this publisher"
+          details="Series will appear here once comics are scanned"
+        />
       )}
     </div>
   );

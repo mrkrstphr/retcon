@@ -1,5 +1,5 @@
-import { LuBookDashed } from 'react-icons/lu';
 import { Link } from 'react-router';
+import { NoResults } from '~/components/NoResults';
 import { APP_NAME } from '../constants';
 import { getPublishersWithCounts } from '../db/queries';
 
@@ -77,7 +77,7 @@ export default function Publishers({ loaderData }: { loaderData: LoaderData }) {
               <Link
                 key={publisher}
                 to={`/publishers/${slug}`}
-                className="group bg-slate-50 no-underline! dark:bg-slate-900 rounded-lg p-6 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 no-underline block"
+                className="group bg-slate-50 no-underline! dark:bg-slate-900 rounded-lg p-6 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 block"
               >
                 {/* Publisher Initial Circle */}
                 <div className="flex justify-center mb-4">
@@ -104,15 +104,10 @@ export default function Publishers({ loaderData }: { loaderData: LoaderData }) {
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
-          <div className="text-center text-slate-500 dark:text-slate-400">
-            <LuBookDashed />
-            <p>No publishers found in your comic collection</p>
-            <p className="text-sm mt-2">
-              Publishers will appear here once you scan your comics
-            </p>
-          </div>
-        </div>
+        <NoResults
+          title="No publishers found in your comic collection"
+          details="Publishers will appear here once you scan your comics"
+        />
       )}
     </div>
   );
