@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
@@ -22,6 +23,21 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 
   return { comic };
+}
+
+function formatDate(dateString?: string) {
+  if (!dateString) return;
+
+  const date = dateString.length === 7 ? `${dateString}-01` : dateString;
+  if (date.length !== 10) return;
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+
+  return new Date(date).toLocaleDateString(undefined, options);
 }
 
 // Helper function to generate cover image path
@@ -102,13 +118,6 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
           .pop()
           ?.replace(/\.[^/.]+$/, '') || comic.fileName;
 
-  const displaySubtitle = [
-    comic.volume ? `Volume ${comic.volume}` : null,
-    comic.metadata?.releaseDate,
-  ]
-    .filter(Boolean)
-    .join(' - ');
-
   return (
     <div>
       <div className="max-w-6xl mx-auto px-4">
@@ -132,19 +141,20 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
             <div className="lg:col-span-2">
               {/* Title Section */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                   {displayTitle}
-                </h1>
-                {displaySubtitle && (
-                  <h2 className="text-lg text-slate-600 dark:text-slate-400 mb-2">
-                    {displaySubtitle}
-                  </h2>
-                )}
-                {comic.publisher && (
-                  <p className="text-blue-600 dark:text-blue-400 font-medium">
-                    {comic.publisher}
-                  </p>
-                )}
+                </h2>
+                <div className="flex text-slate-600 gap-1 md:gap-0 dark:text-slate-400 mb-2 text-sm flex-col md:flex-row items-start md:items-center md:[&>*+*]:before:content-['·'] md:[&>*+*]:before:inline-block md:[&>*+*]:before:mx-2 md:[&>*+*]:before:text-gray-400 dark:md:[&>*+*]:before:text-gray-600">
+                  {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
+                  {comic.publisher ? (
+                    <span>
+                      <Link to="/">{comic.publisher}</Link>
+                    </span>
+                  ) : null}
+                  {comic.metadata?.releaseDate ? (
+                    <div>{formatDate(comic.metadata?.releaseDate)}</div>
+                  ) : null}
+                </div>
               </div>
 
               <Metadata metadata={comic.metadata} />
