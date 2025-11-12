@@ -1,10 +1,10 @@
 import { existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
-import StreamZip from 'node-stream-zip';
-import { basename, extname, join } from 'path';
+import { join } from 'path';
 import sharp from 'sharp';
+import { extractPageFromArchive } from './extractPageFromArchive';
+import { getSortedImagesFromZip } from './getSortedImagesFromZip';
 
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const MAX_WIDTH = 300;
 const MAX_HEIGHT = 500;
 
@@ -22,38 +22,22 @@ async function getFirstImageFromArchive(
   }
 
   try {
-    const zip = new StreamZip.async({ file: filePath });
-    const entries = await zip.entries();
-
     // Get all image files, filter out dot files, and sort alphabetically
-    const imageFiles = Object.values(entries)
-      .filter((entry) => {
-        // Skip directories
-        if (entry.isDirectory) return false;
-
-        // Skip dot files
-        const fileName = basename(entry.name);
-        if (fileName.startsWith('.')) return false;
-
-        // Check if it's an image file
-        const ext = extname(entry.name).toLowerCase();
-        return IMAGE_EXTENSIONS.includes(ext);
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const imageFiles = await getSortedImagesFromZip(filePath);
 
     if (imageFiles.length === 0) {
-      await zip.close();
       return null;
     }
 
     // Get the first image
     const firstImage = imageFiles[0];
-    const imageData = await zip.entryData(firstImage);
-
-    await zip.close();
+    const { data: imageData } = await extractPageFromArchive(
+      filePath,
+      firstImage,
+    );
 
     return {
-      name: firstImage.name,
+      name: firstImage,
       data: imageData,
     };
   } catch (error) {
