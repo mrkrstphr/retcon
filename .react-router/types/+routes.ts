@@ -40,6 +40,12 @@ type Pages = {
   "/logout": {
     params: {};
   };
+  "/comic/:sqid/page/:page": {
+    params: {
+      "sqid": string;
+      "page": string;
+    };
+  };
 };
 
 type RouteFiles = {
@@ -83,6 +89,10 @@ type RouteFiles = {
     id: "routes/Logout";
     page: "/logout";
   };
+  "routes/ComicPage.tsx": {
+    id: "routes/ComicPage";
+    page: "/comic/:sqid/page/:page";
+  };
 };
 
 type RouteModules = {
@@ -96,4 +106,5 @@ type RouteModules = {
   "AuthLayout": typeof import("./app/./AuthLayout.tsx");
   "routes/Login": typeof import("./app/routes/Login.tsx");
   "routes/Logout": typeof import("./app/routes/Logout.tsx");
+  "routes/ComicPage": typeof import("./app/routes/ComicPage.tsx");
 };
