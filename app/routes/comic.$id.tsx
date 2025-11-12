@@ -1,6 +1,7 @@
 import Markdown from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
+import { getCoverPath } from '~/lib/getCoverPath';
 import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
 import type { Route } from './+types/comic.$id';
@@ -39,12 +40,6 @@ function formatDate(dateString?: string) {
 
   return new Date(date).toLocaleDateString(undefined, options);
 }
-
-// Helper function to generate cover image path
-const getCoverPath = (id: string) => {
-  const subdirectory = id[0].toLowerCase();
-  return `/covers/${subdirectory}/${id}.jpg`;
-};
 
 function CreatorRow({ label, value }: { label: string; value: string[] }) {
   if (!value || value.length === 0) return null;
@@ -148,7 +143,9 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
                   {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
                   {comic.publisher ? (
                     <span>
-                      <Link to="/">{comic.publisher}</Link>
+                      <Link to={`/publishers/${comic.publisherId}`}>
+                        {comic.publisher}
+                      </Link>
                     </span>
                   ) : null}
                   {comic.metadata?.releaseDate ? (

@@ -43,6 +43,34 @@
       "when": 1762873977920,
       "tag": "0005_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762884620252,
+      "tag": "0006_add_publishers_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1762887902495,
+      "tag": "0007_remove_publisher_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1762889960851,
+      "tag": "0008_add_series_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1762895438253,
+      "tag": "0009_remove_comics_series_column",
+      "breakpoints": true
     }
   ]
 }

@@ -5,9 +5,13 @@ import { v4 as uuid } from 'uuid';
 import { APP_NAME } from '../constants.js';
 import { client } from '../db/index.js';
 import {
+  createPublisher,
   deleteComicsOlderThan,
   findComicByFileName,
   findComicsToDelete,
+  findPublisherByName,
+  getAllPublishers,
+  getOrCreateSeries,
   insertComic,
   updateComicLastSynced,
   updateComicMetadata,
@@ -15,9 +19,50 @@ import {
 import { deleteCover, extractCover } from '../lib/covers.js';
 import { extractComicMetadata } from '../lib/metadata.js';
 
+// Global publisher map for efficient lookups
+type PublisherMap = Map<string, string>; // {[name]: id}
+
+/**
+ * Get or create a publisher and return its ID
+ */
+async function getOrCreatePublisher(
+  publisherName: string,
+  publisherMap: PublisherMap,
+): Promise<string | null> {
+  if (!publisherName?.trim()) {
+    return null;
+  }
+
+  const trimmedName = publisherName.trim();
+
+  // Check if we already have this publisher in our map
+  if (publisherMap.has(trimmedName)) {
+    return publisherMap.get(trimmedName)!;
+  }
+
+  // Try to find existing publisher in database
+  let existingPublisher = await findPublisherByName(trimmedName);
+
+  let publisherId: string;
+
+  // If not found, create new publisher
+  if (!existingPublisher) {
+    const newPublisher = await createPublisher(trimmedName);
+    publisherId = newPublisher.id;
+  } else {
+    publisherId = existingPublisher.id;
+  }
+
+  // Add to map for future lookups
+  publisherMap.set(trimmedName, publisherId);
+
+  return publisherId;
+}
+
 async function processComicFiles(
   directory: string,
   syncTime: Date,
+  publisherMap: PublisherMap,
   forceUpdate: boolean = false,
 ): Promise<number> {
   let processedCount = 0;
@@ -33,6 +78,7 @@ async function processComicFiles(
         const subCount = await processComicFiles(
           fullPath,
           syncTime,
+          publisherMap,
           forceUpdate,
         );
         processedCount += subCount;
@@ -50,12 +96,27 @@ async function processComicFiles(
             // Scenario 1: New file - extract metadata and insert
             const comicInfo = await extractComicMetadata(fullPath);
 
+            // Get or create publisher
+            const publisherId = await getOrCreatePublisher(
+              comicInfo.publisher,
+              publisherMap,
+            );
+
+            // Get or create series (no caching to avoid memory issues)
+            const seriesRecord = await getOrCreateSeries(
+              comicInfo.series,
+              publisherId || undefined,
+            );
+            const seriesId = seriesRecord?.id || null;
+
             await insertComic({
               id,
               fileName: fullPath,
               fileModified: stats.mtime,
               lastSynced: syncTime,
               ...comicInfo,
+              publisherId,
+              seriesId,
             });
 
             // Extract cover image
@@ -77,10 +138,25 @@ async function processComicFiles(
               // Scenario 3: Modified file OR force update - re-extract metadata and update
               const comicInfo = await extractComicMetadata(fullPath);
 
+              // Get or create publisher
+              const publisherId = await getOrCreatePublisher(
+                comicInfo.publisher,
+                publisherMap,
+              );
+
+              // Get or create series (no caching to avoid memory issues)
+              const seriesRecord = await getOrCreateSeries(
+                comicInfo.series,
+                publisherId || undefined,
+              );
+              const seriesId = seriesRecord?.id || null;
+
               await updateComicMetadata(fullPath, {
                 fileModified: stats.mtime,
                 lastSynced: syncTime,
                 ...comicInfo,
+                publisherId,
+                seriesId,
               });
 
               // Re-extract cover image since file changed or force update
@@ -194,11 +270,30 @@ async function main() {
   console.log(`\n⏳ ${chalk.cyan('Processing comic files...')}\n`);
   process.stdout.write(`${chalk.gray('Progress:')} `);
 
+  // Initialize publisher map for efficient lookups
+  console.log(`\n📚 ${chalk.cyan('Loading existing publishers...')}`);
+  const allPublishers = await getAllPublishers();
+  const publisherMap: PublisherMap = new Map();
+
+  // Pre-populate the map with existing publishers
+  allPublishers.forEach((publisher) => {
+    publisherMap.set(publisher.name, publisher.id);
+  });
+
+  console.log(
+    `   ${chalk.gray('Loaded')} ${chalk.white.bold(
+      allPublishers.length,
+    )} ${chalk.gray('existing publisher(s)')}`,
+  );
+
+  process.stdout.write(`${chalk.gray('Progress:')} `);
+
   // Create a single timestamp for this scan operation
   const syncTime = new Date();
   const totalFiles = await processComicFiles(
     absolutePath,
     syncTime,
+    publisherMap,
     forceUpdate,
   );
 

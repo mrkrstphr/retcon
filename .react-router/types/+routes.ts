@@ -14,6 +14,14 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/publishers": {
+    params: {};
+  };
+  "/publishers/:slug": {
+    params: {
+      "slug": string;
+    };
+  };
   "/comic/:id": {
     params: {
       "id": string;
@@ -24,15 +32,23 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/comic/:id";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/comic/:id";
   };
   "./Layout.tsx": {
     id: "Layout";
-    page: "/" | "/comic/:id";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/comic/:id";
   };
   "routes/home.tsx": {
     id: "routes/home";
     page: "/";
+  };
+  "routes/publishers.tsx": {
+    id: "routes/publishers";
+    page: "/publishers";
+  };
+  "routes/publishers.$slug.tsx": {
+    id: "routes/publishers.$slug";
+    page: "/publishers/:slug";
   };
   "routes/comic.$id.tsx": {
     id: "routes/comic.$id";
@@ -44,5 +60,7 @@ type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "Layout": typeof import("./app/./Layout.tsx");
   "routes/home": typeof import("./app/routes/home.tsx");
+  "routes/publishers": typeof import("./app/routes/publishers.tsx");
+  "routes/publishers.$slug": typeof import("./app/routes/publishers.$slug.tsx");
   "routes/comic.$id": typeof import("./app/routes/comic.$id.tsx");
 };

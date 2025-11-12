@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useFetcher } from 'react-router';
+import { getCoverPath } from '~/lib/getCoverPath';
 import { APP_NAME } from '../constants';
 import {
   getComicCount,
@@ -65,12 +66,6 @@ export async function action({ request }: Route.ActionArgs) {
     totalCount,
   };
 }
-
-// Helper function to generate cover image path
-const getCoverPath = (id: string) => {
-  const subdirectory = id[0].toLowerCase();
-  return `/covers/${subdirectory}/${id}.jpg`;
-};
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { comicCount, recentComics, lastScanTime } = loaderData;

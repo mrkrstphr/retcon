@@ -1,6 +1,7 @@
-import { count, desc, eq, ilike, lt, or } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, lt, or } from 'drizzle-orm';
+import { createSlug, normalizePublisherName } from '../lib/slugs.js';
 import { db } from './index.js';
-import { comics } from './schema.js';
+import { comics, publishers, series } from './schema.js';
 
 export async function getComicCount() {
   const result = await db.select({ count: count() }).from(comics);
@@ -13,14 +14,16 @@ export async function getRecentComics(limit: number = 10) {
     .select({
       id: comics.id,
       fileName: comics.fileName,
-      series: comics.series,
+      series: series.name,
       number: comics.number,
       volume: comics.volume,
-      publisher: comics.publisher,
+      publisher: publishers.name,
       lastSynced: comics.lastSynced,
     })
     .from(comics)
-    .orderBy(desc(comics.lastSynced))
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(series, eq(comics.seriesId, series.id))
+    .orderBy(desc(comics.createdAt))
     .limit(limit);
 }
 
@@ -34,8 +37,23 @@ export async function findComicByFileName(fileName: string) {
 
 export async function getComicById(id: string) {
   const result = await db
-    .select()
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      fileModified: comics.fileModified,
+      lastSynced: comics.lastSynced,
+      series: series.name,
+      number: comics.number,
+      volume: comics.volume,
+      publisher: publishers.name,
+      publisherId: comics.publisherId,
+      seriesId: comics.seriesId,
+      metadata: comics.metadata,
+      createdAt: comics.createdAt,
+    })
     .from(comics)
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(series, eq(comics.seriesId, series.id))
     .where(eq(comics.id, id))
     .limit(1);
 
@@ -49,7 +67,8 @@ export async function insertComic(data: {
   series?: string | null;
   number?: string | null;
   volume?: string | null;
-  publisher?: string | null;
+  publisherId?: string | null;
+  seriesId?: string | null;
   metadata?: any;
 }) {
   return await db.insert(comics).values(data);
@@ -73,7 +92,8 @@ export async function updateComicMetadata(
     series?: string | null;
     number?: string | null;
     volume?: string | null;
-    publisher?: string | null;
+    publisherId?: string | null;
+    seriesId?: string | null;
     metadata?: any;
   },
 ) {
@@ -114,18 +134,20 @@ export async function searchComics(
     .select({
       id: comics.id,
       fileName: comics.fileName,
-      series: comics.series,
+      series: series.name,
       number: comics.number,
       volume: comics.volume,
-      publisher: comics.publisher,
+      publisher: publishers.name,
       lastSynced: comics.lastSynced,
     })
     .from(comics)
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(series, eq(comics.seriesId, series.id))
     .where(
       or(
-        ilike(comics.series, searchPattern),
+        ilike(series.name, searchPattern),
         ilike(comics.fileName, searchPattern),
-        ilike(comics.publisher, searchPattern),
+        ilike(publishers.name, searchPattern),
       ),
     )
     .orderBy(desc(comics.lastSynced))
@@ -143,13 +165,187 @@ export async function getSearchCount(searchTerm: string) {
   const result = await db
     .select({ count: count() })
     .from(comics)
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(series, eq(comics.seriesId, series.id))
     .where(
       or(
-        ilike(comics.series, searchPattern),
+        ilike(series.name, searchPattern),
         ilike(comics.fileName, searchPattern),
-        ilike(comics.publisher, searchPattern),
+        ilike(publishers.name, searchPattern),
       ),
     );
+
+  return result[0]?.count || 0;
+}
+
+export async function getPublishersWithCounts() {
+  const result = await db
+    .select({
+      publisher: publishers.name,
+      slug: publishers.slug,
+      count: count(),
+    })
+    .from(publishers)
+    .leftJoin(comics, eq(comics.publisherId, publishers.id))
+    .groupBy(publishers.id, publishers.name, publishers.slug)
+    .orderBy(desc(count()), publishers.name);
+
+  return result.map(({ publisher, slug, count }) => ({ publisher, slug, count }));
+}
+
+// Publisher functions
+export async function getAllPublishers() {
+  return await db
+    .select({
+      id: publishers.id,
+      name: publishers.name,
+      slug: publishers.slug,
+    })
+    .from(publishers)
+    .orderBy(publishers.name);
+}
+
+export async function findPublisherByName(name: string) {
+  const normalizedName = normalizePublisherName(name);
+  const result = await db
+    .select()
+    .from(publishers)
+    .where(eq(publishers.name, normalizedName))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export async function createPublisher(name: string) {
+  const normalizedName = normalizePublisherName(name);
+  const slug = createSlug(normalizedName);
+
+  const result = await db
+    .insert(publishers)
+    .values({
+      name: normalizedName,
+      slug,
+    })
+    .returning({
+      id: publishers.id,
+      name: publishers.name,
+      slug: publishers.slug,
+    });
+
+  return result[0];
+}
+
+export async function getPublisherById(id: string) {
+  const result = await db
+    .select()
+    .from(publishers)
+    .where(eq(publishers.id, id))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+// Series functions
+export async function findSeriesByName(name: string, publisherId?: string) {
+  const normalizedName = name.trim();
+  
+  const conditions = [eq(series.name, normalizedName)];
+  
+  // If publisherId is provided, also filter by publisher
+  if (publisherId) {
+    conditions.push(eq(series.publisherId, publisherId));
+  }
+
+  const result = await db
+    .select()
+    .from(series)
+    .where(conditions.length > 1 ? and(...conditions) : conditions[0])
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export async function createSeries(name: string, publisherId?: string) {
+  const normalizedName = name.trim();
+  const slug = createSlug(normalizedName);
+
+  const result = await db
+    .insert(series)
+    .values({
+      name: normalizedName,
+      slug,
+      publisherId,
+    })
+    .returning({
+      id: series.id,
+      name: series.name,
+      slug: series.slug,
+      publisherId: series.publisherId,
+      createdAt: series.createdAt,
+    });
+
+  return result[0];
+}
+
+export async function getOrCreateSeries(name: string, publisherId?: string) {
+  if (!name?.trim()) {
+    return null;
+  }
+
+  // Try to find existing series
+  let existingSeries = await findSeriesByName(name, publisherId);
+  
+  // If not found, create new series
+  if (!existingSeries) {
+    existingSeries = await createSeries(name, publisherId);
+  }
+
+  return existingSeries;
+}
+
+export async function getSeriesById(id: string) {
+  const result = await db
+    .select()
+    .from(series)
+    .where(eq(series.id, id))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+// Publisher details queries
+export async function getPublisherBySlug(slug: string) {
+  const result = await db
+    .select()
+    .from(publishers)
+    .where(eq(publishers.slug, slug))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export async function getPublisherSeriesWithCounts(publisherId: string) {
+  const result = await db
+    .select({
+      id: series.id,
+      name: series.name,
+      slug: series.slug,
+      comicCount: count(comics.id),
+    })
+    .from(series)
+    .leftJoin(comics, eq(comics.seriesId, series.id))
+    .where(eq(series.publisherId, publisherId))
+    .groupBy(series.id, series.name, series.slug)
+    .orderBy(series.name);
+
+  return result;
+}
+
+export async function getPublisherComicCount(publisherId: string) {
+  const result = await db
+    .select({ count: count() })
+    .from(comics)
+    .where(eq(comics.publisherId, publisherId));
 
   return result[0]?.count || 0;
 }
