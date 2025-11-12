@@ -20,8 +20,6 @@ const NavLink = ({ to, children }: LinkProps) => {
 };
 
 export default function Layout() {
-  const location = useLocation();
-
   return (
     <div className="py-8">
       <div className="max-w-6xl mx-auto px-4">
