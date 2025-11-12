@@ -108,6 +108,9 @@ async function processComicFiles(
 }
 
 async function main() {
+  // Start timing the scan
+  const startTime = new Date();
+
   // Parse command line arguments
   const args = process.argv.slice(2);
 
@@ -251,7 +254,34 @@ async function main() {
     console.log(`✅ ${chalk.gray('No missing comics to remove.')}`);
   }
 
-  console.log(`\n🎉 ${chalk.cyan('Scan complete!')}\n`);
+  console.log(`\n🎉 ${chalk.cyan('Scan complete!')}`);
+
+  // Calculate and display execution time
+  const endTime = new Date();
+  const durationMs = endTime.getTime() - startTime.getTime();
+  const durationSec = durationMs / 1000;
+  const durationMin = Math.floor(durationMs / 60000);
+  const durationSecRemainder = (durationMs % 60000) / 1000;
+
+  if (durationMs < 60000) {
+    // Less than 1 minute - show in seconds
+    console.log(
+      `⏱️ ${chalk.cyan('Execution time:')} ${chalk.white.bold(
+        durationSec.toFixed(2),
+      )} ${chalk.cyan('seconds')}`,
+    );
+  } else {
+    // 1 minute or more - show in minutes and seconds
+    console.log(
+      `⏱️ ${chalk.cyan('Execution time:')} ${chalk.white.bold(
+        durationMin,
+      )} ${chalk.cyan(`minute${durationMin > 1 ? 's' : ''}`)} ${chalk.white.bold(
+        durationSecRemainder.toFixed(2),
+      )} ${chalk.cyan(`second${durationSecRemainder > 1 ? 's' : ''}`)}`,
+    );
+  }
+
+  console.log(); // Extra newline for spacing
 
   // Close database connection
   await client.end();
