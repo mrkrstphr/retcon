@@ -174,7 +174,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
             )}
           </div>
         </div>
-        <div className="flex-1 text-center truncate">
+        <div className="flex-1 text-center truncate select-none">
           {comic.series} {comic.number ? `#${comic.number}` : ''}
         </div>
         <div
@@ -221,7 +221,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
             style={{ width: `${(pageNumber / comic.pageCount) * 100}%` }}
           />
         </div>
-        <div className="p-2 text-sm text-center">
+        <div className="p-2 text-sm text-center select-none">
           Page {pageNumber} of {comic.pageCount}
         </div>
       </OverlayBar>
