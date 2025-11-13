@@ -46,12 +46,17 @@ type Pages = {
       "page": string;
     };
   };
+  "/comic/:sqid/read": {
+    params: {
+      "sqid": string;
+    };
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page" | "/comic/:sqid/read";
   };
   "./Layout.tsx": {
     id: "Layout";
@@ -93,6 +98,10 @@ type RouteFiles = {
     id: "routes/ComicPage";
     page: "/comic/:sqid/page/:page";
   };
+  "routes/ComicReader.tsx": {
+    id: "routes/ComicReader";
+    page: "/comic/:sqid/read";
+  };
 };
 
 type RouteModules = {
@@ -107,4 +116,5 @@ type RouteModules = {
   "routes/Login": typeof import("./app/routes/Login.tsx");
   "routes/Logout": typeof import("./app/routes/Logout.tsx");
   "routes/ComicPage": typeof import("./app/routes/ComicPage.tsx");
+  "routes/ComicReader": typeof import("./app/routes/ComicReader.tsx");
 };

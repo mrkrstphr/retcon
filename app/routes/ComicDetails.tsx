@@ -2,6 +2,7 @@ import Markdown from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { getCoverPath } from '~/lib/getCoverPath';
+import { comicReaderHref } from '~/lib/links';
 import { sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
 import { getComicById } from '../db/queries';
@@ -134,6 +135,8 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
                   }}
                 />
               </div>
+
+              <Link to={comicReaderHref(comic)}>Read</Link>
             </div>
 
             {/* Comic Info */}
