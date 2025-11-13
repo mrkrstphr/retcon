@@ -37,6 +37,7 @@ Thumbs.db
 *.sqlite
 pg_data
 data
+covers
 
 # Logs
 logs/
