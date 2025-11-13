@@ -1,4 +1,4 @@
-import { upsertUserComicProgress } from '~/db/queries';
+import { getComicById, upsertUserComicProgress } from '~/db/queries';
 import { getUser } from '~/lib/getUser';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/UserComicProgress';
@@ -16,7 +16,18 @@ export const action = async ({ params, request }: Route.ActionArgs) => {
     return new Response('Missing data', { status: 400 });
   }
 
-  await upsertUserComicProgress(user.id, id, currentPage);
+  const comic = await getComicById(id);
+
+  if (!comic) {
+    return new Response('Comic not found', { status: 404 });
+  }
+
+  await upsertUserComicProgress(
+    user.id,
+    id,
+    currentPage,
+    currentPage >= comic.pageCount,
+  );
 
   return new Response('OK');
 };
