@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
+import { MdFullscreen, MdFullscreenExit } from 'react-icons/md';
 import { useFetcher } from 'react-router';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
 import { APP_NAME } from '~/constants';
 import { getComicById } from '~/db/queries';
 import { useEagerUntoggler } from '~/hooks/useEagerUntoggler';
+import { useFullScreenManager } from '~/hooks/useFullscreenManager';
 import { comicPageHref } from '~/lib/links';
 import { idToSqid, sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
@@ -58,6 +60,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const [pageNumber, setPageNumber] = useState(comic.currentPage ?? 1);
   const [overlayOpen, setOverlayOpen] = useEagerUntoggler(false, 3000);
   const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
+  const { isFullscreen, toggleFullscreen } = useFullScreenManager(readerRef);
   const updateProgress = useProgressUpdater(comic.id);
 
   useEffect(() => {
@@ -89,7 +92,10 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     }
   };
 
-  const handleCloseReader = () => window.history.back();
+  const handleCloseReader = (e?: React.MouseEvent<HTMLDivElement>) => {
+    e?.stopPropagation();
+    window.history.back();
+  };
 
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
@@ -121,16 +127,26 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     <div
       onClick={handleOnClick}
       onKeyDown={handleKeyboardInput}
+      onDoubleClick={() => toggleFullscreen()}
       tabIndex={0}
-      className="flex justify-center items-center select-none relative h-dvh bg-slate-900"
+      className="flex justify-center items-center relative h-dvh bg-slate-900"
       ref={readerRef}
     >
       <OverlayBar
-        className="flex items-center gap-2"
+        className="flex items-center gap-4"
         visible={overlayOpen}
         position="top"
       >
-        <div className="flex-1 text-center">
+        <div className="justify-flex-start ml-2">
+          <div className="cursor-pointer" onClick={toggleFullscreen}>
+            {isFullscreen ? (
+              <MdFullscreenExit size={24} />
+            ) : (
+              <MdFullscreen size={24} />
+            )}
+          </div>
+        </div>
+        <div className="flex-1 text-center truncate">
           {comic.series} {comic.number ? `#${comic.number}` : ''}
         </div>
         <div
@@ -142,30 +158,32 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       </OverlayBar>
       <img
         src={comicPageHref(comic, pageNumber)}
-        className="max-h-screen max-w-full object-contain pointer-events-none"
+        className="max-h-screen max-w-full object-contain select-none pointer-events-none"
       />
 
-      <div
-        className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-slate-900/50 transition-opacity duration-500 ease-in-out ${issueCompleteDialogOpen ? 'opacity-100' : 'opacity-0'}`}
-      >
-        <div className="bg-slate-900/80 text-slate-100 p-4 max-w-3/4 md:max-w-[400px]">
-          <h3 className="text-xl font-bold mb-2">Issue Complete!</h3>
-          <p className="mb-2">You've reached the end of this one!</p>
-          <p className="mb-4 text-sm">
-            At some point we'll have some suggestions of what to read next
-            here...
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setIssueCompleteDialogOpen(false)}
-            >
-              Close
-            </Button>
-            <Button onClick={() => window.history.back()}>Exit</Button>
+      {issueCompleteDialogOpen && (
+        <div
+          className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-slate-900/50 transition-opacity duration-500 ease-in-out ${issueCompleteDialogOpen ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <div className="bg-slate-900/80 text-slate-100 p-4 max-w-3/4 md:max-w-[400px]">
+            <h3 className="text-xl font-bold mb-2">Issue Complete!</h3>
+            <p className="mb-2">You've reached the end of this one!</p>
+            <p className="mb-4 text-sm">
+              At some point we'll have some suggestions of what to read next
+              here...
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setIssueCompleteDialogOpen(false)}
+              >
+                Close
+              </Button>
+              <Button onClick={() => window.history.back()}>Exit</Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <OverlayBar visible={overlayOpen} position="bottom">
         <div className="relative m-2">
