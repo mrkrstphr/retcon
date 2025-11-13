@@ -109,7 +109,7 @@ const Stats = ({
 
 export default function Layout({ loaderData }: Route.ComponentProps) {
   const { user, comicCount, lastScanTime } = loaderData;
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -220,7 +220,10 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
       {/* New header area */}
       <Box className="flex items-center gap-2 md:gap-4 w-full">
         <div className="flex items-center shrink-0 px-4">
-          <ImBooks className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+          <ImBooks
+            className="h-8 w-8 text-orange-600 dark:text-orange-400 cursor-pointer md:cursor-auto"
+            onClick={() => setSidebarOpen(true)}
+          />
           <Link
             to="/"
             className="ml-2 text-xl font-bold hidden no-underline! md:block text-slate-900 dark:text-white"
