@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { MdFullscreen, MdFullscreenExit } from 'react-icons/md';
 import { useFetcher } from 'react-router';
+import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
 import { APP_NAME } from '~/constants';
@@ -54,13 +55,34 @@ const useProgressUpdater = (comicId: number) => {
   return updateProgress;
 };
 
+const usePageManager = ({
+  pageCount,
+  currentPage,
+}: {
+  pageCount: number;
+  currentPage?: number | null;
+}) => {
+  const [pageNumber, setPageNumber] = useState(currentPage ?? 1);
+
+  const nextPage = () => setPageNumber((prev) => Math.min(prev + 1, pageCount));
+  const previousPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
+
+  return { pageNumber, nextPage, previousPage };
+};
+
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { comic } = loaderData;
   const readerRef = useRef<HTMLDivElement>(null);
-  const [pageNumber, setPageNumber] = useState(comic.currentPage ?? 1);
+  const { pageNumber, nextPage, previousPage } = usePageManager(comic);
   const [overlayOpen, setOverlayOpen] = useEagerUntoggler(false, 3000);
   const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullScreenManager(readerRef);
+
+  const handlers = useSwipeable({
+    onSwiped: (eventData) => console.log('User Swiped!', eventData),
+    onSwipedLeft: nextPage,
+    onSwipedRight: previousPage,
+  });
   const updateProgress = useProgressUpdater(comic.id);
 
   useEffect(() => {
@@ -80,13 +102,14 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     const { left, width } = currentTarget.getBoundingClientRect();
     const clickPosition = clientX - left;
 
+    // if click is in less than 40% of the page, go to previous page
     if (clickPosition < width * 0.4) {
-      setPageNumber((prev) => Math.max(prev - 1, 1));
+      previousPage();
+      // if the click is in more than 60% of the page, go to next page
     } else if (clickPosition > width * 0.6) {
-      setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
-      if (pageNumber + 1 >= comic.pageCount) {
-        setIssueCompleteDialogOpen(true);
-      }
+      nextPage();
+      // if we try to page past the last page, show a completion dialog
+      if (pageNumber + 1 >= comic.pageCount) setIssueCompleteDialogOpen(true);
     } else {
       setOverlayOpen((open) => !open);
     }
@@ -100,15 +123,13 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
       case 'ArrowLeft':
-        if (!issueCompleteDialogOpen)
-          setPageNumber((prev) => Math.max(prev - 1, 1));
+        if (!issueCompleteDialogOpen) previousPage();
         break;
       case 'ArrowRight':
         if (!issueCompleteDialogOpen) {
-          setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
-          if (pageNumber + 1 > comic.pageCount) {
+          nextPage();
+          if (pageNumber + 1 > comic.pageCount)
             setIssueCompleteDialogOpen(true);
-          }
         }
         break;
       case 'Escape':
@@ -123,14 +144,21 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     }
   };
 
+  // double the ref, double the fun
+  const refPassthrough = (element: HTMLDivElement) => {
+    handlers.ref(element);
+    readerRef.current = element;
+  };
+
   return (
     <div
       onClick={handleOnClick}
       onKeyDown={handleKeyboardInput}
       onDoubleClick={() => toggleFullscreen()}
+      {...handlers}
       tabIndex={0}
       className="flex justify-center items-center relative h-dvh bg-slate-900"
-      ref={readerRef}
+      ref={refPassthrough}
     >
       <OverlayBar
         className="flex items-center gap-4"
