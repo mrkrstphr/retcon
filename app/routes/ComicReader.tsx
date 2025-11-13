@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { useFetcher } from 'react-router';
+import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
 import { APP_NAME } from '~/constants';
 import { getComicById } from '~/db/queries';
@@ -56,9 +57,8 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const readerRef = useRef<HTMLDivElement>(null);
   const [pageNumber, setPageNumber] = useState(comic.currentPage ?? 1);
   const [overlayOpen, setOverlayOpen] = useEagerUntoggler(false, 3000);
+  const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
   const updateProgress = useProgressUpdater(comic.id);
-
-  const overlayDismissRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (readerRef.current) {
@@ -71,6 +71,8 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   }, [pageNumber]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (issueCompleteDialogOpen) return;
+
     const { clientX, currentTarget } = e;
     const { left, width } = currentTarget.getBoundingClientRect();
     const clickPosition = clientX - left;
@@ -79,6 +81,9 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       setPageNumber((prev) => Math.max(prev - 1, 1));
     } else if (clickPosition > width * 0.6) {
       setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
+      if (pageNumber + 1 >= comic.pageCount) {
+        setIssueCompleteDialogOpen(true);
+      }
     } else {
       setOverlayOpen((open) => !open);
     }
@@ -89,13 +94,23 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
       case 'ArrowLeft':
-        setPageNumber((prev) => Math.max(prev - 1, 1));
+        if (!issueCompleteDialogOpen)
+          setPageNumber((prev) => Math.max(prev - 1, 1));
         break;
       case 'ArrowRight':
-        setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
+        if (!issueCompleteDialogOpen) {
+          setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
+          if (pageNumber + 1 > comic.pageCount) {
+            setIssueCompleteDialogOpen(true);
+          }
+        }
         break;
       case 'Escape':
-        handleCloseReader();
+        if (issueCompleteDialogOpen) {
+          setIssueCompleteDialogOpen(false);
+        } else {
+          handleCloseReader();
+        }
         break;
       default:
         break;
@@ -107,7 +122,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       onClick={handleOnClick}
       onKeyDown={handleKeyboardInput}
       tabIndex={0}
-      className="flex justify-center items-center select-none relative h-dvh"
+      className="flex justify-center items-center select-none relative h-dvh bg-slate-900"
       ref={readerRef}
     >
       <OverlayBar
@@ -129,6 +144,29 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
         src={comicPageHref(comic, pageNumber)}
         className="max-h-screen max-w-full object-contain pointer-events-none"
       />
+
+      <div
+        className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-slate-900/50 transition-opacity duration-500 ease-in-out ${issueCompleteDialogOpen ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="bg-slate-900/80 text-slate-100 p-4 max-w-3/4 md:max-w-[400px]">
+          <h3 className="text-xl font-bold mb-2">Issue Complete!</h3>
+          <p className="mb-2">You've reached the end of this one!</p>
+          <p className="mb-4 text-sm">
+            At some point we'll have some suggestions of what to read next
+            here...
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => setIssueCompleteDialogOpen(false)}
+            >
+              Close
+            </Button>
+            <Button onClick={() => window.history.back()}>Exit</Button>
+          </div>
+        </div>
+      </div>
+
       <OverlayBar visible={overlayOpen} position="bottom">
         <div className="relative m-2">
           <div className="bg-slate-500/40 h-1 w-full absolute top-0 left-0 z-0" />
