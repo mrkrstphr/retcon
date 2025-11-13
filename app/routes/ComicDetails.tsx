@@ -1,6 +1,7 @@
 import Markdown from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
+import { Box } from '~/components/Box';
 import { ButtonLink } from '~/components/ButtonLink';
 import { Cover } from '~/components/Cover';
 import { comicReaderHref } from '~/lib/links';
@@ -120,87 +121,83 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
           ?.replace(/\.[^/.]+$/, '') || comic.fileName;
 
   return (
-    <div>
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
-            {/* Cover Image */}
-            <div className="lg:col-span-1">
-              <Cover comic={comic} />
+    <Box>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 ">
+        {/* Cover Image */}
+        <div className="lg:col-span-1">
+          <Cover comic={comic} />
 
-              <div className="text-center mt-4">
-                <ButtonLink to={comicReaderHref(comic)}>Read Comic</ButtonLink>
-              </div>
+          <div className="text-center mt-4">
+            <ButtonLink to={comicReaderHref(comic)}>Read Comic</ButtonLink>
+          </div>
+        </div>
+
+        {/* Comic Info */}
+        <div className="lg:col-span-2">
+          {/* Title Section */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              {displayTitle}
+            </h2>
+            <div className="flex text-slate-600 gap-1 md:gap-0 dark:text-slate-400 mb-2 text-sm flex-col md:flex-row items-start md:items-center md:[&>*+*]:before:content-['·'] md:[&>*+*]:before:inline-block md:[&>*+*]:before:mx-2 md:[&>*+*]:before:text-gray-400 dark:md:[&>*+*]:before:text-gray-600">
+              {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
+              {comic.publisher ? (
+                <span>
+                  <Link to={`/publishers/${comic.publisherSlug}`}>
+                    {comic.publisher}
+                  </Link>
+                </span>
+              ) : null}
+              {comic.metadata?.releaseDate ? (
+                <div>{formatDate(comic.metadata?.releaseDate)}</div>
+              ) : null}
             </div>
+          </div>
 
-            {/* Comic Info */}
-            <div className="lg:col-span-2">
-              {/* Title Section */}
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  {displayTitle}
-                </h2>
-                <div className="flex text-slate-600 gap-1 md:gap-0 dark:text-slate-400 mb-2 text-sm flex-col md:flex-row items-start md:items-center md:[&>*+*]:before:content-['·'] md:[&>*+*]:before:inline-block md:[&>*+*]:before:mx-2 md:[&>*+*]:before:text-gray-400 dark:md:[&>*+*]:before:text-gray-600">
-                  {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
-                  {comic.publisher ? (
-                    <span>
-                      <Link to={`/publishers/${comic.publisherSlug}`}>
-                        {comic.publisher}
-                      </Link>
-                    </span>
-                  ) : null}
-                  {comic.metadata?.releaseDate ? (
-                    <div>{formatDate(comic.metadata?.releaseDate)}</div>
-                  ) : null}
-                </div>
+          <Metadata metadata={comic.metadata} />
+
+          {/* File Information */}
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
+              File Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-slate-600 dark:text-slate-400">
+                  File Path:
+                </span>
+                <p className="text-slate-900 dark:text-slate-100 break-all mt-1">
+                  {comic.fileName}
+                </p>
               </div>
-
-              <Metadata metadata={comic.metadata} />
-
-              {/* File Information */}
-              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
-                  File Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-slate-600 dark:text-slate-400">
-                      File Path:
-                    </span>
-                    <p className="text-slate-900 dark:text-slate-100 break-all mt-1">
-                      {comic.fileName}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-slate-600 dark:text-slate-400">
-                      Last Modified:
-                    </span>
-                    <p className="text-slate-900 dark:text-slate-100 mt-1">
-                      {new Date(comic.fileModified).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-slate-600 dark:text-slate-400">
-                      Last Synced:
-                    </span>
-                    <p className="text-slate-900 dark:text-slate-100 mt-1">
-                      {new Date(comic.lastSynced).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-slate-600 dark:text-slate-400">
-                      Comic ID:
-                    </span>
-                    <p className="text-slate-900 dark:text-slate-100 font-mono text-xs mt-1">
-                      {comic.id}
-                    </p>
-                  </div>
-                </div>
+              <div>
+                <span className="font-medium text-slate-600 dark:text-slate-400">
+                  Last Modified:
+                </span>
+                <p className="text-slate-900 dark:text-slate-100 mt-1">
+                  {new Date(comic.fileModified).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <span className="font-medium text-slate-600 dark:text-slate-400">
+                  Last Synced:
+                </span>
+                <p className="text-slate-900 dark:text-slate-100 mt-1">
+                  {new Date(comic.lastSynced).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <span className="font-medium text-slate-600 dark:text-slate-400">
+                  Comic ID:
+                </span>
+                <p className="text-slate-900 dark:text-slate-100 font-mono text-xs mt-1">
+                  {comic.id}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Box>
   );
 }

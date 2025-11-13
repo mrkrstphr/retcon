@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
 import { comicDetailsHref } from '~/lib/links';
 import { APP_NAME } from '../constants';
@@ -61,11 +62,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       {recentComics.length > 0 && (
-        <div className="">
+        <Box>
           <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
             Recently Added Comics
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
             {recentComics.map((comic) => (
               <Link
                 key={comic.id}
@@ -95,7 +96,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               </Link>
             ))}
           </div>
-        </div>
+        </Box>
       )}
     </div>
   );

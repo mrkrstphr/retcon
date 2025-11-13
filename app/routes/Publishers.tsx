@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { Box } from '~/components/Box';
 import { NoResults } from '~/components/NoResults';
 import { APP_NAME } from '../constants';
 import { getPublishersWithCounts } from '../db/queries';
@@ -49,18 +50,18 @@ const getPublisherColor = (publisherName: string): string => {
 export default function Publishers({ loaderData }: Route.ComponentProps) {
   const { publishers } = loaderData;
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       {/* <PageHeader title="Publishers" /> */}
 
       {/* Header Section */}
-      <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md text-center p-8 mb-8">
+      <Box className="p-6">
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
           Publishers
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
           Browse your comic collection by publisher
         </p>
-      </div>
+      </Box>
 
       {/* Publishers Grid */}
       {publishers.length > 0 ? (
