@@ -1,5 +1,8 @@
+import { GiBookshelf, GiWhiteBook } from 'react-icons/gi';
 import { Link } from 'react-router';
 import { NoResults } from '~/components/NoResults';
+import { PageHeader } from '~/components/PageHeader';
+import { integerFormat } from '~/lib/integerFormat';
 import { sqids } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
 import {
@@ -78,79 +81,110 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
-      {/* Header Section */}
-      <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8 mb-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4">
-            {publisher.name}
-          </h1>
-          <div className="flex flex-col sm:flex-row justify-center gap-6 text-lg">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-2">
-              <span className="font-medium text-blue-600 dark:text-blue-400">
-                {totalComics} comic{totalComics !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-2">
-              <span className="font-medium text-green-600 dark:text-green-400">
-                {totalSeries} series
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={publisher.name}
+        attributes={[
+          {
+            label: `${integerFormat(totalSeries)} series`,
+            icon: GiBookshelf,
+          },
+          {
+            label: `${integerFormat(totalComics)} comic${totalComics !== 1 ? 's' : ''}`,
+            icon: GiWhiteBook,
+          },
+        ]}
+      />
 
-      {/* Series Table */}
-      {series.length > 0 ? (
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md overflow-hidden mb-8">
-          <div className="p-8 pb-0">
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
-              Published by {publisher.name}
-            </h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-slate-200 dark:divide-slate-800">
-              <thead className="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-700">
-                <tr>
-                  <th className="px-8 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Series Name
-                  </th>
-                  <th className="px-8 py-4 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Issues
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {series.map((seriesItem, index) => (
-                  <tr
-                    key={seriesItem.id}
-                    className={`hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors ${
-                      index % 2 === 0
-                        ? 'bg-white dark:bg-slate-950'
-                        : 'bg-slate-25 dark:bg-slate-925'
-                    }`}
-                  >
-                    <td className="px-8 py-4 whitespace-nowrap">
-                      <Link
-                        to={`/series/${sqids.encode([seriesItem.id])}/${seriesItem.slug}`}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
-                      >
-                        {seriesItem.name}
-                      </Link>
+      {series.length > 0 && (
+        <>
+          <div className="">
+            <div className="sm:flex sm:items-center">
+              <div className="sm:flex-auto">
+                <h1 className="text-base font-semibold text-slate-900 dark:text-white">
+                  Comic Series Published by {publisher.name}
+                </h1>
+                <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                  The following series are published by {publisher.name}.
+                </p>
+              </div>
+              <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                {/* Future actions area */}
+              </div>
+            </div>
+            <div className="mt-4 flow-root">
+              <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                  <table className="relative min-w-full divide-y divide-slate-300 dark:divide-white/15">
+                    <thead>
+                      <tr>
+                        <th
+                          scope="col"
+                          className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-slate-900 sm:pl-3 dark:text-white"
+                        >
+                          Series Name
+                        </th>
+                        <th
+                          scope="col"
+                          className="py-3.5 pr-4 pl-3 sm:pr-3 text-right text-sm font-semibold text-slate-900 dark:text-white"
+                        >
+                          # Issues
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-slate-900">
+                      {/* {people.map((person) => (
+                  <tr key={person.email} className="even:bg-slate-50 dark:even:bg-slate-800/50">
+                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-slate-900 sm:pl-3 dark:text-white">
+                      {person.name}
                     </td>
-                    <td className="px-8 py-4 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                      {seriesItem.comicCount} issue
-                      {seriesItem.comicCount !== 1 ? 's' : ''}
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400">
+                      {person.title}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400">
+                      {person.email}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400">
+                      {person.role}
+                    </td>
+                    <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-3">
+                      <a
+                        href="#"
+                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                      >
+                        Edit<span className="sr-only">, {person.name}</span>
+                      </a>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                ))} */}
 
+                      {series.map((seriesItem) => (
+                        <tr
+                          key={`series-${seriesItem.name}-${seriesItem.id}`}
+                          className="even:bg-slate-50 dark:even:bg-slate-800/50 "
+                        >
+                          <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-slate-900 sm:pl-3 dark:text-white">
+                            <Link
+                              to={`/series/${sqids.encode([seriesItem.id])}/${seriesItem.slug}`}
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
+                            >
+                              {seriesItem.name}
+                            </Link>
+                          </td>
+                          <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-3">
+                            {seriesItem.comicCount} issue
+                            {seriesItem.comicCount !== 1 ? 's' : ''}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-8 py-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="py-6 border-t border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-slate-600 dark:text-slate-400">
                   Showing {(currentPage - 1) * 25 + 1} to{' '}
@@ -209,10 +243,12 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
           )}
-        </div>
-      ) : (
+        </>
+      )}
+
+      {series.length === 0 && (
         <NoResults
-          title="No series found for this publisher"
+          title={`No series found for ${publisher.name}`}
           details="Series will appear here once comics are scanned"
         />
       )}

@@ -10,6 +10,7 @@ import { users } from '~/db/schema';
 type User = {
   id: number;
   email: string;
+  name: string;
 };
 
 // Create a session storage
@@ -33,7 +34,7 @@ async function login(email: string, password: string): Promise<User> {
   let user: User | null = null;
   try {
     const query = db
-      .select({ id: users.id, email: users.email })
+      .select({ id: users.id, email: users.email, name: users.name })
       .from(users)
       .where(
         and(
@@ -43,11 +44,7 @@ async function login(email: string, password: string): Promise<User> {
       )
       .limit(1);
 
-    console.log(query.toSQL());
-
     const result = await query;
-
-    console.log(result);
 
     user = result[0] || null;
   } catch (error) {

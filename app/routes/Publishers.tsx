@@ -50,6 +50,8 @@ export default function Publishers({ loaderData }: Route.ComponentProps) {
   const { publishers } = loaderData;
   return (
     <div>
+      {/* <PageHeader title="Publishers" /> */}
+
       {/* Header Section */}
       <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md text-center p-8 mb-8">
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
