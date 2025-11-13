@@ -17,6 +17,7 @@ import {
 } from 'react-router';
 import type { Route } from './+types/Layout';
 import { Box } from './components/Box';
+import { Cover } from './components/Cover';
 import { APP_NAME } from './constants';
 import { getComicCount, getLastScanTime } from './db/queries';
 import { getUser } from './lib/getUser';
@@ -245,7 +246,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
               ref={searchInputRef}
               id="search"
               name="search"
-              className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md leading-5 bg-white dark:bg-slate-700 placeholder-slate-500 dark:placeholder-slate-400 text-slate-900 dark:text-slate-100 focus:outline-none focus:placeholder-slate-400 dark:focus:placeholder-slate-300 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+              className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-800 rounded-md leading-5 bg-white dark:bg-slate-900 placeholder-slate-500 dark:placeholder-slate-400 text-slate-900 dark:text-slate-100 focus:outline-none focus:placeholder-slate-400 dark:focus:placeholder-slate-300 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
               placeholder="Search comics..."
               type="search"
               value={searchQuery}
@@ -261,7 +262,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
 
           {/* Search Results Dropdown */}
           {searchOpen && searchQuery.trim() && (
-            <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-700 shadow-lg rounded-md border border-slate-200 dark:border-slate-600 max-h-96 overflow-y-auto">
+            <div className="absolute z-50 mt-1 w-[150%] -ml-[25%] md:w-full md:ml-0 bg-white dark:bg-slate-900 shadow-lg rounded-md border border-slate-200 dark:border-slate-800 max-h-96 overflow-y-auto">
               {fetcher.state === 'submitting' ? (
                 <div className="p-4 text-center text-slate-500 dark:text-slate-400">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
@@ -273,16 +274,19 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
                     <button
                       key={comic.id}
                       type="button"
-                      className={`w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors ${
+                      className={`w-full px-4 py-3 text-left border-l-2 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors ${
                         selectedIndex === index
-                          ? 'bg-orange-50 dark:bg-orange-900/20 border-r-2 border-orange-500'
-                          : ''
+                          ? 'bg-slate-50 dark:bg-slate-700/20 border-orange-500'
+                          : 'border-transparent'
                       }`}
                       onClick={() => selectResult(comic)}
                       onMouseEnter={() => setSelectedIndex(index)}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="shrink-0 w-8 h-10 bg-slate-200 dark:bg-slate-600 rounded"></div>
+                      <div className="flex items-start space-x-3">
+                        <Cover
+                          comic={comic}
+                          className="max-w-8 aspect-3/4 rounded-sm"
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                             {comic.series
@@ -323,7 +327,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
             </button>
 
             {userMenuOpen && (
-              <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-md text-left shadow-lg py-1 bg-white dark:bg-slate-700 ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-md text-left shadow-lg py-1 bg-white dark:bg-slate-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                 <div className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 border-b truncate border-slate-200 dark:border-slate-600">
                   Signed in as
                   <br />
