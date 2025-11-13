@@ -1,9 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
+import { FaWindowClose } from 'react-icons/fa';
 import { useFetcher } from 'react-router';
+import { OverlayBar } from '~/components/Overlay';
+import { APP_NAME } from '~/constants';
 import { getComicById } from '~/db/queries';
+import { useEagerUntoggler } from '~/hooks/useEagerUntoggler';
 import { comicPageHref } from '~/lib/links';
 import { idToSqid, sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    {
+      title: `Reading ${loaderData.comic.series} #${loaderData.comic.number} - ${APP_NAME}`,
+    },
+    {
+      name: 'description',
+      content: 'Read the comic book in a full-screen reader',
+    },
+  ];
+}
 
 export async function loader({ params }: Route.LoaderArgs) {
   const { sqid } = params;
@@ -37,9 +53,12 @@ const useProgressUpdater = (comicId: number) => {
 
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { comic } = loaderData;
-  const [pageNumber, setPageNumber] = useState(comic.currentPage ?? 1);
   const readerRef = useRef<HTMLDivElement>(null);
+  const [pageNumber, setPageNumber] = useState(comic.currentPage ?? 1);
+  const [overlayOpen, setOverlayOpen] = useEagerUntoggler(false, 3000);
   const updateProgress = useProgressUpdater(comic.id);
+
+  const overlayDismissRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (readerRef.current) {
@@ -60,8 +79,12 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       setPageNumber((prev) => Math.max(prev - 1, 1));
     } else if (clickPosition > width * 0.6) {
       setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
+    } else {
+      setOverlayOpen((open) => !open);
     }
   };
+
+  const handleCloseReader = () => window.history.back();
 
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
@@ -72,7 +95,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
         setPageNumber((prev) => Math.min(prev + 1, comic.pageCount));
         break;
       case 'Escape':
-        window.history.back();
+        handleCloseReader();
         break;
       default:
         break;
@@ -84,13 +107,40 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       onClick={handleOnClick}
       onKeyDown={handleKeyboardInput}
       tabIndex={0}
-      className="flex justify-center items-center select-none"
+      className="flex justify-center items-center select-none relative h-dvh"
       ref={readerRef}
     >
+      <OverlayBar
+        className="flex items-center gap-2"
+        visible={overlayOpen}
+        position="top"
+      >
+        <div className="flex-1 text-center">
+          {comic.series} {comic.number ? `#${comic.number}` : ''}
+        </div>
+        <div
+          className="cursor-pointer justify-self-end mr-2"
+          onClick={handleCloseReader}
+        >
+          <FaWindowClose />
+        </div>
+      </OverlayBar>
       <img
         src={comicPageHref(comic, pageNumber)}
-        className="w-auto h-screen pointer-events-none"
+        className="max-h-screen max-w-full object-contain pointer-events-none"
       />
+      <OverlayBar visible={overlayOpen} position="bottom">
+        <div className="relative m-2">
+          <div className="bg-slate-500/40 h-1 w-full absolute top-0 left-0 z-0" />
+          <div
+            className="bg-slate-500 h-1 w-full absolute top-0 left-0 z-10 transition-[width] duration-500 ease-in-out"
+            style={{ width: `${(pageNumber / comic.pageCount) * 100}%` }}
+          />
+        </div>
+        <div className="p-2 text-sm text-center">
+          Page {pageNumber} of {comic.pageCount}
+        </div>
+      </OverlayBar>
     </div>
   );
 }
