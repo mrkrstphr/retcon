@@ -1,10 +1,11 @@
 import { data, Link } from 'react-router';
+import { Cover } from '~/components/Cover';
 import {
   getSeriesById,
   getSeriesComicCount,
   getSeriesComics,
 } from '~/db/queries';
-import { getCoverPath } from '~/lib/getCoverPath';
+import { comicDetailsHref } from '~/lib/links';
 import { sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
 import type { Route } from './+types/SeriesDetails';
@@ -161,25 +162,12 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
             {sortedComics.map((comic) => (
               <Link
                 key={comic.id}
-                to={`/comic/${comic.id}`}
+                to={comicDetailsHref(comic)}
                 className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
               >
-                <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
-                  <img
-                    src={getCoverPath(comic.id)}
-                    alt={
-                      comic.number
-                        ? `${series.name} #${comic.number}`
-                        : 'Comic cover'
-                    }
-                    className="w-full h-full object-cover object-top"
-                    onError={(e) => {
-                      // Hide broken images
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-                <div className="text-sm text-center">
+                <Cover comic={comic} />
+
+                <div className="text-sm text-center mt-2">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
                     <div className="line-clamp-2 leading-tight">
                       {comic.number
@@ -190,11 +178,6 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
                             ?.replace(/\.[^/.]+$/, '') || 'Unknown'}
                     </div>
                   </div>
-                  {comic.volume && (
-                    <div className="text-xs text-slate-600 dark:text-slate-400 truncate">
-                      Vol. {comic.volume}
-                    </div>
-                  )}
                   {/* Show release date if available */}
                   {getReleaseDate(comic.metadata) && (
                     <div className="text-xs text-slate-500 dark:text-slate-500 truncate">

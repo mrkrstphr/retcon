@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IoMdClose, IoMdSearch } from 'react-icons/io';
 import { Link, useFetcher } from 'react-router';
+import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
-import { getCoverPath } from '~/lib/getCoverPath';
 import { comicDetailsHref } from '~/lib/links';
 import { APP_NAME } from '../constants';
 import {
@@ -287,20 +287,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 to={comicDetailsHref(comic)}
                 className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
               >
-                <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
-                  <img
-                    src={getCoverPath(comic.id)}
-                    alt={
-                      comic.series && comic.number
-                        ? `${comic.series} #${comic.number}`
-                        : 'Comic cover'
-                    }
-                    className="w-full h-full object-cover object-top"
-                    onError={(e) => {
-                      // Hide broken images
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
+                <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded relative">
+                  <Cover comic={comic} />
                 </div>
                 <div className="text-sm text-center">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">

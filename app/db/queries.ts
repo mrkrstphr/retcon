@@ -18,12 +18,16 @@ export async function getRecentComics(limit: number = 10) {
       series: series.name,
       number: comics.number,
       volume: comics.volume,
+      currentPage: userComics.currentPage,
+      isRead: userComics.isRead,
+      pageCount: comics.pageCount,
       publisher: publishers.name,
       lastSynced: comics.lastSynced,
     })
     .from(comics)
     .leftJoin(publishers, eq(comics.publisherId, publishers.id))
     .leftJoin(series, eq(comics.seriesId, series.id))
+    .leftJoin(userComics, eq(userComics.comicId, comics.id))
     .orderBy(desc(comics.createdAt))
     .limit(limit);
 }
@@ -388,12 +392,17 @@ export async function getSeriesComics(
     .select({
       id: comics.id,
       fileName: comics.fileName,
+      slug: comics.slug,
       number: comics.number,
       volume: comics.volume,
+      currentPage: userComics.currentPage,
+      pageCount: comics.pageCount,
+      isRead: userComics.isRead,
       metadata: comics.metadata,
       createdAt: comics.createdAt,
     })
     .from(comics)
+    .leftJoin(userComics, eq(userComics.comicId, comics.id))
     .where(eq(comics.seriesId, seriesId))
     .orderBy(
       // Sort by number (numeric), then by created date
@@ -418,6 +427,7 @@ export async function upsertUserComicProgress(
   userId: number,
   comicId: number,
   currentPage: number,
+  isRead: boolean = false,
 ) {
   return db
     .insert(userComics)
@@ -425,6 +435,7 @@ export async function upsertUserComicProgress(
       userId,
       comicId,
       currentPage,
+      isRead,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
@@ -432,6 +443,7 @@ export async function upsertUserComicProgress(
       target: [userComics.userId, userComics.comicId],
       set: {
         currentPage,
+        isRead,
         updatedAt: new Date(),
       },
     });

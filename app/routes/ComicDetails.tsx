@@ -2,7 +2,7 @@ import Markdown from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { ButtonLink } from '~/components/ButtonLink';
-import { getCoverPath } from '~/lib/getCoverPath';
+import { Cover } from '~/components/Cover';
 import { comicReaderHref } from '~/lib/links';
 import { sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
@@ -126,16 +126,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
             {/* Cover Image */}
             <div className="lg:col-span-1">
-              <div className="aspect-3/4 bg-slate-200 dark:bg-slate-700 rounded-lg overflow-hidden shadow-lg">
-                <img
-                  src={getCoverPath(comic.id)}
-                  alt={displayTitle}
-                  className="w-full h-full object-cover object-top"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
+              <Cover comic={comic} />
 
               <div className="text-center mt-4">
                 <ButtonLink to={comicReaderHref(comic)}>Read Comic</ButtonLink>

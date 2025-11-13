@@ -5,6 +5,7 @@ import { useFetcher } from 'react-router';
 import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
+import { ProgressBar } from '~/components/ProgressBar';
 import { APP_NAME } from '~/constants';
 import { getComicById } from '~/db/queries';
 import { useEagerUntoggler } from '~/hooks/useEagerUntoggler';
@@ -214,13 +215,11 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       )}
 
       <OverlayBar visible={overlayOpen} position="bottom">
-        <div className="relative m-2">
-          <div className="bg-slate-500/40 h-1 w-full absolute top-0 left-0 z-0" />
-          <div
-            className="bg-slate-500 h-1 w-full absolute top-0 left-0 z-10 transition-[width] duration-500 ease-in-out"
-            style={{ width: `${(pageNumber / comic.pageCount) * 100}%` }}
-          />
-        </div>
+        <ProgressBar
+          className="m-2"
+          value={(pageNumber / comic.pageCount) * 100}
+        />
+
         <div className="p-2 text-sm text-center select-none">
           Page {pageNumber} of {comic.pageCount}
         </div>
