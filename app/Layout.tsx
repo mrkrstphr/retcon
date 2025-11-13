@@ -380,21 +380,12 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
                   </SidebarLink>
                 ))}
               </nav>
-              <div className="text-xs text-center text-gray-500 dark:text-gray-400 border-t border-gray-300 dark:border-gray-600 pt-2 mx-2">
-                <div>{comicCount} total comics</div>
-                <div>
-                  Last Scan:{' '}
-                  {lastScanTime
-                    ? new Date(lastScanTime).toLocaleString([], {
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        year: 'numeric',
-                        month: 'numeric',
-                        day: 'numeric',
-                      })
-                    : 'Never'}
-                </div>
-              </div>
+
+              <Stats
+                className="mt-4"
+                comicCount={comicCount}
+                lastScanTime={lastScanTime}
+              />
             </div>
           </div>
         </div>
@@ -402,31 +393,21 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
 
       <div className="flex items-start gap-2 w-full">
         {/* Desktop sidebar */}
-        <div className="hidden md:flex md:shrink-0">
-          <Box className="h-full">
-            <div className="flex flex-col w-64">
-              <div className="flex flex-col h-0 flex-1">
-                <div className="flex-1 flex flex-col overflow-y-auto">
-                  <nav className="flex-1 px-2 space-y-1">
-                    {navigation.map((item) => (
-                      <SidebarLink
-                        key={item.name}
-                        to={item.href}
-                        icon={item.icon}
-                      >
-                        {item.name}
-                      </SidebarLink>
-                    ))}
-                  </nav>
+        <div className="hidden md:flex h-full w-84">
+          <Box className="flex flex-col w-full">
+            <nav className="flex-1 px-2 space-y-1">
+              {navigation.map((item) => (
+                <SidebarLink key={item.name} to={item.href} icon={item.icon}>
+                  {item.name}
+                </SidebarLink>
+              ))}
+            </nav>
 
-                  <Stats
-                    className="mt-4"
-                    comicCount={comicCount}
-                    lastScanTime={lastScanTime}
-                  />
-                </div>
-              </div>
-            </div>
+            <Stats
+              className="mt-4"
+              comicCount={comicCount}
+              lastScanTime={lastScanTime}
+            />
           </Box>
         </div>
 
