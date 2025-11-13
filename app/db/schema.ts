@@ -6,6 +6,7 @@ import {
   jsonb,
   pgTable,
   timestamp,
+  unique,
   varchar,
 } from 'drizzle-orm/pg-core';
 import type { Metadata } from './types';
@@ -52,12 +53,18 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const userComics = pgTable('user_comics', {
-  id: bigserial('id', { mode: 'number' }).primaryKey().notNull(),
-  userId: bigint('user_id', { mode: 'number' }).references(() => users.id),
-  comicId: bigint('comic_id', { mode: 'number' }).references(() => comics.id),
-  isRead: boolean('is_read').default(false).notNull(),
-  currentPage: integer('current_page').default(1).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const userComics = pgTable(
+  'user_comics',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey().notNull(),
+    userId: bigint('user_id', { mode: 'number' }).references(() => users.id),
+    comicId: bigint('comic_id', { mode: 'number' }).references(() => comics.id),
+    isRead: boolean('is_read').default(false).notNull(),
+    currentPage: integer('current_page').default(1).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (userComics) => ({
+    user_comic_unique: unique().on(userComics.userId, userComics.comicId),
+  }),
+);

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useFetcher } from 'react-router';
 import { getComicById } from '~/db/queries';
 import { comicPageHref } from '~/lib/links';
-import { sqidToId } from '~/lib/sqids';
+import { idToSqid, sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -17,16 +18,38 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { comic };
 }
 
+const useProgressUpdater = (comicId: number) => {
+  const fetcher = useFetcher();
+
+  const updateProgress = (currentPage: number) => {
+    fetcher.submit(
+      { currentPage },
+      {
+        method: 'POST',
+        action: `/comic/${idToSqid(comicId)}/progress`,
+        encType: 'application/json',
+      },
+    );
+  };
+
+  return updateProgress;
+};
+
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { comic } = loaderData;
-  const [pageNumber, setPageNumber] = useState(1);
+  const [pageNumber, setPageNumber] = useState(comic.currentPage ?? 1);
   const readerRef = useRef<HTMLDivElement>(null);
+  const updateProgress = useProgressUpdater(comic.id);
 
   useEffect(() => {
     if (readerRef.current) {
       readerRef.current.focus();
     }
   }, []);
+
+  useEffect(() => {
+    updateProgress(pageNumber);
+  }, [pageNumber]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX, currentTarget } = e;

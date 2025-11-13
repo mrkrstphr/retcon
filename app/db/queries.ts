@@ -1,7 +1,7 @@
 import { and, count, desc, eq, ilike, lt, or, sql } from 'drizzle-orm';
 import { createSlug, normalizePublisherName } from '../lib/slugs.js';
 import { db } from './index.js';
-import { comics, publishers, series } from './schema.js';
+import { comics, publishers, series, userComics } from './schema.js';
 
 export async function getComicCount() {
   const result = await db.select({ count: count() }).from(comics);
@@ -52,11 +52,14 @@ export async function getComicById(id: number) {
       publisherSlug: publishers.slug,
       seriesId: comics.seriesId,
       metadata: comics.metadata,
+      currentPage: userComics.currentPage,
+      isRead: userComics.isRead,
       createdAt: comics.createdAt,
     })
     .from(comics)
     .leftJoin(publishers, eq(comics.publisherId, publishers.id))
     .leftJoin(series, eq(comics.seriesId, series.id))
+    .leftJoin(userComics, eq(userComics.comicId, comics.id))
     .where(eq(comics.id, id))
     .limit(1);
 
@@ -409,4 +412,27 @@ export async function getSeriesComicCount(seriesId: number) {
     .where(eq(comics.seriesId, seriesId));
 
   return result[0]?.count || 0;
+}
+
+export async function upsertUserComicProgress(
+  userId: number,
+  comicId: number,
+  currentPage: number,
+) {
+  return db
+    .insert(userComics)
+    .values({
+      userId,
+      comicId,
+      currentPage,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [userComics.userId, userComics.comicId],
+      set: {
+        currentPage,
+        updatedAt: new Date(),
+      },
+    });
 }

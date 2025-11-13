@@ -29,6 +29,13 @@
       "when": 1762972753802,
       "tag": "0003_add_page_count_to_comics",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1762975930905,
+      "tag": "0004_unique_user_comics",
+      "breakpoints": true
     }
   ]
 }
