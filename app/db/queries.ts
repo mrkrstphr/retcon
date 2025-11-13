@@ -32,6 +32,30 @@ export async function getRecentComics(limit: number = 10) {
     .limit(limit);
 }
 
+export async function getInProgressComics(userId: number, limit: number = 10) {
+  return await db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      slug: comics.slug,
+      series: series.name,
+      number: comics.number,
+      volume: comics.volume,
+      currentPage: userComics.currentPage,
+      isRead: userComics.isRead,
+      pageCount: comics.pageCount,
+      publisher: publishers.name,
+      lastSynced: comics.lastSynced,
+    })
+    .from(comics)
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(series, eq(comics.seriesId, series.id))
+    .innerJoin(userComics, eq(userComics.comicId, comics.id))
+    .where(and(eq(userComics.userId, userId), eq(userComics.isRead, false)))
+    .orderBy(desc(userComics.updatedAt))
+    .limit(limit);
+}
+
 export async function findComicByFileName(fileName: string) {
   return await db
     .select()
