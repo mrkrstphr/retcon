@@ -155,12 +155,11 @@ export async function getLastScanTime() {
   return result[0]?.lastSynced || null;
 }
 
-export async function searchComics(
+export function searchComics(
   searchTerm: string,
   limit: number = 25,
   offset: number = 0,
 ) {
-  await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate async delay
   if (!searchTerm.trim()) {
     return [];
   }
@@ -184,36 +183,13 @@ export async function searchComics(
     .where(
       or(
         ilike(series.name, searchPattern),
-        ilike(comics.fileName, searchPattern),
-        ilike(publishers.name, searchPattern),
+        sql`(${series.name} || ' #' || ${comics.number}) ILIKE ${searchPattern}`,
+        sql`(${series.name} || ' ' || ${comics.number}) ILIKE ${searchPattern}`,
       ),
     )
     .orderBy(desc(comics.lastSynced))
     .limit(limit)
     .offset(offset);
-}
-
-export function getSearchCount(searchTerm: string) {
-  if (!searchTerm.trim()) {
-    return 0;
-  }
-
-  const searchPattern = `%${searchTerm.toLowerCase()}%`;
-
-  return countOrZero(
-    db
-      .select({ count: count() })
-      .from(comics)
-      .leftJoin(publishers, eq(comics.publisherId, publishers.id))
-      .leftJoin(series, eq(comics.seriesId, series.id))
-      .where(
-        or(
-          ilike(series.name, searchPattern),
-          ilike(comics.fileName, searchPattern),
-          ilike(publishers.name, searchPattern),
-        ),
-      ),
-  );
 }
 
 export async function getPublishersWithCounts() {

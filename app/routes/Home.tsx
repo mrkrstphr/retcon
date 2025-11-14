@@ -5,12 +5,7 @@ import { comicTitle } from '~/lib/comicTitle';
 import { comicDetailsHref, comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { APP_NAME } from '../constants';
-import {
-  getInProgressComics,
-  getRecentComicsForUser,
-  getSearchCount,
-  searchComics,
-} from '../db/queries';
+import { getInProgressComics, getRecentComicsForUser } from '../db/queries';
 import type { Route } from './+types/Home';
 
 export function meta({}: Route.MetaArgs) {
@@ -35,38 +30,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     recentComics,
     inProgressComics,
-  };
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const searchTerm = formData.get('search') as string;
-  const offset = parseInt((formData.get('offset') as string) || '0');
-  const limit = 25;
-
-  if (!searchTerm || searchTerm.trim() === '') {
-    return {
-      searchResults: [],
-      searchTerm: '',
-      hasMore: false,
-      offset: 0,
-      totalCount: 0,
-    };
-  }
-
-  const [searchResults, totalCount] = await Promise.all([
-    searchComics(searchTerm.trim(), limit, offset),
-    offset === 0 ? getSearchCount(searchTerm.trim()) : Promise.resolve(0), // Only get count on first page
-  ]);
-
-  const hasMore = searchResults.length === limit; // If we get full page, there might be more
-
-  return {
-    searchResults,
-    searchTerm: searchTerm.trim(),
-    hasMore,
-    offset,
-    totalCount,
   };
 }
 

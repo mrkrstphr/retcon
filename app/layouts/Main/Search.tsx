@@ -5,49 +5,82 @@ import { Cover } from '~/components/Cover';
 import { useOutsideClickDetector } from '~/hooks/useOutsideClickDetector';
 import { comicDetailsHref } from '~/lib/links';
 
-export function Search() {
+function useDebouncedSearch<T>(
+  action: string,
+  method: 'POST' | 'GET' = 'POST',
+  options?: { delay?: number; onSearchStart?: () => void },
+): {
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  result?: T;
+  state: 'idle' | 'searching' | 'results' | 'canceled';
+} {
+  const [state, setState] = useState<
+    'idle' | 'searching' | 'results' | 'canceled'
+  >('idle');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-
-  const searchRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const fetcher = useFetcher();
-  const navigate = useNavigate();
 
-  // Debounced search
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setSearchOpen(false);
-      setSelectedIndex(-1);
+      setState('idle');
+      if (timerRef.current) clearTimeout(timerRef.current);
+      fetcher.unstable_reset({ reason: 'User Canceled' });
       return;
     }
 
-    const timer = setTimeout(() => {
+    if (timerRef.current) {
+      setState('idle');
+      clearTimeout(timerRef.current);
+      fetcher.unstable_reset({ reason: 'User Canceled' });
+    }
+
+    timerRef.current = setTimeout(() => {
       const formData = new FormData();
       formData.append('search', searchQuery.trim());
       formData.append('offset', '0');
       fetcher.submit(formData, {
-        method: 'POST',
-        action: '/?index',
+        method,
+        action,
       });
-      setSearchOpen(true);
-    }, 300);
+      setState('searching');
+      options?.onSearchStart?.();
+    }, options?.delay || 500);
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [searchQuery, action, method]);
 
-  // Handle search results
   useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      setSearchResults(fetcher.data.searchResults || []);
-    }
-  }, [fetcher.data, fetcher.state]);
+    if (fetcher.state === 'loading') setState('results');
+  }, [fetcher.state]);
+
+  return {
+    searchQuery,
+    setSearchQuery,
+    result: fetcher.data,
+    state,
+  };
+}
+
+export function Search() {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const { searchQuery, setSearchQuery, result, state } = useDebouncedSearch<{
+    searchResults?: any[];
+  }>('/search', 'POST', {
+    onSearchStart: () => setSearchOpen(true),
+  });
+
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   useOutsideClickDetector({
-    ref: searchRef,
+    ref: searchContainerRef,
     onClickOutside: () => {
       setSearchOpen(false);
       setSelectedIndex(-1);
@@ -56,7 +89,15 @@ export function Search() {
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!searchOpen || searchResults.length === 0) return;
+    if (
+      !searchOpen ||
+      !result?.searchResults ||
+      result.searchResults.length === 0
+    )
+      return;
+
+    // Typescript doesn't understand this can't be undefined now
+    const searchResults = result.searchResults!;
 
     switch (e.key) {
       case 'ArrowDown':
@@ -98,7 +139,7 @@ export function Search() {
   };
 
   return (
-    <div className="flex-1 relative" ref={searchRef}>
+    <div className="flex-1 relative" ref={searchContainerRef}>
       <label htmlFor="search" className="sr-only">
         Search comics
       </label>
@@ -117,7 +158,7 @@ export function Search() {
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (searchQuery.trim() && searchResults.length > 0) {
+            if (searchQuery.trim() && !!result?.searchResults?.length) {
               setSearchOpen(true);
             }
           }}
@@ -125,16 +166,18 @@ export function Search() {
       </div>
 
       {/* Search Results Dropdown */}
-      {searchOpen && searchQuery.trim() && (
+      {searchOpen && (
         <div className="absolute z-50 mt-1 w-[150%] -ml-[25%] md:w-full md:ml-0 bg-white dark:bg-slate-900 shadow-lg rounded-md border border-slate-200 dark:border-slate-800 max-h-96 overflow-y-auto">
-          {fetcher.state === 'submitting' ? (
+          {state === 'searching' && (
             <div className="p-4 text-center text-slate-500 dark:text-slate-400">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
               <p className="mt-2 text-sm">Searching...</p>
             </div>
-          ) : searchResults.length > 0 ? (
+          )}
+
+          {state === 'results' && (result?.searchResults?.length ?? 0) > 0 && (
             <div className="py-2">
-              {searchResults.map((comic, index) => (
+              {(result?.searchResults ?? []).map((comic, index) => (
                 <button
                   key={comic.id}
                   type="button"
@@ -167,11 +210,14 @@ export function Search() {
                 </button>
               ))}
             </div>
-          ) : (
-            <div className="p-4 text-center text-slate-500 dark:text-slate-400">
-              <p className="text-sm">No comics found for "{searchQuery}"</p>
-            </div>
           )}
+
+          {state === 'results' &&
+            (result?.searchResults ?? []).length === 0 && (
+              <div className="p-4 text-center text-slate-500 dark:text-slate-400">
+                <p className="text-sm">No comics found for "{searchQuery}"</p>
+              </div>
+            )}
         </div>
       )}
     </div>

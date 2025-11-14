@@ -66,12 +66,15 @@ type Pages = {
       "sqid": string;
     };
   };
+  "/search": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page" | "/comic/:sqid/read" | "/comic/:sqid/progress" | "/issue/:sqid/read" | "/series/:sqid/read";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page" | "/comic/:sqid/read" | "/comic/:sqid/progress" | "/issue/:sqid/read" | "/series/:sqid/read" | "/search";
   };
   "./layouts/Main/Main.tsx": {
     id: "layouts/Main/Main";
@@ -129,6 +132,10 @@ type RouteFiles = {
     id: "routes/MarkSeriesReadOrUnread";
     page: "/series/:sqid/read";
   };
+  "routes/Search.tsx": {
+    id: "routes/Search";
+    page: "/search";
+  };
 };
 
 type RouteModules = {
@@ -147,4 +154,5 @@ type RouteModules = {
   "routes/UserComicProgress": typeof import("./app/routes/UserComicProgress.ts");
   "routes/MarkIssueReadOrUnread": typeof import("./app/routes/MarkIssueReadOrUnread.ts");
   "routes/MarkSeriesReadOrUnread": typeof import("./app/routes/MarkSeriesReadOrUnread.ts");
+  "routes/Search": typeof import("./app/routes/Search.tsx");
 };

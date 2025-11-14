@@ -20,4 +20,5 @@ export default [
   route('comic/:sqid/progress', 'routes/UserComicProgress.ts'),
   route('issue/:sqid/read', 'routes/MarkIssueReadOrUnread.ts'),
   route('series/:sqid/read', 'routes/MarkSeriesReadOrUnread.ts'),
+  route('search', 'routes/Search.tsx'),
 ] satisfies RouteConfig;
