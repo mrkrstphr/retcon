@@ -15,7 +15,7 @@ export const action = async ({ params, request }: Route.ActionArgs) => {
     return new Response('Missing data', { status: 400 });
   }
 
-  const comic = await getComicByIdForUser(user.id, id);
+  const comic = await getComicByIdForUser(id, user.id);
 
   if (!comic) {
     return new Response('Comic not found', { status: 404 });

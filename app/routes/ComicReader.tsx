@@ -38,7 +38,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await protectRoute(request);
 
   const id = sqidToId(sqid);
-  const comic = await getComicByIdForUser(user.id, id);
+  const comic = await getComicByIdForUser(id, user.id);
 
   return { comic };
 }

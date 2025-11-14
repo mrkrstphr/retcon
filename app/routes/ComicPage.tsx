@@ -23,7 +23,7 @@ export const loader = async ({ params, request }: Route.LoaderArgs) => {
   }
 
   // Find the comic by comicId
-  const comic = await getComicByIdForUser(user.id, comicId);
+  const comic = await getComicByIdForUser(comicId, user.id);
 
   if (!comic) {
     throw new Response('Comic not found', { status: 404 });
