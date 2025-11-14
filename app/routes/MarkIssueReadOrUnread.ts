@@ -4,15 +4,31 @@ import {
   getComicByIdForUser,
   markComicAsRead,
 } from '~/db/queries';
-import { getUser } from '~/lib/getUser';
 import { comicDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/MarkIssueReadOrUnread';
 
-export async function action({ request, params }: Route.ActionArgs) {
-  await protectRoute(request);
-  const user = await getUser(request);
+async function markIssueRead(
+  comic: { id: number; slug: string },
+  userId: number,
+) {
+  await markComicAsRead(userId, comic.id);
+  return redirect(comicDetailsHref({ id: comic.id, slug: comic.slug }));
+}
+
+async function markIssueUnread(
+  comic: { id: number; slug: string },
+  userId: number,
+) {
+  await deleteUserComicRecord(userId, comic.id);
+  return redirect(comicDetailsHref({ id: comic.id, slug: comic.slug }));
+}
+
+export async function action(args: Route.ActionArgs) {
+  const { request, params } = args;
+
+  const user = await protectRoute(request);
 
   const { sqid } = params;
   const comicId = sqidToId(sqid);
@@ -24,24 +40,21 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   try {
-    if (request.method === 'POST') {
-      // Mark comic as read
-      await markComicAsRead(user.id, comicId);
-      return redirect(comicDetailsHref({ id: comic.id, slug: comic.slug }));
-    } else if (request.method === 'DELETE') {
-      // Delete user_comic record (unmark/remove from reading list)
-      await deleteUserComicRecord(user.id, comicId);
-      return redirect(comicDetailsHref({ id: comic.id, slug: comic.slug }));
+    switch (request.method) {
+      case 'POST':
+        return markIssueRead(comic, user.id);
+      case 'DELETE':
+        return markIssueUnread(comic, user.id);
+      default:
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+          status: 405,
+          headers: { 'Content-Type': 'application/json' },
+        });
     }
-
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
   } catch (error) {
-    console.error('Error updating comic read status:', error);
+    console.error(`Error executing ${request.method} handler:`, error);
     return new Response(
-      JSON.stringify({ error: 'Failed to update comic status' }),
+      JSON.stringify({ error: 'An unknown error occurred' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },

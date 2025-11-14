@@ -9,7 +9,10 @@ export async function getComicCount() {
   return result[0]?.count || 0;
 }
 
-export async function getRecentComics(limit: number = 10) {
+export async function getRecentComicsForUser(
+  userId: number,
+  limit: number = 10,
+) {
   return await db
     .select({
       id: comics.id,
@@ -27,7 +30,10 @@ export async function getRecentComics(limit: number = 10) {
     .from(comics)
     .leftJoin(publishers, eq(comics.publisherId, publishers.id))
     .leftJoin(series, eq(comics.seriesId, series.id))
-    .leftJoin(userComics, eq(userComics.comicId, comics.id))
+    .leftJoin(
+      userComics,
+      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
+    )
     .orderBy(desc(comics.createdAt))
     .limit(limit);
 }
@@ -62,36 +68,6 @@ export async function findComicByFileName(fileName: string) {
     .from(comics)
     .where(eq(comics.fileName, fileName))
     .limit(1);
-}
-
-export async function getComicById(id: number) {
-  const result = await db
-    .select({
-      id: comics.id,
-      fileName: comics.fileName,
-      slug: comics.slug,
-      pageCount: comics.pageCount,
-      fileModified: comics.fileModified,
-      lastSynced: comics.lastSynced,
-      series: series.name,
-      number: comics.number,
-      volume: comics.volume,
-      publisher: publishers.name,
-      publisherSlug: publishers.slug,
-      seriesId: comics.seriesId,
-      metadata: comics.metadata,
-      currentPage: userComics.currentPage,
-      isRead: userComics.isRead,
-      createdAt: comics.createdAt,
-    })
-    .from(comics)
-    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
-    .leftJoin(series, eq(comics.seriesId, series.id))
-    .leftJoin(userComics, eq(userComics.comicId, comics.id))
-    .where(eq(comics.id, id))
-    .limit(1);
-
-  return result[0] || null;
 }
 
 export async function getComicByIdForUser(id: number, userId: number) {
@@ -272,7 +248,6 @@ export async function getPublishersWithCounts() {
   }));
 }
 
-// Publisher functions
 export async function getAllPublishers() {
   return await db
     .select({
@@ -314,17 +289,6 @@ export async function createPublisher(name: string) {
   return result[0];
 }
 
-export async function getPublisherById(id: number) {
-  const result = await db
-    .select()
-    .from(publishers)
-    .where(eq(publishers.id, id))
-    .limit(1);
-
-  return result[0] || null;
-}
-
-// Series functions
 export async function findSeriesByName(name: string, publisherId?: number) {
   const normalizedName = name.trim();
 
@@ -401,7 +365,6 @@ export async function getSeriesById(id: number) {
   return result[0] || null;
 }
 
-// Publisher details queries
 export async function getPublisherBySlug(slug: string) {
   const result = await db
     .select()
@@ -436,39 +399,6 @@ export async function getPublisherComicCount(publisherId: number) {
     .where(eq(comics.publisherId, publisherId));
 
   return result[0]?.count || 0;
-}
-
-// Series details queries
-
-export async function getSeriesComics(
-  seriesId: number,
-  limit: number = 25,
-  offset: number = 0,
-) {
-  return await db
-    .select({
-      id: comics.id,
-      fileName: comics.fileName,
-      slug: comics.slug,
-      number: comics.number,
-      volume: comics.volume,
-      currentPage: userComics.currentPage,
-      pageCount: comics.pageCount,
-      isRead: userComics.isRead,
-      metadata: comics.metadata,
-      createdAt: comics.createdAt,
-    })
-    .from(comics)
-    .leftJoin(userComics, eq(userComics.comicId, comics.id))
-    .where(eq(comics.seriesId, seriesId))
-    .orderBy(
-      // Sort by number (numeric), then by created date
-      sql`CASE WHEN ${comics.number} ~ '^[0-9]+$' THEN CAST(${comics.number} AS INTEGER) ELSE 999999 END`,
-      comics.number,
-      desc(comics.createdAt),
-    )
-    .limit(limit)
-    .offset(offset);
 }
 
 export async function getSeriesComicCount(seriesId: number) {

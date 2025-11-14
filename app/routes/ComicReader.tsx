@@ -7,10 +7,11 @@ import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
 import { ProgressBar } from '~/components/ProgressBar';
 import { APP_NAME } from '~/constants';
-import { getComicById } from '~/db/queries';
+import { getComicByIdForUser } from '~/db/queries';
 import { useEagerUntoggler } from '~/hooks/useEagerUntoggler';
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
 import { comicPageHref } from '~/lib/links';
+import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
 
@@ -26,15 +27,17 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const { sqid } = params;
 
   if (!sqid) {
     throw new Response('Missing sqid parameter', { status: 404 });
   }
 
+  const user = await protectRoute(request);
+
   const id = sqidToId(sqid);
-  const comic = await getComicById(id);
+  const comic = await getComicByIdForUser(user.id, id);
 
   return { comic };
 }

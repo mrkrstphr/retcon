@@ -4,15 +4,13 @@ import {
   getSeriesById,
   markSeriesAsRead,
 } from '~/db/queries';
-import { getUser } from '~/lib/getUser';
 import { seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/MarkSeriesReadOrUnread';
 
 export async function action({ request, params }: Route.ActionArgs) {
-  await protectRoute(request);
-  const user = await getUser(request);
+  const user = await protectRoute(request);
 
   const { sqid } = params;
   const seriesId = sqidToId(sqid);
@@ -24,20 +22,25 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   try {
-    if (request.method === 'POST') {
-      // Mark entire series as read
-      await markSeriesAsRead(user.id, seriesId);
-      return redirect(seriesDetailsHref({ id: series.id, slug: series.slug }));
-    } else if (request.method === 'DELETE') {
-      // Delete all user_comic records for the series
-      await deleteUserSeriesRecords(user.id, seriesId);
-      return redirect(seriesDetailsHref({ id: series.id, slug: series.slug }));
+    switch (request.method) {
+      case 'POST':
+        // Mark entire series as read
+        await markSeriesAsRead(user.id, seriesId);
+        return redirect(
+          seriesDetailsHref({ id: series.id, slug: series.slug }),
+        );
+      case 'DELETE':
+        // Delete all user_comic records for the series
+        await deleteUserSeriesRecords(user.id, seriesId);
+        return redirect(
+          seriesDetailsHref({ id: series.id, slug: series.slug }),
+        );
+      default:
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+          status: 405,
+          headers: { 'Content-Type': 'application/json' },
+        });
     }
-
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
   } catch (error) {
     console.error('Error updating series read status:', error);
     return new Response(

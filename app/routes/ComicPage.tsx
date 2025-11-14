@@ -1,16 +1,19 @@
 import { extname } from 'path';
-import { getComicById } from '~/db/queries';
+import { getComicByIdForUser } from '~/db/queries';
 import { extractPageFromArchive } from '~/lib/extractPageFromArchive';
 import { getSortedImagesFromZip } from '~/lib/getSortedImagesFromZip';
+import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/ComicPage';
 
-export const loader = async ({ params }: Route.LoaderArgs) => {
+export const loader = async ({ params, request }: Route.LoaderArgs) => {
   const { sqid, page } = params;
 
   if (!sqid || !page) {
     throw new Response('Missing sqid or page parameter', { status: 404 });
   }
+
+  const user = await protectRoute(request);
 
   const comicId = sqidToId(sqid);
   const pageNumber = parseInt(page, 10);
@@ -20,7 +23,7 @@ export const loader = async ({ params }: Route.LoaderArgs) => {
   }
 
   // Find the comic by comicId
-  const comic = await getComicById(comicId);
+  const comic = await getComicByIdForUser(user.id, comicId);
 
   if (!comic) {
     throw new Response('Comic not found', { status: 404 });

@@ -1,11 +1,10 @@
-import { getComicById, upsertUserComicProgress } from '~/db/queries';
-import { getUser } from '~/lib/getUser';
+import { getComicByIdForUser, upsertUserComicProgress } from '~/db/queries';
+import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/UserComicProgress';
 
 export const action = async ({ params, request }: Route.ActionArgs) => {
-  const user = await getUser(request);
-  if (!user) return new Response('Unauthorized', { status: 401 });
+  const user = await protectRoute(request);
 
   const sqid = params.sqid;
   const id = sqidToId(sqid);
@@ -16,7 +15,7 @@ export const action = async ({ params, request }: Route.ActionArgs) => {
     return new Response('Missing data', { status: 400 });
   }
 
-  const comic = await getComicById(id);
+  const comic = await getComicByIdForUser(user.id, id);
 
   if (!comic) {
     return new Response('Comic not found', { status: 404 });

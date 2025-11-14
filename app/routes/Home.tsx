@@ -1,13 +1,12 @@
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
-import { getUser } from '~/lib/getUser';
 import { comicDetailsHref, comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { APP_NAME } from '../constants';
 import {
   getInProgressComics,
-  getRecentComics,
+  getRecentComicsForUser,
   getSearchCount,
   searchComics,
 } from '../db/queries';
@@ -24,11 +23,11 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  await protectRoute(request);
-  const user = await getUser(request);
+  const user = await protectRoute(request);
+  7;
 
   const [recentComics, inProgressComics] = await Promise.all([
-    getRecentComics(10),
+    getRecentComicsForUser(user.id, 10),
     getInProgressComics(user.id, 10),
   ]);
 

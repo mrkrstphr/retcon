@@ -7,4 +7,6 @@ export async function protectRoute(request: Request) {
   if (!user) {
     throw redirect('/login');
   }
+
+  return user;
 }

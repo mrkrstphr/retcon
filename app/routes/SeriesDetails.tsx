@@ -4,7 +4,7 @@ import { Cover } from '~/components/Cover';
 import {
   getSeriesById,
   getSeriesComicCount,
-  getSeriesComics,
+  getSeriesComicsForUser,
   getSeriesReadStatus,
 } from '~/db/queries';
 import { getUser } from '~/lib/getUser';
@@ -48,7 +48,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   // Get comics for this series with pagination and read status
   const [comics, totalComics, readStatus] = await Promise.all([
-    getSeriesComics(series.id, itemsPerPage, offset),
+    getSeriesComicsForUser(series.id, user.id, itemsPerPage, offset),
     getSeriesComicCount(series.id),
     // TODO: Re-enable after fixing build issue
     getSeriesReadStatus(series.id, user.id),
