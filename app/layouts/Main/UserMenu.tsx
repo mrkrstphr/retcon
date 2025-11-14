@@ -24,9 +24,6 @@ export const UserMenu = ({ user }: { user: User }) => {
           onClick={() => setUserMenuOpen(!userMenuOpen)}
         >
           <FaUserAstronaut className="size-6 text-slate-400 dark:text-slate-500" />
-          <span className="hidden text-slate-700 dark:text-slate-300 text-sm font-medium lg:block">
-            {user.name}
-          </span>
         </button>
 
         {userMenuOpen && (
