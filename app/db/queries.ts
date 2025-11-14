@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, lt, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm';
 import { createSlug, normalizePublisherName } from '../lib/slugs.js';
 import { db } from './index.js';
 import { comics, publishers, series, userComics } from './schema.js';
@@ -480,6 +480,78 @@ export async function getSeriesComicCount(seriesId: number) {
   return result[0]?.count || 0;
 }
 
+export async function getSeriesComicsForUser(
+  seriesId: number,
+  userId: number,
+  limit: number = 25,
+  offset: number = 0,
+) {
+  return await db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      slug: comics.slug,
+      number: comics.number,
+      volume: comics.volume,
+      currentPage: userComics.currentPage,
+      pageCount: comics.pageCount,
+      isRead: userComics.isRead,
+      metadata: comics.metadata,
+      createdAt: comics.createdAt,
+    })
+    .from(comics)
+    .leftJoin(
+      userComics,
+      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
+    )
+    .where(eq(comics.seriesId, seriesId))
+    .orderBy(
+      // Sort by number (numeric), then by created date
+      sql`CASE WHEN ${comics.number} ~ '^[0-9]+$' THEN CAST(${comics.number} AS INTEGER) ELSE 999999 END`,
+      comics.number,
+      desc(comics.createdAt),
+    )
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getSeriesReadStatus(seriesId: number, userId: number) {
+  // Get total comic count for the series
+  const totalComicsResult = await db
+    .select({ count: count() })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId));
+
+  const totalComics = totalComicsResult[0]?.count || 0;
+
+  if (totalComics === 0) {
+    return { totalComics: 0, readComics: 0, allRead: false, noneRead: true };
+  }
+
+  // Get count of read comics for this user
+  const readComicsResult = await db
+    .select({ count: count() })
+    .from(comics)
+    .innerJoin(
+      userComics,
+      and(
+        eq(userComics.comicId, comics.id),
+        eq(userComics.userId, userId),
+        eq(userComics.isRead, true),
+      ),
+    )
+    .where(eq(comics.seriesId, seriesId));
+
+  const readComics = readComicsResult[0]?.count || 0;
+
+  return {
+    totalComics,
+    readComics,
+    allRead: readComics === totalComics,
+    noneRead: readComics === 0,
+  };
+}
+
 export async function upsertUserComicProgress(
   userId: number,
   comicId: number,
@@ -585,9 +657,6 @@ export async function deleteUserSeriesRecords(
   return db
     .delete(userComics)
     .where(
-      and(
-        eq(userComics.userId, userId),
-        sql`${userComics.comicId} = ANY(${comicIds})`,
-      ),
+      and(eq(userComics.userId, userId), inArray(userComics.comicId, comicIds)),
     );
 }

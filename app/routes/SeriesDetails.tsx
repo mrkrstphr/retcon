@@ -1,12 +1,16 @@
-import { data, Link } from 'react-router';
+import { data, Form, Link } from 'react-router';
+import { Button } from '~/components/Button';
 import { Cover } from '~/components/Cover';
 import {
   getSeriesById,
   getSeriesComicCount,
   getSeriesComics,
+  getSeriesReadStatus,
 } from '~/db/queries';
+import { getUser } from '~/lib/getUser';
 import { comicDetailsHref } from '~/lib/links';
-import { sqidToId } from '~/lib/sqids';
+import { protectRoute } from '~/lib/protectRoute';
+import { idToSqid, sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
 import type { Route } from './+types/SeriesDetails';
 
@@ -26,6 +30,9 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
+  await protectRoute(request);
+  const user = await getUser(request);
+
   const { sqid } = params;
   const url = new URL(request.url);
   const currentPage = parseInt(url.searchParams.get('page') || '1');
@@ -39,10 +46,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw data('Series not found', { status: 404 });
   }
 
-  // Get comics for this series with pagination
-  const [comics, totalComics] = await Promise.all([
+  // Get comics for this series with pagination and read status
+  const [comics, totalComics, readStatus] = await Promise.all([
     getSeriesComics(series.id, itemsPerPage, offset),
     getSeriesComicCount(series.id),
+    // TODO: Re-enable after fixing build issue
+    getSeriesReadStatus(series.id, user.id),
   ]);
 
   const totalPages = Math.ceil(totalComics / itemsPerPage);
@@ -53,6 +62,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     totalComics,
     currentPage,
     totalPages,
+    // TODO: Re-enable after fixing build issue
+    readStatus,
   };
 }
 
@@ -110,7 +121,8 @@ const sortComicsByReleaseDate = (comics: any[]) => {
 };
 
 export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
-  const { series, comics, totalComics, currentPage, totalPages } = loaderData;
+  const { series, comics, totalComics, currentPage, totalPages, readStatus } =
+    loaderData;
 
   // Sort comics by release date
   const sortedComics = sortComicsByReleaseDate([...comics]);
@@ -148,6 +160,35 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
               </span>
             </div>
           </div>
+
+          {/* Series Read/Unread Buttons */}
+          {readStatus.totalComics > 0 && (
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+              {/* Mark Series Read Button - show if not all are read */}
+              {!readStatus.allRead && (
+                <Form
+                  method="POST"
+                  action={`/series/${idToSqid(series.id)}/read`}
+                >
+                  <Button type="submit" variant="primary">
+                    Mark Series as Read
+                  </Button>
+                </Form>
+              )}
+
+              {/* Mark Series Unread Button - show if all are read or some are read */}
+              {(!readStatus.noneRead || readStatus.allRead) && (
+                <Form
+                  method="DELETE"
+                  action={`/series/${idToSqid(series.id)}/read`}
+                >
+                  <Button type="submit" variant="secondary">
+                    Mark Series as Unread
+                  </Button>
+                </Form>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -8,3 +8,6 @@ export const comicReaderHref = ({ id }: { id: number }) =>
 
 export const comicPageHref = ({ id }: { id: number }, page: number) =>
   `/comic/${idToSqid(id)}/page/${page}`;
+
+export const seriesDetailsHref = ({ id, slug }: { id: number; slug: string }) =>
+  `/series/${idToSqid(id)}/${slug}`;
