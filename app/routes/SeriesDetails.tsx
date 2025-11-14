@@ -7,6 +7,7 @@ import {
   getSeriesComicsForUser,
   getSeriesReadStatus,
 } from '~/db/queries';
+import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
 import { comicDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
@@ -208,12 +209,7 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
                 <div className="text-sm text-center mt-2">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
                     <div className="line-clamp-2 leading-tight">
-                      {comic.number
-                        ? `#${comic.number}`
-                        : comic.fileName
-                            .split('/')
-                            .pop()
-                            ?.replace(/\.[^/.]+$/, '') || 'Unknown'}
+                      {comicTitle(comic)}
                     </div>
                   </div>
                   {/* Show release date if available */}

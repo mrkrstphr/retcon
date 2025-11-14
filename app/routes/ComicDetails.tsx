@@ -5,6 +5,7 @@ import { Box } from '~/components/Box';
 import { ButtonAction } from '~/components/ButtonAction';
 import { ButtonLink } from '~/components/ButtonLink';
 import { Cover } from '~/components/Cover';
+import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
 import { comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
@@ -118,13 +119,7 @@ function Metadata({ metadata }: { metadata: any }) {
 export default function ComicDetails({ loaderData }: Route.ComponentProps) {
   const { comic } = loaderData;
 
-  const displayTitle =
-    comic.series && comic.number
-      ? `${comic.series} #${comic.number}`
-      : comic.fileName
-          .split('/')
-          .pop()
-          ?.replace(/\.[^/.]+$/, '') || comic.fileName;
+  const displayTitle = comicTitle(comic);
 
   return (
     <Box>

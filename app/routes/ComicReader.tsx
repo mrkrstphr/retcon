@@ -10,6 +10,7 @@ import { APP_NAME } from '~/constants';
 import { getComicByIdForUser } from '~/db/queries';
 import { useEagerUntoggler } from '~/hooks/useEagerUntoggler';
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
+import { comicTitle } from '~/lib/comicTitle';
 import { comicPageHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToId } from '~/lib/sqids';
@@ -181,7 +182,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
         <div className="flex-1 text-center truncate select-none">
-          {comic.series} {comic.number ? `#${comic.number}` : ''}
+          {comicTitle(comic)}
         </div>
         <div
           className="cursor-pointer justify-self-end mr-2"

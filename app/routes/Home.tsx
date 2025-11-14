@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
+import { comicTitle } from '~/lib/comicTitle';
 import { comicDetailsHref, comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { APP_NAME } from '../constants';
@@ -92,12 +93,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <div className="text-sm text-center">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
                     <div className="line-clamp-2 leading-tight">
-                      {comic.series && comic.number
-                        ? `${comic.series} #${comic.number}`
-                        : comic.fileName
-                            .split('/')
-                            .pop()
-                            ?.replace(/\.[^/.]+$/, '') || comic.fileName}
+                      {comicTitle(comic)}
                     </div>
                   </div>
                   {comic.publisher && (
@@ -130,12 +126,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <div className="text-sm text-center">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
                     <div className="line-clamp-2 leading-tight">
-                      {comic.series && comic.number
-                        ? `${comic.series} #${comic.number}`
-                        : comic.fileName
-                            .split('/')
-                            .pop()
-                            ?.replace(/\.[^/.]+$/, '') || comic.fileName}
+                      {comicTitle(comic)}
                     </div>
                   </div>
                   {comic.publisher && (
