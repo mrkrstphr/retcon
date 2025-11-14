@@ -94,6 +94,39 @@ export async function getComicById(id: number) {
   return result[0] || null;
 }
 
+export async function getComicByIdForUser(id: number, userId: number) {
+  const result = await db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      slug: comics.slug,
+      pageCount: comics.pageCount,
+      fileModified: comics.fileModified,
+      lastSynced: comics.lastSynced,
+      series: series.name,
+      number: comics.number,
+      volume: comics.volume,
+      publisher: publishers.name,
+      publisherSlug: publishers.slug,
+      seriesId: comics.seriesId,
+      metadata: comics.metadata,
+      currentPage: userComics.currentPage,
+      isRead: userComics.isRead,
+      createdAt: comics.createdAt,
+    })
+    .from(comics)
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(series, eq(comics.seriesId, series.id))
+    .leftJoin(
+      userComics,
+      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
+    )
+    .where(eq(comics.id, id))
+    .limit(1);
+
+  return result[0] || null;
+}
+
 export async function insertComic(data: {
   fileName: string;
   fileModified: Date;

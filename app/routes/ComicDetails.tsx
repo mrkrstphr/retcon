@@ -1,13 +1,16 @@
 import Markdown from 'react-markdown';
-import { Link } from 'react-router';
+import { Form, Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { Box } from '~/components/Box';
+import { Button } from '~/components/Button';
 import { ButtonLink } from '~/components/ButtonLink';
 import { Cover } from '~/components/Cover';
+import { getUser } from '~/lib/getUser';
 import { comicReaderHref } from '~/lib/links';
-import { sqidToId } from '~/lib/sqids';
+import { protectRoute } from '~/lib/protectRoute';
+import { idToSqid, sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../constants';
-import { getComicById } from '../db/queries';
+import { getComicByIdForUser } from '../db/queries';
 import type { Route } from './+types/ComicDetails';
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -22,9 +25,12 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
+  await protectRoute(request);
+  const user = await getUser(request);
+
   const id = sqidToId(params.sqid);
-  const comic = await getComicById(id);
+  const comic = await getComicByIdForUser(id, user.id);
 
   if (!comic) {
     throw new Response('Comic not found', { status: 404 });
@@ -127,8 +133,43 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
         <div className="lg:col-span-1">
           <Cover comic={comic} />
 
-          <div className="text-center mt-4">
-            <ButtonLink to={comicReaderHref(comic)}>Read Comic</ButtonLink>
+          <div className="text-center mt-4 space-y-2">
+            {/* Primary Read Button */}
+            <div>
+              <ButtonLink to={comicReaderHref(comic)}>
+                {comic.currentPage && comic.currentPage > 1 && !comic.isRead
+                  ? 'Continue Reading'
+                  : 'Read Comic'}
+              </ButtonLink>
+            </div>
+
+            {/* Mark as Read Button */}
+            {!comic.isRead && (
+              <div>
+                <Form
+                  method="POST"
+                  action={`/issue/${idToSqid(comic.id)}/read`}
+                >
+                  <Button type="submit" variant="secondary">
+                    Mark as Read
+                  </Button>
+                </Form>
+              </div>
+            )}
+
+            {/* Mark as Unread Button */}
+            {comic.currentPage && comic.currentPage > 0 && (
+              <div>
+                <Form
+                  method="DELETE"
+                  action={`/issue/${idToSqid(comic.id)}/read`}
+                >
+                  <Button type="submit" variant="secondary">
+                    Mark as Unread
+                  </Button>
+                </Form>
+              </div>
+            )}
           </div>
         </div>
 
