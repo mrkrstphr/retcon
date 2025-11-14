@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 
 export const useEagerUntoggler = (
   defaultValue: boolean,
-  delay: number = 1000,
+  delay: number | false = 1000,
 ) => {
   const [isToggled, setIsToggled] = useState(defaultValue);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    if (delay === false) return;
+
     if (isToggled) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
