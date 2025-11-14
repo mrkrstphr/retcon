@@ -87,8 +87,8 @@ type RouteFiles = {
     id: "routes/ComicDetails";
     page: "/comic/:sqid/:slug";
   };
-  "./AuthLayout.tsx": {
-    id: "AuthLayout";
+  "./layouts/AuthLayout.tsx": {
+    id: "layouts/AuthLayout";
     page: "/login";
   };
   "routes/Login.tsx": {
@@ -121,7 +121,7 @@ type RouteModules = {
   "routes/PublisherDetails": typeof import("./app/routes/PublisherDetails.tsx");
   "routes/SeriesDetails": typeof import("./app/routes/SeriesDetails.tsx");
   "routes/ComicDetails": typeof import("./app/routes/ComicDetails.tsx");
-  "AuthLayout": typeof import("./app/./AuthLayout.tsx");
+  "layouts/AuthLayout": typeof import("./app/./layouts/AuthLayout.tsx");
   "routes/Login": typeof import("./app/routes/Login.tsx");
   "routes/Logout": typeof import("./app/routes/Logout.tsx");
   "routes/ComicPage": typeof import("./app/routes/ComicPage.tsx");
