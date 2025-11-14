@@ -1,8 +1,8 @@
 import Markdown from 'react-markdown';
-import { Form, Link } from 'react-router';
+import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { Box } from '~/components/Box';
-import { Button } from '~/components/Button';
+import { ButtonAction } from '~/components/ButtonAction';
 import { ButtonLink } from '~/components/ButtonLink';
 import { Cover } from '~/components/Cover';
 import { getUser } from '~/lib/getUser';
@@ -143,32 +143,24 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
               </ButtonLink>
             </div>
 
-            {/* Mark as Read Button */}
             {!comic.isRead && (
-              <div>
-                <Form
-                  method="POST"
-                  action={`/issue/${idToSqid(comic.id)}/read`}
-                >
-                  <Button type="submit" variant="secondary">
-                    Mark as Read
-                  </Button>
-                </Form>
-              </div>
+              <ButtonAction
+                method="POST"
+                action={`/issue/${idToSqid(comic.id)}/read`}
+                variant="primary"
+              >
+                Mark as Read
+              </ButtonAction>
             )}
 
-            {/* Mark as Unread Button */}
             {comic.currentPage && comic.currentPage > 0 && (
-              <div>
-                <Form
-                  method="DELETE"
-                  action={`/issue/${idToSqid(comic.id)}/read`}
-                >
-                  <Button type="submit" variant="secondary">
-                    Mark as Unread
-                  </Button>
-                </Form>
-              </div>
+              <ButtonAction
+                method="DELETE"
+                action={`/issue/${idToSqid(comic.id)}/read`}
+                variant="secondary"
+              >
+                Mark as Unread
+              </ButtonAction>
             )}
           </div>
         </div>

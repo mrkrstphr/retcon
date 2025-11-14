@@ -1,5 +1,5 @@
-import { data, Form, Link } from 'react-router';
-import { Button } from '~/components/Button';
+import { data, Link } from 'react-router';
+import { ButtonAction } from '~/components/ButtonAction';
 import { Cover } from '~/components/Cover';
 import {
   getSeriesById,
@@ -161,31 +161,28 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          {/* Series Read/Unread Buttons */}
           {readStatus.totalComics > 0 && (
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-              {/* Mark Series Read Button - show if not all are read */}
               {!readStatus.allRead && (
-                <Form
+                <ButtonAction
                   method="POST"
                   action={`/series/${idToSqid(series.id)}/read`}
+                  type="submit"
+                  variant="primary"
                 >
-                  <Button type="submit" variant="primary">
-                    Mark Series as Read
-                  </Button>
-                </Form>
+                  Mark Series as Read
+                </ButtonAction>
               )}
 
-              {/* Mark Series Unread Button - show if all are read or some are read */}
               {(!readStatus.noneRead || readStatus.allRead) && (
-                <Form
+                <ButtonAction
                   method="DELETE"
                   action={`/series/${idToSqid(series.id)}/read`}
+                  type="submit"
+                  variant="secondary"
                 >
-                  <Button type="submit" variant="secondary">
-                    Mark Series as Unread
-                  </Button>
-                </Form>
+                  Mark Series as Unread
+                </ButtonAction>
               )}
             </div>
           )}
