@@ -472,3 +472,89 @@ export async function upsertUserComicProgress(
       },
     });
 }
+
+export async function markComicAsRead(userId: number, comicId: number) {
+  return db
+    .insert(userComics)
+    .values({
+      userId,
+      comicId,
+      currentPage: 1,
+      isRead: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [userComics.userId, userComics.comicId],
+      set: {
+        isRead: true,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+export async function markSeriesAsRead(userId: number, seriesId: number) {
+  // Get all comics in the series
+  const seriesComics = await db
+    .select({ id: comics.id })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId));
+
+  if (seriesComics.length === 0) {
+    return;
+  }
+
+  // Mark all comics in the series as read
+  const values = seriesComics.map((comic) => ({
+    userId,
+    comicId: comic.id,
+    currentPage: 1,
+    isRead: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+
+  return db
+    .insert(userComics)
+    .values(values)
+    .onConflictDoUpdate({
+      target: [userComics.userId, userComics.comicId],
+      set: {
+        isRead: true,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+export async function deleteUserComicRecord(userId: number, comicId: number) {
+  return db
+    .delete(userComics)
+    .where(and(eq(userComics.userId, userId), eq(userComics.comicId, comicId)));
+}
+
+export async function deleteUserSeriesRecords(
+  userId: number,
+  seriesId: number,
+) {
+  // First get all comic IDs in the series
+  const seriesComics = await db
+    .select({ id: comics.id })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId));
+
+  if (seriesComics.length === 0) {
+    return;
+  }
+
+  const comicIds = seriesComics.map((comic) => comic.id);
+
+  // Delete user_comics records for all comics in the series
+  return db
+    .delete(userComics)
+    .where(
+      and(
+        eq(userComics.userId, userId),
+        sql`${userComics.comicId} = ANY(${comicIds})`,
+      ),
+    );
+}
