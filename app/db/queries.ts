@@ -421,6 +421,7 @@ export async function getSeriesComicsForUser(
       id: comics.id,
       fileName: comics.fileName,
       slug: comics.slug,
+      series: series.name,
       number: comics.number,
       volume: comics.volume,
       currentPage: userComics.currentPage,
@@ -434,10 +435,10 @@ export async function getSeriesComicsForUser(
       userComics,
       and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
     )
+    .leftJoin(series, eq(comics.seriesId, series.id))
     .where(eq(comics.seriesId, seriesId))
     .orderBy(
-      // Sort by number (numeric), then by created date
-      sql`CASE WHEN ${comics.number} ~ '^[0-9]+$' THEN CAST(${comics.number} AS INTEGER) ELSE 999999 END`,
+      sql`(${comics.metadata}->>'releaseDate')::date ASC`,
       comics.number,
       desc(comics.createdAt),
     )

@@ -1,4 +1,5 @@
 import { data, Link } from 'react-router';
+import { Box } from '~/components/Box';
 import { ButtonAction } from '~/components/ButtonAction';
 import { Cover } from '~/components/Cover';
 import {
@@ -31,6 +32,9 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
+  const preferredLocale =
+    request.headers.get('accept-language')?.split(',')[0] || 'en-US';
+
   await protectRoute(request);
   const user = await getUser(request);
 
@@ -51,82 +55,40 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const [comics, totalComics, readStatus] = await Promise.all([
     getSeriesComicsForUser(series.id, user.id, itemsPerPage, offset),
     getSeriesComicCount(series.id),
-    // TODO: Re-enable after fixing build issue
     getSeriesReadStatus(series.id, user.id),
   ]);
 
   const totalPages = Math.ceil(totalComics / itemsPerPage);
 
+  // we need to format the dates here to prevent a mismatch between the server and client rendering
+  const formattedComics = comics.map((comic) => {
+    if (comic.metadata?.releaseDate) {
+      return {
+        ...comic,
+        metadata: {
+          ...comic.metadata,
+          releaseDate: new Date(comic.metadata.releaseDate).toLocaleDateString(
+            preferredLocale,
+          ),
+        },
+      };
+    }
+    return comic;
+  });
+
   return {
     series,
-    comics,
+    comics: formattedComics,
     totalComics,
     currentPage,
     totalPages,
-    // TODO: Re-enable after fixing build issue
     readStatus,
   };
 }
 
-// Helper function to extract release date from metadata
-const getReleaseDate = (metadata: any): Date | null => {
-  if (!metadata) return null;
-
-  // Try various metadata fields that might contain release date
-  const dateFields = [
-    'releaseDate',
-    'publicationDate',
-    'date',
-    'month',
-    'year',
-  ];
-
-  for (const field of dateFields) {
-    if (metadata[field]) {
-      const date = new Date(metadata[field]);
-      if (!isNaN(date.getTime())) {
-        return date;
-      }
-    }
-  }
-
-  return null;
-};
-
-// Helper function to sort comics by release date
-const sortComicsByReleaseDate = (comics: any[]) => {
-  return comics.sort((a, b) => {
-    const dateA = getReleaseDate(a.metadata);
-    const dateB = getReleaseDate(b.metadata);
-
-    // If both have dates, sort by date (newest first)
-    if (dateA && dateB) {
-      return dateB.getTime() - dateA.getTime();
-    }
-
-    // If only one has a date, prioritize it
-    if (dateA && !dateB) return -1;
-    if (!dateA && dateB) return 1;
-
-    // If neither has a date, sort by number then by creation date
-    const numA = a.number ? parseInt(a.number) : Infinity;
-    const numB = b.number ? parseInt(b.number) : Infinity;
-
-    if (numA !== numB) {
-      return numA - numB;
-    }
-
-    // Fallback to creation date
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-};
-
 export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
   const { series, comics, totalComics, currentPage, totalPages, readStatus } =
     loaderData;
-
-  // Sort comics by release date
-  const sortedComics = sortComicsByReleaseDate([...comics]);
 
   // Generate pagination URLs
   const generatePageUrl = (page: number) => {
@@ -136,9 +98,8 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <div>
-      {/* Header Section */}
-      <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8 mb-8">
+    <div className="flex flex-col gap-2">
+      <Box>
         <div className="text-center">
           <h2 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4">
             {series.name}
@@ -188,17 +149,12 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
             </div>
           )}
         </div>
-      </div>
+      </Box>
 
-      {/* Comics Grid */}
-      {sortedComics.length > 0 ? (
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
-            Comics {totalPages > 1 && `(Page ${currentPage} of ${totalPages})`}
-          </h2>
-
+      {comics.length > 0 && (
+        <Box>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {sortedComics.map((comic) => (
+            {comics.map((comic) => (
               <Link
                 key={comic.id}
                 to={comicDetailsHref(comic)}
@@ -213,9 +169,9 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
                     </div>
                   </div>
                   {/* Show release date if available */}
-                  {getReleaseDate(comic.metadata) && (
+                  {comic.metadata?.releaseDate && (
                     <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
-                      {getReleaseDate(comic.metadata)!.toLocaleDateString()}
+                      {comic.metadata.releaseDate}
                     </div>
                   )}
                 </div>
@@ -284,8 +240,10 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
           )}
-        </div>
-      ) : (
+        </Box>
+      )}
+
+      {comics.length === 0 && (
         <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
           <div className="text-center text-slate-500 dark:text-slate-400">
             <svg
