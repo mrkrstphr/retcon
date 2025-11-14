@@ -3,7 +3,7 @@ import { db } from '../index';
 import { firstOrNull } from '../lib/firstOrNull';
 import { users } from '../schema';
 
-export async function getUserByCredentials(email: string, password: string) {
+export function getUserByCredentials(email: string, password: string) {
   const query = db
     .select({ id: users.id, email: users.email })
     .from(users)
