@@ -20,6 +20,7 @@ import { Box } from './components/Box';
 import { Cover } from './components/Cover';
 import { APP_NAME } from './constants';
 import { getComicCount, getLastScanTime } from './db/queries';
+import { useOutsideClickDetector } from './hooks/useOutsideClickDetector';
 import { getUser } from './lib/getUser';
 import { comicDetailsHref } from './lib/links';
 import { protectRoute } from './lib/protectRoute';
@@ -110,7 +111,7 @@ const Stats = ({
 
 export default function Layout({ loaderData }: Route.ComponentProps) {
   const { user, comicCount, lastScanTime } = loaderData;
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -119,6 +120,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
 
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const fetcher = useFetcher();
   const navigate = useNavigate();
 
@@ -157,21 +159,20 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
     }
   }, [fetcher.data, fetcher.state]);
 
-  // Click outside to close
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
-        setSearchOpen(false);
-        setSelectedIndex(-1);
-      }
-    }
+  useOutsideClickDetector({
+    ref: searchRef,
+    onClickOutside: () => {
+      setSearchOpen(false);
+      setSelectedIndex(-1);
+    },
+  });
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  useOutsideClickDetector({
+    ref: userMenuRef,
+    onClickOutside: () => {
+      setUserMenuOpen(false);
+    },
+  });
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -313,7 +314,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
         </div>
 
         {/* User menu */}
-        <div className="ml-4 flex items-center md:ml-6">
+        <div className="ml-4 flex items-center md:ml-6" ref={userMenuRef}>
           <div className="relative">
             <button
               type="button"
