@@ -63,8 +63,8 @@ type RouteFiles = {
     id: "root";
     page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page" | "/comic/:sqid/read" | "/comic/:sqid/progress";
   };
-  "./Layout.tsx": {
-    id: "Layout";
+  "./layouts/Main/Main.tsx": {
+    id: "layouts/Main/Main";
     page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug";
   };
   "routes/Home.tsx": {
@@ -115,7 +115,7 @@ type RouteFiles = {
 
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
-  "Layout": typeof import("./app/./Layout.tsx");
+  "layouts/Main/Main": typeof import("./app/./layouts/Main/Main.tsx");
   "routes/Home": typeof import("./app/routes/Home.tsx");
   "routes/Publishers": typeof import("./app/routes/Publishers.tsx");
   "routes/PublisherDetails": typeof import("./app/routes/PublisherDetails.tsx");

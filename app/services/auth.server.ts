@@ -5,13 +5,7 @@ import { Authenticator } from 'remix-auth';
 import { FormStrategy } from 'remix-auth-form';
 import { db } from '~/db';
 import { users } from '~/db/schema';
-
-// Define your user type
-type User = {
-  id: number;
-  email: string;
-  name: string;
-};
+import type { User } from './types';
 
 // Create a session storage
 export const sessionStorage = createCookieSessionStorage({
