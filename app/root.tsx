@@ -9,6 +9,7 @@ import {
 
 import type { Route } from './+types/root';
 import './app.css';
+import { ConnectionError } from './ConnectionError';
 
 export const links: Route.LinksFunction = () => [];
 
@@ -38,6 +39,22 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = 'Oops!';
   let details = 'An unexpected error occurred.';
   let stack: string | undefined;
+
+  if (error instanceof Error) {
+    const isConnRefusedInMessage =
+      error.message.includes('ECONNREFUSED') ||
+      error.stack?.includes('ECONNREFUSED') ||
+      error.message.includes('connect ECONNREFUSED') ||
+      error.stack?.includes('internalConnectMultiple') ||
+      error.stack?.includes('TCPConnectWrap') ||
+      error.stack?.includes('afterConnectMultiple') ||
+      error.message.includes('getaddrinfo ENOTFOUND') ||
+      error.message.includes('Connection terminated');
+
+    if (isConnRefusedInMessage) {
+      return <ConnectionError />;
+    }
+  }
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? '404' : 'Error';
