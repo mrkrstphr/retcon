@@ -46,6 +46,11 @@ type Pages = {
       "page": string;
     };
   };
+  "/cover/:sqid": {
+    params: {
+      "sqid": string;
+    };
+  };
   "/comic/:sqid/read": {
     params: {
       "sqid": string;
@@ -74,7 +79,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page" | "/comic/:sqid/read" | "/comic/:sqid/progress" | "/issue/:sqid/read" | "/series/:sqid/read" | "/search";
+    page: "/" | "/publishers" | "/publishers/:slug" | "/series/:sqid/:slug" | "/comic/:sqid/:slug" | "/login" | "/logout" | "/comic/:sqid/page/:page" | "/cover/:sqid" | "/comic/:sqid/read" | "/comic/:sqid/progress" | "/issue/:sqid/read" | "/series/:sqid/read" | "/search";
   };
   "./layouts/Main/Main.tsx": {
     id: "layouts/Main/Main";
@@ -116,6 +121,10 @@ type RouteFiles = {
     id: "routes/ComicPage";
     page: "/comic/:sqid/page/:page";
   };
+  "routes/Cover.tsx": {
+    id: "routes/Cover";
+    page: "/cover/:sqid";
+  };
   "routes/ComicReader.tsx": {
     id: "routes/ComicReader";
     page: "/comic/:sqid/read";
@@ -150,6 +159,7 @@ type RouteModules = {
   "routes/Login": typeof import("./app/routes/Login.tsx");
   "routes/Logout": typeof import("./app/routes/Logout.tsx");
   "routes/ComicPage": typeof import("./app/routes/ComicPage.tsx");
+  "routes/Cover": typeof import("./app/routes/Cover.tsx");
   "routes/ComicReader": typeof import("./app/routes/ComicReader.tsx");
   "routes/UserComicProgress": typeof import("./app/routes/UserComicProgress.ts");
   "routes/MarkIssueReadOrUnread": typeof import("./app/routes/MarkIssueReadOrUnread.ts");
