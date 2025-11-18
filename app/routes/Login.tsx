@@ -1,7 +1,44 @@
 import { Form, redirect } from 'react-router';
+import { getUserCount } from '~/db/queries/users';
 import { getUser } from '~/lib/getUser';
-import { authenticator, sessionStorage } from '~/services/auth.server';
+import {
+  authenticator,
+  sessionStorage,
+  storeUserSession,
+} from '~/services/auth.server';
 import type { Route } from './+types/Login';
+
+export async function action({ request }: Route.ActionArgs) {
+  try {
+    const user = await authenticator.authenticate('user-pass', request);
+
+    const session = await storeUserSession(user, request);
+
+    return redirect('/', {
+      headers: {
+        'Set-Cookie': await sessionStorage.commitSession(session),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+
+    throw error;
+  }
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getUser(request);
+
+  if (user) return redirect('/');
+
+  const userCount = await getUserCount();
+
+  if (userCount === 0) return redirect('/setup');
+
+  return null;
+}
 
 export default function Login({ actionData }: Route.ComponentProps) {
   return (
@@ -55,36 +92,4 @@ export default function Login({ actionData }: Route.ComponentProps) {
       </div>
     </div>
   );
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  try {
-    const user = await authenticator.authenticate('user-pass', request);
-
-    const session = await sessionStorage.getSession(
-      request.headers.get('cookie'),
-    );
-
-    session.set('user', user);
-
-    return redirect('/', {
-      headers: {
-        'Set-Cookie': await sessionStorage.commitSession(session),
-      },
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-
-    throw error;
-  }
-}
-
-export async function loader({ request }: Route.LoaderArgs) {
-  const user = await getUser(request);
-
-  if (user) return redirect('/');
-
-  return null;
 }

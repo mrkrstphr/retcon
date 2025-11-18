@@ -33,6 +33,16 @@ async function login(email: string, password: string): Promise<User> {
   return user;
 }
 
+export async function storeUserSession(user: User, request: Request) {
+  const session = await sessionStorage.getSession(
+    request.headers.get('cookie'),
+  );
+
+  session.set('user', user);
+
+  return session;
+}
+
 authenticator.use(
   new FormStrategy(async ({ form }) => {
     const email = form.get('email') as string;

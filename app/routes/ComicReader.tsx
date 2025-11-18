@@ -40,6 +40,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const id = sqidToId(sqid);
   const comic = await getComicByIdForUser(id, user.id);
 
+  if (!comic) {
+    throw new Response('Comic not found', { status: 404 });
+  }
+
   return { comic };
 }
 
