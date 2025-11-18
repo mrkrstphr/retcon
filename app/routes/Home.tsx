@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
+import { NoResults } from '~/components/NoResults';
 import { comicTitle } from '~/lib/comicTitle';
 import { comicDetailsHref, comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
@@ -101,6 +102,18 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               </Link>
             ))}
           </div>
+        </Box>
+      )}
+
+      {recentComics.length === 0 && inProgressComics.length === 0 && (
+        <Box>
+          <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
+            Welcome to {APP_NAME}!
+          </h2>
+          <NoResults
+            title="No comics found in your collection"
+            details="Comics will appear here once you scan your collection"
+          />
         </Box>
       )}
     </div>
