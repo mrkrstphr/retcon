@@ -1,5 +1,5 @@
+import { SQIDS_ALPHABET } from '@retcon/common/constants';
 import Sqids from 'sqids';
-import { SQIDS_ALPHABET } from '~/constants';
 
 const sqids = new Sqids({
   alphabet: SQIDS_ALPHABET,

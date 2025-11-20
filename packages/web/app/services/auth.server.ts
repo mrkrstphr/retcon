@@ -1,7 +1,7 @@
+import { getUserByCredentials } from '@retcon/common/db/queries';
 import { createCookieSessionStorage } from 'react-router';
 import { Authenticator } from 'remix-auth';
 import { FormStrategy } from 'remix-auth-form';
-import { getUserByCredentials } from '~/db/queries/users';
 import type { User } from './types';
 
 export const sessionStorage = createCookieSessionStorage({

@@ -1,5 +1,5 @@
+import { getUserCount } from '@retcon/common/db/queries';
 import { Form, redirect } from 'react-router';
-import { getUserCount } from '~/db/queries/users';
 import { getUser } from '~/lib/getUser';
 import {
   authenticator,

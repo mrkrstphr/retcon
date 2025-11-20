@@ -1,9 +1,9 @@
-import { redirect } from 'react-router';
 import {
   deleteUserComicRecord,
   getComicByIdForUser,
   markComicAsRead,
-} from '~/db/queries';
+} from '@retcon/common/db/queries';
+import { redirect } from 'react-router';
 import { comicDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';

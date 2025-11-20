@@ -1,14 +1,14 @@
+import { APP_NAME } from '@retcon/common/constants';
+import {
+  getPublisherBySlug,
+  getPublisherComicCount,
+  getPublisherSeriesWithCounts,
+} from '@retcon/common/db/queries';
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { NoResults } from '~/components/NoResults';
 import { integerFormat } from '~/lib/integerFormat';
 import { sqids } from '~/lib/sqids';
-import { APP_NAME } from '../constants';
-import {
-  getPublisherBySlug,
-  getPublisherComicCount,
-  getPublisherSeriesWithCounts,
-} from '../db/queries';
 import type { Route } from './+types/PublisherDetails';
 
 export function meta({ params }: Route.MetaArgs) {

@@ -1,9 +1,9 @@
-import { redirect } from 'react-router';
 import {
   deleteUserSeriesRecords,
   getSeriesById,
   markSeriesAsRead,
-} from '~/db/queries';
+} from '@retcon/common/db/queries';
+import { redirect } from 'react-router';
 import { seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';

@@ -1,7 +1,9 @@
+import { getComicByIdForUser } from '@retcon/common/db/queries';
+import {
+  extractPageFromArchive,
+  getSortedImagesFromZip,
+} from '@retcon/common/lib';
 import { extname } from 'path';
-import { getComicByIdForUser } from '~/db/queries';
-import { extractPageFromArchive } from '~/lib/extractPageFromArchive';
-import { getSortedImagesFromZip } from '~/lib/getSortedImagesFromZip';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/ComicPage';

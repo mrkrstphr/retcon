@@ -1,4 +1,4 @@
-import { searchComics } from '~/db/queries';
+import { searchComics } from '@retcon/common/db/queries';
 import type { Route } from './+types/Search';
 
 export async function action({ request }: Route.ActionArgs) {

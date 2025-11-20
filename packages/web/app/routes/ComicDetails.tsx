@@ -1,3 +1,4 @@
+import { getComicByIdForUser } from '@retcon/common/db/queries';
 import Markdown from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
@@ -10,8 +11,7 @@ import { getUser } from '~/lib/getUser';
 import { comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToId } from '~/lib/sqids';
-import { APP_NAME } from '../constants';
-import { getComicByIdForUser } from '../db/queries';
+import { APP_NAME } from '../../../common/src/constants';
 import type { Route } from './+types/ComicDetails';
 
 export function meta({ loaderData }: Route.MetaArgs) {

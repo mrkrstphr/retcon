@@ -1,9 +1,9 @@
 import { and, count, eq, sql } from 'drizzle-orm';
-import { db } from '../index';
-import { countOrZero } from '../lib/countOrZero';
-import { first } from '../lib/first';
-import { firstOrNull } from '../lib/firstOrNull';
-import { users } from '../schema';
+import { db } from '../index.js';
+import { countOrZero } from '../lib/countOrZero.js';
+import { first } from '../lib/first.js';
+import { firstOrNull } from '../lib/firstOrNull.js';
+import { users } from '../schema.js';
 
 export const getUserByCredentials = (email: string, password: string) =>
   firstOrNull(

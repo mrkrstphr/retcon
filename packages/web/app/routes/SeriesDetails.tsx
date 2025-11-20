@@ -1,19 +1,19 @@
-import { data, Link } from 'react-router';
-import { Box } from '~/components/Box';
-import { ButtonAction } from '~/components/ButtonAction';
-import { Cover } from '~/components/Cover';
+import { APP_NAME } from '@retcon/common/constants';
 import {
   getSeriesById,
   getSeriesComicCount,
   getSeriesComicsForUser,
   getSeriesReadStatus,
-} from '~/db/queries';
+} from '@retcon/common/db/queries';
+import { data, Link } from 'react-router';
+import { Box } from '~/components/Box';
+import { ButtonAction } from '~/components/ButtonAction';
+import { Cover } from '~/components/Cover';
 import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
 import { comicDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToId } from '~/lib/sqids';
-import { APP_NAME } from '../constants';
 import type { Route } from './+types/SeriesDetails';
 
 export function meta({ loaderData }: Route.MetaArgs) {

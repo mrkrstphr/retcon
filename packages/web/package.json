@@ -50,6 +50,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@react-router/node": "^7.9.2",
     "@react-router/serve": "^7.9.2",
+    "@retcon/common": "workspace:*",
     "chalk": "^4.1.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.33.0",

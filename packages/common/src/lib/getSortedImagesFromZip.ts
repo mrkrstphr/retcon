@@ -1,6 +1,6 @@
 import StreamZip from 'node-stream-zip';
 import { basename, extname } from 'path';
-import { IMAGE_EXTENSIONS } from '~/constants';
+import { IMAGE_EXTENSIONS } from '../constants.js';
 
 /**
  * Get all image files from a CBZ archive, sorted alphabetically

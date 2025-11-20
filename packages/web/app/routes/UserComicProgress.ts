@@ -1,4 +1,7 @@
-import { getComicByIdForUser, upsertUserComicProgress } from '~/db/queries';
+import {
+  getComicByIdForUser,
+  upsertUserComicProgress,
+} from '@retcon/common/db/queries';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/UserComicProgress';

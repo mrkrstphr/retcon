@@ -1,5 +1,5 @@
+import { APP_NAME } from '@retcon/common/constants';
 import { Outlet } from 'react-router';
-import { APP_NAME } from '~/constants';
 
 export default function AuthLayout() {
   return (

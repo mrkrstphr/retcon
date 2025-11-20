@@ -1,3 +1,7 @@
+import {
+  getInProgressComics,
+  getRecentComicsForUser,
+} from '@retcon/common/db/queries';
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
@@ -5,8 +9,7 @@ import { NoResults } from '~/components/NoResults';
 import { comicTitle } from '~/lib/comicTitle';
 import { comicDetailsHref, comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
-import { APP_NAME } from '../constants';
-import { getInProgressComics, getRecentComicsForUser } from '../db/queries';
+import { APP_NAME } from '../../../common/src/constants';
 import type { Route } from './+types/Home';
 
 export function meta({}: Route.MetaArgs) {

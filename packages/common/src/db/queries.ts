@@ -1,9 +1,12 @@
+import { createSlug, normalizePublisherName } from '@retcon/common/lib';
 import { and, count, desc, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm';
-import { createSlug, normalizePublisherName } from '../lib/slugs.js';
 import { db } from './index.js';
 import { countOrZero } from './lib/countOrZero.js';
+import { first } from './lib/first.js';
 import { firstOrNull } from './lib/firstOrNull.js';
 import { comics, publishers, series, userComics } from './schema.js';
+
+export * from './queries/users.js';
 
 export function getComicCount() {
   return countOrZero(db.select({ count: count() }).from(comics));
@@ -236,7 +239,7 @@ export function createPublisher(name: string) {
   const normalizedName = normalizePublisherName(name);
   const slug = createSlug(normalizedName);
 
-  return firstOrNull(
+  return first(
     db
       .insert(publishers)
       .values({

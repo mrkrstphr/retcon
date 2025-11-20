@@ -1,0 +1,29 @@
+{
+  "name": "@retcon/scanner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/sharp": "^0.31.1",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@retcon/common": "workspace:*",
+    "chalk": "^4.1.2",
+    "fast-xml-parser": "^4.3.0",
+    "node-stream-zip": "^1.15.0",
+    "sharp": "^0.34.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

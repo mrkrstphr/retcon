@@ -1,11 +1,11 @@
+import { APP_NAME } from '@retcon/common/constants';
+import { getComicCount, getLastScanTime } from '@retcon/common/db/queries';
 import { useState } from 'react';
 import { HiCollection, HiHome, HiX } from 'react-icons/hi';
 import { ImBooks } from 'react-icons/im';
 import type { IconType } from 'react-icons/lib';
 import { Link, Outlet, useLocation, type LinkProps } from 'react-router';
 import { Box } from '~/components/Box';
-import { APP_NAME } from '~/constants';
-import { getComicCount, getLastScanTime } from '~/db/queries';
 import { getUser } from '~/lib/getUser';
 import { protectRoute } from '~/lib/protectRoute';
 import type { Route } from './+types/Main';

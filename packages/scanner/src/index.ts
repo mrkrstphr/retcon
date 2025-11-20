@@ -1,8 +1,5 @@
-import chalk from 'chalk';
-import { readdir, stat } from 'fs/promises';
-import { join, resolve } from 'path';
-import { APP_NAME } from '../constants.js';
-import { client } from '../db/index.js';
+import { APP_NAME } from '@retcon/common/constants';
+import { client } from '@retcon/common/db';
 import {
   createPublisher,
   deleteComicsOlderThan,
@@ -14,14 +11,16 @@ import {
   insertComic,
   updateComicLastSynced,
   updateComicMetadata,
-} from '../db/queries.js';
-import { deleteCover, extractCover } from '../lib/covers.js';
-import { getSortedImagesFromZip } from '../lib/getSortedImagesFromZip.js';
-import { extractComicMetadata } from '../lib/metadata.js';
-import { createComicSlug } from '../lib/slugs.js';
+} from '@retcon/common/db/queries';
+import { createComicSlug, getSortedImagesFromZip } from '@retcon/common/lib';
+import chalk from 'chalk';
+import { readdir, stat } from 'fs/promises';
+import { join, resolve } from 'path';
+import { deleteCover, extractCover } from './lib/covers.js';
+import { extractComicMetadata } from './lib/metadata.js';
 
 // Global publisher map for efficient lookups
-type PublisherMap = Map<string, number>; // {[name]: id}
+type PublisherMap = Map<string, number>;
 
 /**
  * Get or create a publisher and return its ID

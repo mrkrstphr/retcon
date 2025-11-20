@@ -1,9 +1,11 @@
+import {
+  extractPageFromArchive,
+  getSortedImagesFromZip,
+} from '@retcon/common/lib';
 import { existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import sharp from 'sharp';
-import { extractPageFromArchive } from './extractPageFromArchive';
-import { getSortedImagesFromZip } from './getSortedImagesFromZip';
 
 const MAX_WIDTH = 300;
 const MAX_HEIGHT = 500;
