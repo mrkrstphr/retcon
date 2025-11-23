@@ -8,7 +8,7 @@ import { ButtonLink } from '~/components/ButtonLink';
 import { Cover } from '~/components/Cover';
 import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
-import { comicReaderHref } from '~/lib/links';
+import { comicReaderHref, seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToId } from '~/lib/sqids';
 import { APP_NAME } from '../../../common/src/constants';
@@ -169,6 +169,16 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
             </h2>
             <div className="flex text-slate-600 gap-1 md:gap-0 dark:text-slate-400 mb-2 text-sm flex-col md:flex-row items-start md:items-center md:[&>*+*]:before:content-['·'] md:[&>*+*]:before:inline-block md:[&>*+*]:before:mx-2 md:[&>*+*]:before:text-gray-400 dark:md:[&>*+*]:before:text-gray-600">
               {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
+              {comic.seriesId && comic.seriesSlug ? (
+                <Link
+                  to={seriesDetailsHref({
+                    id: comic.seriesId,
+                    slug: comic.seriesSlug,
+                  })}
+                >
+                  {comic.series}
+                </Link>
+              ) : null}
               {comic.publisher ? (
                 <span>
                   <Link to={`/publishers/${comic.publisherSlug}`}>

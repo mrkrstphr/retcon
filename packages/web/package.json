@@ -10,10 +10,7 @@
     "lint": "eslint .",
     "start": "react-router-serve ./build/server/index.js",
     "scan": "node --import tsx --env-file .env app/scanner/index.ts",
-    "typecheck": "react-router typegen && tsc",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --import tsx app/db/migrate.ts",
-    "db:studio": "drizzle-kit studio"
+    "typecheck": "react-router typegen && tsc"
   },
   "keywords": [
     "comics",
@@ -49,7 +46,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@react-router/node": "^7.9.2",
-    "@react-router/serve": "^7.9.2",
+    "@react-router/serve": "^7.9.6",
     "@retcon/common": "workspace:*",
     "chalk": "^4.1.2",
     "dotenv": "^17.2.3",

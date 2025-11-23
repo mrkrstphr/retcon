@@ -9,7 +9,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   const comicId = sqidToId(sqid);
 
-  const coversDirectory = process.env.COVERS_DIRECTORY;
+  const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
   if (!coversDirectory) {
     throw new Response('Covers directory not configured', { status: 500 });
   }

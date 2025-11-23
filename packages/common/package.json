@@ -3,7 +3,10 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node dist/db/migrate.js",
+    "db:studio": "drizzle-kit studio"
   },
   "exports": {
     ".": {

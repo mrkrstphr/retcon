@@ -31,6 +31,15 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
+function formatReleaseDate(dateString?: string) {
+  if (!dateString) return;
+
+  const date = dateString.length === 7 ? `${dateString}-01` : dateString;
+  if (date.length !== 10) return;
+
+  return date;
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   const preferredLocale =
     request.headers.get('accept-language')?.split(',')[0] || 'en-US';
@@ -63,13 +72,16 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   // we need to format the dates here to prevent a mismatch between the server and client rendering
   const formattedComics = comics.map((comic) => {
     if (comic.metadata?.releaseDate) {
+      const formattedReleaseDate = formatReleaseDate(
+        comic.metadata.releaseDate,
+      );
       return {
         ...comic,
         metadata: {
           ...comic.metadata,
-          releaseDate: new Date(comic.metadata.releaseDate).toLocaleDateString(
-            preferredLocale,
-          ),
+          releaseDate: formattedReleaseDate
+            ? new Date(formattedReleaseDate).toLocaleDateString(preferredLocale)
+            : undefined,
         },
       };
     }

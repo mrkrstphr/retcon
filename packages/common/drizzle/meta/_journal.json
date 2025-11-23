@@ -50,6 +50,13 @@
       "when": 1763092438397,
       "tag": "0006_remove_name_from_users",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1763864354812,
+      "tag": "0007_release_date",
+      "breakpoints": true
     }
   ]
 }

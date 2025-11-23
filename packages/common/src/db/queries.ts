@@ -82,6 +82,7 @@ export function getComicByIdForUser(id: number, userId: number) {
         publisher: publishers.name,
         publisherSlug: publishers.slug,
         seriesId: comics.seriesId,
+        seriesSlug: series.slug,
         metadata: comics.metadata,
         currentPage: userComics.currentPage,
         isRead: userComics.isRead,
@@ -393,6 +394,7 @@ export function getSeriesComicsForUser(
       pageCount: comics.pageCount,
       isRead: userComics.isRead,
       metadata: comics.metadata,
+      releaseDate: comics.releaseDate,
       createdAt: comics.createdAt,
     })
     .from(comics)
@@ -402,11 +404,7 @@ export function getSeriesComicsForUser(
     )
     .leftJoin(series, eq(comics.seriesId, series.id))
     .where(eq(comics.seriesId, seriesId))
-    .orderBy(
-      sql`(${comics.metadata}->>'releaseDate')::date ASC`,
-      comics.number,
-      desc(comics.createdAt),
-    )
+    .orderBy(comics.releaseDate, comics.number, desc(comics.createdAt))
     .limit(limit)
     .offset(offset);
 }

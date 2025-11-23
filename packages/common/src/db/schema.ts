@@ -42,6 +42,7 @@ export const comics = pgTable('comics', {
   ),
   seriesId: bigint('series_id', { mode: 'number' }).references(() => series.id),
   metadata: jsonb('metadata').$type<Metadata>().notNull().default({}),
+  releaseDate: varchar('release_date', { length: 10 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
