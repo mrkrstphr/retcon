@@ -1,5 +1,6 @@
 import { createSlug, normalizePublisherName } from '@retcon/common/lib';
 import { and, count, desc, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { db } from './index.js';
 import { countOrZero } from './lib/countOrZero.js';
 import { first } from './lib/first.js';
@@ -206,7 +207,7 @@ export async function getPublishersWithCounts() {
     .from(publishers)
     .leftJoin(comics, eq(comics.publisherId, publishers.id))
     .groupBy(publishers.id, publishers.name, publishers.slug)
-    .orderBy(desc(count()), publishers.name);
+    .orderBy(publishers.name);
 
   return result.map(({ publisher, slug, count }) => ({
     publisher,
@@ -342,18 +343,23 @@ export async function getPublisherBySlug(slug: string) {
 }
 
 export async function getPublisherSeriesWithCounts(publisherId: number) {
+  const comicsForCount = alias(comics, 'comics_for_count');
   const result = await db
-    .select({
+    .selectDistinctOn([series.id], {
       id: series.id,
       name: series.name,
       slug: series.slug,
-      comicCount: count(comics.id),
+      comicCount: count(comicsForCount.id),
+      readCount: count(userComics.isRead),
+      firstComicId: comics.id,
     })
     .from(series)
+    .leftJoin(comicsForCount, eq(comicsForCount.seriesId, series.id))
     .leftJoin(comics, eq(comics.seriesId, series.id))
+    .leftJoin(userComics, eq(comicsForCount.id, userComics.comicId))
     .where(eq(series.publisherId, publisherId))
-    .groupBy(series.id, series.name, series.slug)
-    .orderBy(series.name);
+    .groupBy(series.id, series.name, series.slug, comics.id)
+    .orderBy(series.id, series.name, comics.releaseDate, comics.number);
 
   return result;
 }

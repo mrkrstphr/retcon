@@ -7,15 +7,18 @@ import { ProgressBar } from './ProgressBar';
 export type CoverProps = HTMLAttributes<HTMLDivElement> & {
   comic: {
     id: number;
-    series: Nerp<string>;
-    number: Nerp<string>;
-    pageCount: number;
-    currentPage: Nerp<number>;
-    isRead: Nerp<boolean>;
+    series?: Nerp<string>;
+    number?: Nerp<string>;
+    pageCount?: number;
+    currentPage?: Nerp<number>;
+    isRead?: Nerp<boolean>;
   };
 };
 
 export function Cover({ className, comic, ...props }: CoverProps) {
+  const currentPage = comic.currentPage || 0;
+  const pageCount = comic.pageCount || 0;
+
   return (
     <div
       className={['relative', className].filter(Boolean).join(' ')}
@@ -34,10 +37,10 @@ export function Cover({ className, comic, ...props }: CoverProps) {
           e.currentTarget.style.display = 'none';
         }}
       />
-      {comic.currentPage && !comic.isRead && (
+      {currentPage > 0 && pageCount > 0 && !comic.isRead && (
         <ProgressBar
           size={2}
-          value={(comic.currentPage / comic.pageCount) * 100}
+          value={(currentPage / pageCount) * 100}
           className="absolute bottom-2 left-2 right-2"
         />
       )}

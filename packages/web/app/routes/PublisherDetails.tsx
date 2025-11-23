@@ -6,9 +6,10 @@ import {
 } from '@retcon/common/db/queries';
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
+import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
 import { integerFormat } from '~/lib/integerFormat';
-import { sqids } from '~/lib/sqids';
+import { seriesDetailsHref } from '~/lib/links';
 import type { Route } from './+types/PublisherDetails';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -96,74 +97,45 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
       {series.length > 0 && (
         <>
           <Box>
-            <table className="relative min-w-full divide-y divide-slate-300 dark:divide-white/15">
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-slate-900 sm:pl-3 dark:text-white"
-                  >
-                    Series Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="py-3.5 pr-4 pl-3 sm:pr-3 text-right text-sm font-semibold text-slate-900 dark:text-white"
-                  >
-                    # Issues
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-slate-900">
-                {/* {people.map((person) => (
-                  <tr key={person.email} className="even:bg-slate-50 dark:even:bg-slate-800/50">
-                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-slate-900 sm:pl-3 dark:text-white">
-                      {person.name}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400">
-                      {person.title}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400">
-                      {person.email}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400">
-                      {person.role}
-                    </td>
-                    <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-3">
-                      <a
-                        href="#"
-                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                      >
-                        Edit<span className="sr-only">, {person.name}</span>
-                      </a>
-                    </td>
-                  </tr>
-                ))} */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {series.map((series) => (
+                <Link
+                  key={series.id}
+                  to={seriesDetailsHref(series)}
+                  className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
+                >
+                  {series.firstComicId && (
+                    <Cover
+                      comic={{
+                        id: series.firstComicId,
+                        isRead: series.readCount === series.comicCount,
+                        pageCount: series.comicCount,
+                        currentPage: series.readCount ?? 0,
+                      }}
+                    />
+                  )}
 
-                {series.map((seriesItem) => (
-                  <tr
-                    key={`series-${seriesItem.name}-${seriesItem.id}`}
-                    className="even:bg-slate-50 dark:even:bg-slate-800/50 "
-                  >
-                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-slate-900 sm:pl-3 dark:text-white">
-                      <Link
-                        to={`/series/${sqids.encode([seriesItem.id])}/${seriesItem.slug}`}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium"
+                  <div className="text-sm text-center mt-2">
+                    <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
+                      <div
+                        className="line-clamp-2 leading-tight truncate"
+                        title={series.name}
                       >
-                        {seriesItem.name}
-                      </Link>
-                    </td>
-                    <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-3">
-                      {seriesItem.comicCount} issue
-                      {seriesItem.comicCount !== 1 ? 's' : ''}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        {series.name}
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
+                      {series.comicCount} issue
+                      {series.comicCount !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="py-6 border-t border-slate-200 dark:border-slate-700">
+              <div className="py-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-slate-600 dark:text-slate-400">
                     Showing {(currentPage - 1) * 25 + 1} to{' '}
