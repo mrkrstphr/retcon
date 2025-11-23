@@ -19,12 +19,15 @@ export async function fetchArchiveInfo(filePath: string): Promise<{
 
   if (comicInfoMetadata) {
     metadata = comicInfoMetadata;
-  }
+  } else {
+    console.log(
+      `No ComicInfo.xml found in ${filePath}, checking ZIP comment for metadata...`,
+    );
+    const zipCommentMetadata = await getZipComicCommentInfo(zip);
 
-  const zipCommentMetadata = await getZipComicCommentInfo(zip);
-
-  if (zipCommentMetadata) {
-    metadata = zipCommentMetadata;
+    if (zipCommentMetadata) {
+      metadata = zipCommentMetadata;
+    }
   }
 
   let pageCount = 0;
