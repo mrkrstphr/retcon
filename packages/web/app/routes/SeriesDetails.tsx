@@ -9,6 +9,7 @@ import { data, Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { ButtonAction } from '~/components/ButtonAction';
 import { Cover } from '~/components/Cover';
+import { Pagination } from '~/components/Pagination';
 import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
 import { comicDetailsHref } from '~/lib/links';
@@ -191,67 +192,13 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
             ))}
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-8">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-slate-600 dark:text-slate-400">
-                  Showing {(currentPage - 1) * 25 + 1} to{' '}
-                  {Math.min(currentPage * 25, totalComics)} of {totalComics}{' '}
-                  comics
-                </div>
-                <div className="flex space-x-2">
-                  {/* Previous Page */}
-                  {currentPage > 1 && (
-                    <Link
-                      to={generatePageUrl(currentPage - 1)}
-                      className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700"
-                    >
-                      Previous
-                    </Link>
-                  )}
-
-                  {/* Page Numbers */}
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-
-                    return (
-                      <Link
-                        key={pageNum}
-                        to={generatePageUrl(pageNum)}
-                        className={`px-3 py-2 text-sm font-medium rounded-md ${
-                          pageNum === currentPage
-                            ? 'text-white bg-blue-600 hover:bg-blue-700'
-                            : 'text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
-                        }`}
-                      >
-                        {pageNum}
-                      </Link>
-                    );
-                  })}
-
-                  {/* Next Page */}
-                  {currentPage < totalPages && (
-                    <Link
-                      to={generatePageUrl(currentPage + 1)}
-                      className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700"
-                    >
-                      Next
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalRecords={totalComics}
+            generatePageUrl={generatePageUrl}
+            recordName={totalComics === 1 ? 'comic' : 'comics'}
+          />
         </Box>
       )}
 
