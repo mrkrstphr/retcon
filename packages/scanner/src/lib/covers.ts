@@ -102,7 +102,35 @@ export async function extractCover(
 
     return outputPath;
   } catch (error) {
-    console.error(`   ❌ Error extracting cover from ${comicFilePath}:`, error);
+    console.error(`❌ Error extracting cover from ${comicFilePath}:`, error);
+    return null;
+  }
+}
+
+export async function saveCover(
+  id: number,
+  imageData: Buffer<ArrayBufferLike>,
+  coversDirectory: string,
+): Promise<string | null> {
+  try {
+    // Resize the image (always converts to JPG)
+    const resizedImageBuffer = await resizeImage(imageData);
+
+    // Determine output path - always use .jpg extension
+    const subdirectory = id.toString()[0].toLowerCase();
+    const outputDir = join(coversDirectory, subdirectory);
+    const outputFileName = `${id}.jpg`;
+    const outputPath = join(outputDir, outputFileName);
+
+    if (!existsSync(outputDir)) {
+      await mkdir(outputDir, { recursive: true });
+    }
+
+    await writeFile(outputPath, resizedImageBuffer);
+
+    return outputPath;
+  } catch (error) {
+    console.error(`❌ Error saving cover for ${id}:`, error);
     return null;
   }
 }

@@ -21,6 +21,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   );
 
   if (!existsSync(filePath)) {
+    console.error(`Cover not found at path: ${filePath}`);
     throw new Response('Cover not found', { status: 404 });
   }
 

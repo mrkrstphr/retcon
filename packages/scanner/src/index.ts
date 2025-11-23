@@ -16,8 +16,9 @@ import { createComicSlug, getSortedImagesFromZip } from '@retcon/common/lib';
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
-import { deleteCover, extractCover } from './lib/covers.js';
+import { deleteCover, extractCover, saveCover } from './lib/covers.js';
 import { extractComicMetadata } from './lib/metadata.js';
+import { fetchArchiveInfo } from './lib/zip.js';
 
 // Global publisher map for efficient lookups
 type PublisherMap = Map<string, number>;
@@ -67,6 +68,111 @@ async function getOrCreatePublisher(
   return publisherId;
 }
 
+async function createComic(
+  path: string,
+  stats: any,
+  publisherMap: PublisherMap,
+  lastSynced: Date,
+) {
+  const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
+  // Scenario 1: New file - extract metadata and insert
+  // const comicInfo = await extractComicMetadata(fullPath);
+
+  // Get or create publisher
+  const publisherId = await getOrCreatePublisher(
+    metadata.publisher,
+    publisherMap,
+  );
+
+  // Get or create series (no caching to avoid memory issues)
+  const seriesRecord = await getOrCreateSeries(
+    metadata.series,
+    publisherId || undefined,
+  );
+  const seriesId = seriesRecord?.id || null;
+
+  // Generate comic slug
+  const slug = createComicSlug(
+    seriesRecord?.name || null,
+    metadata.number,
+    path,
+  );
+
+  const [{ insertedId: id }] = await insertComic({
+    fileName: path,
+    fileModified: stats.mtime,
+    lastSynced,
+    ...metadata,
+    slug,
+    pageCount,
+    publisherId,
+    seriesId,
+    releaseDate: formatReleaseDate(metadata.metadata?.releaseDate),
+  });
+
+  // Extract cover image
+  const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
+  if (cover && coversDirectory) {
+    await saveCover(id, cover, coversDirectory);
+  }
+}
+
+async function updateComic(
+  comic: { id: number },
+  path: string,
+  stats: any,
+  publisherMap: PublisherMap,
+  lastSynced: Date,
+) {
+  const comicInfo = await extractComicMetadata(path);
+
+  // Get or create publisher
+  const publisherId = await getOrCreatePublisher(
+    comicInfo.publisher,
+    publisherMap,
+  );
+
+  // Get or create series (no caching to avoid memory issues)
+  const seriesRecord = await getOrCreateSeries(
+    comicInfo.series,
+    publisherId || undefined,
+  );
+  const seriesId = seriesRecord?.id || null;
+
+  // Generate comic slug
+  const slug = createComicSlug(
+    seriesRecord?.name || null,
+    comicInfo.number,
+    path,
+  );
+
+  // Calculate page count from archive
+  let pageCount = 0;
+  try {
+    const images = await getSortedImagesFromZip(path);
+    pageCount = images.length;
+  } catch (error) {
+    console.warn(`⚠️  Could not get page count for ${path}:`, error);
+  }
+
+  await updateComicMetadata(path, {
+    fileModified: stats.mtime,
+    lastSynced,
+    ...comicInfo,
+    slug,
+    pageCount,
+    publisherId,
+    seriesId,
+    releaseDate: formatReleaseDate(comicInfo.metadata?.releaseDate),
+  });
+
+  // Re-extract cover image since file changed or force update
+  const coversDirectory = process.env.COVERS_DIRECTORY;
+  if (coversDirectory) {
+    await extractCover(comic.id, path, coversDirectory);
+  }
+}
+
 async function processComicFiles(
   directory: string,
   syncTime: Date,
@@ -91,133 +197,33 @@ async function processComicFiles(
         );
         processedCount += subCount;
       } else if (stats.isFile()) {
-        // Check if file has CBZ or CBR extension
         const lowerCase = item.toLowerCase();
-        if (lowerCase.endsWith('.cbz') || lowerCase.endsWith('.cbr')) {
+        if (lowerCase.endsWith('.cbz') || lowerCase.endsWith('.zip')) {
           processedCount++;
 
           // Check if file exists in database
+          // TODO: FIXME: batch this lookup for better performance
           const existingFile = await findComicByFileName(fullPath);
 
           if (existingFile.length === 0) {
-            // Scenario 1: New file - extract metadata and insert
-            const comicInfo = await extractComicMetadata(fullPath);
-
-            // Get or create publisher
-            const publisherId = await getOrCreatePublisher(
-              comicInfo.publisher,
-              publisherMap,
-            );
-
-            // Get or create series (no caching to avoid memory issues)
-            const seriesRecord = await getOrCreateSeries(
-              comicInfo.series,
-              publisherId || undefined,
-            );
-            const seriesId = seriesRecord?.id || null;
-
-            // Generate comic slug
-            const slug = createComicSlug(
-              seriesRecord?.name || null,
-              comicInfo.number,
-              fullPath,
-            );
-
-            // Calculate page count from archive
-            let pageCount = 0;
-            try {
-              const images = await getSortedImagesFromZip(fullPath);
-              pageCount = images.length;
-            } catch (error) {
-              console.warn(
-                `   ⚠️  Could not get page count for ${fullPath}:`,
-                error,
-              );
-            }
-
-            const [{ insertedId: id }] = await insertComic({
-              fileName: fullPath,
-              fileModified: stats.mtime,
-              lastSynced: syncTime,
-              ...comicInfo,
-              slug,
-              pageCount,
-              publisherId,
-              seriesId,
-              releaseDate: formatReleaseDate(comicInfo.metadata?.releaseDate),
-            });
-
-            // Extract cover image
-            const coversDirectory = process.env.COVERS_DIRECTORY;
-            if (coversDirectory) {
-              await extractCover(id, fullPath, coversDirectory);
-            }
+            await createComic(fullPath, stats, publisherMap, syncTime);
           } else {
             const existing = existingFile[0];
             const existingModified = new Date(existing.fileModified);
 
             if (
-              !forceUpdate &&
-              existingModified.getTime() === stats.mtime.getTime()
+              forceUpdate ||
+              existingModified.getTime() !== stats.mtime.getTime()
             ) {
-              // Scenario 2: Unchanged file - just update lastSynced (unless force update)
-              await updateComicLastSynced(fullPath, syncTime);
-            } else {
-              // Scenario 3: Modified file OR force update - re-extract metadata and update
-              const comicInfo = await extractComicMetadata(fullPath);
-
-              // Get or create publisher
-              const publisherId = await getOrCreatePublisher(
-                comicInfo.publisher,
-                publisherMap,
-              );
-
-              // Get or create series (no caching to avoid memory issues)
-              const seriesRecord = await getOrCreateSeries(
-                comicInfo.series,
-                publisherId || undefined,
-              );
-              const seriesId = seriesRecord?.id || null;
-
-              // Generate comic slug
-              const slug = createComicSlug(
-                seriesRecord?.name || null,
-                comicInfo.number,
+              await updateComic(
+                existingFile[0],
                 fullPath,
+                stats,
+                publisherMap,
+                syncTime,
               );
-
-              // Calculate page count from archive
-              let pageCount = 0;
-              try {
-                const images = await getSortedImagesFromZip(fullPath);
-                pageCount = images.length;
-              } catch (error) {
-                console.warn(
-                  `   ⚠️  Could not get page count for ${fullPath}:`,
-                  error,
-                );
-              }
-
-              await updateComicMetadata(fullPath, {
-                fileModified: stats.mtime,
-                lastSynced: syncTime,
-                ...comicInfo,
-                slug,
-                pageCount,
-                publisherId,
-                seriesId,
-                releaseDate: formatReleaseDate(comicInfo.metadata?.releaseDate),
-              });
-
-              // Re-extract cover image since file changed or force update
-              const coversDirectory = process.env.COVERS_DIRECTORY;
-              if (coversDirectory) {
-                await extractCover(
-                  existingFile[0].id,
-                  fullPath,
-                  coversDirectory,
-                );
-              }
+            } else {
+              await updateComicLastSynced(fullPath, syncTime);
             }
           }
 
@@ -313,7 +319,7 @@ async function main() {
     `\n🔍 ${chalk.cyan('Scanning directory:')} ${chalk.yellow(absolutePath)}`,
   );
   console.log(
-    `📊 ${chalk.cyan('Looking for:')} ${chalk.white('CBZ, CBR')} files`,
+    `📊 ${chalk.cyan('Looking for:')} ${chalk.white('CBZ, ZIP')} files`,
   );
 
   // Scan for comic files
