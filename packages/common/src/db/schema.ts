@@ -21,6 +21,7 @@ export const publishers = pgTable('publishers', {
 export const series = pgTable('series', {
   id: bigserial('id', { mode: 'number' }).primaryKey().notNull(),
   name: varchar('name', { length: 300 }).notNull(),
+  volume: varchar('volume', { length: 50 }),
   slug: varchar('slug', { length: 300 }).notNull(),
   publisherId: bigint('publisher_id', { mode: 'number' }).references(
     () => publishers.id,

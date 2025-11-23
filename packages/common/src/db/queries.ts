@@ -275,7 +275,38 @@ export function findSeriesByName(name: string, publisherId?: number) {
   );
 }
 
-export function createSeries(name: string, publisherId?: number) {
+export function findSeriesByNameAndVolume(
+  name: string,
+  volume?: string,
+  publisherId?: number,
+) {
+  const normalizedName = name.trim();
+
+  const conditions = [eq(series.name, normalizedName)];
+
+  if (volume) {
+    conditions.push(eq(series.volume, volume));
+  }
+
+  // If publisherId is provided, also filter by publisher
+  if (publisherId) {
+    conditions.push(eq(series.publisherId, publisherId));
+  }
+
+  return firstOrNull(
+    db
+      .select()
+      .from(series)
+      .where(conditions.length > 1 ? and(...conditions) : conditions[0])
+      .limit(1),
+  );
+}
+
+export function createSeries(
+  name: string,
+  volume?: string,
+  publisherId?: number,
+) {
   const normalizedName = name.trim();
   const slug = createSlug(normalizedName);
 
@@ -284,6 +315,7 @@ export function createSeries(name: string, publisherId?: number) {
       .insert(series)
       .values({
         name: normalizedName,
+        volume,
         slug,
         publisherId,
       })
@@ -291,23 +323,32 @@ export function createSeries(name: string, publisherId?: number) {
         id: series.id,
         name: series.name,
         slug: series.slug,
+        volume: series.volume,
         publisherId: series.publisherId,
         createdAt: series.createdAt,
       }),
   );
 }
 
-export async function getOrCreateSeries(name: string, publisherId?: number) {
+export async function getOrCreateSeries(
+  name: string,
+  volume?: string,
+  publisherId?: number,
+) {
   if (!name?.trim()) {
     return null;
   }
 
   // Try to find existing series
-  let existingSeries = await findSeriesByName(name, publisherId);
+  let existingSeries = await findSeriesByNameAndVolume(
+    name,
+    volume,
+    publisherId,
+  );
 
   // If not found, create new series
   if (!existingSeries) {
-    existingSeries = await createSeries(name, publisherId);
+    existingSeries = await createSeries(name, volume, publisherId);
   }
 
   return existingSeries;

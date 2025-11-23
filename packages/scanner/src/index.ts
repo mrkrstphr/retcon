@@ -75,23 +75,19 @@ async function createComic(
   lastSynced: Date,
 ) {
   const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
-  // Scenario 1: New file - extract metadata and insert
-  // const comicInfo = await extractComicMetadata(fullPath);
 
-  // Get or create publisher
   const publisherId = await getOrCreatePublisher(
     metadata.publisher,
     publisherMap,
   );
 
-  // Get or create series (no caching to avoid memory issues)
   const seriesRecord = await getOrCreateSeries(
     metadata.series,
+    metadata.volume,
     publisherId || undefined,
   );
   const seriesId = seriesRecord?.id || null;
 
-  // Generate comic slug
   const slug = createComicSlug(
     seriesRecord?.name || null,
     metadata.number,
@@ -110,7 +106,6 @@ async function createComic(
     releaseDate: formatReleaseDate(metadata.metadata?.releaseDate),
   });
 
-  // Extract cover image
   const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
   if (cover && coversDirectory) {
     await saveCover(id, cover, coversDirectory);
@@ -135,6 +130,7 @@ async function updateComic(
   // Get or create series (no caching to avoid memory issues)
   const seriesRecord = await getOrCreateSeries(
     comicInfo.series,
+    comicInfo.volume,
     publisherId || undefined,
   );
   const seriesId = seriesRecord?.id || null;
