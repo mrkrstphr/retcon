@@ -22,6 +22,14 @@ import { extractComicMetadata } from './lib/metadata.js';
 // Global publisher map for efficient lookups
 type PublisherMap = Map<string, number>;
 
+function formatReleaseDate(dateString?: string) {
+  if (!dateString) return null;
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
+  if (dateString.match(/^\d{4}-\d{2}$/)) return `${dateString}-01`;
+
+  return null;
+}
+
 /**
  * Get or create a publisher and return its ID
  */
@@ -136,6 +144,7 @@ async function processComicFiles(
               pageCount,
               publisherId,
               seriesId,
+              releaseDate: formatReleaseDate(comicInfo.metadata?.releaseDate),
             });
 
             // Extract cover image
@@ -197,6 +206,7 @@ async function processComicFiles(
                 pageCount,
                 publisherId,
                 seriesId,
+                releaseDate: formatReleaseDate(comicInfo.metadata?.releaseDate),
               });
 
               // Re-extract cover image since file changed or force update
