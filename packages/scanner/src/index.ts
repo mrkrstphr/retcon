@@ -23,6 +23,8 @@ import { fetchArchiveInfo } from './lib/zip.js';
 // Global publisher map for efficient lookups
 type PublisherMap = Map<string, number>;
 
+const publisherMap: PublisherMap = new Map();
+
 function formatReleaseDate(dateString?: string) {
   if (!dateString) return null;
   if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
@@ -36,7 +38,6 @@ function formatReleaseDate(dateString?: string) {
  */
 async function getOrCreatePublisher(
   publisherName: string,
-  publisherMap: PublisherMap,
 ): Promise<number | null> {
   if (!publisherName?.trim()) {
     return null;
@@ -68,18 +69,10 @@ async function getOrCreatePublisher(
   return publisherId;
 }
 
-async function createComic(
-  path: string,
-  stats: any,
-  publisherMap: PublisherMap,
-  lastSynced: Date,
-) {
+async function createComic(path: string, stats: any, lastSynced: Date) {
   const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
 
-  const publisherId = await getOrCreatePublisher(
-    metadata.publisher,
-    publisherMap,
-  );
+  const publisherId = await getOrCreatePublisher(metadata.publisher);
 
   const seriesRecord = await getOrCreateSeries(
     metadata.series,
@@ -116,16 +109,11 @@ async function updateComic(
   comic: { id: number },
   path: string,
   stats: any,
-  publisherMap: PublisherMap,
   lastSynced: Date,
 ) {
   const comicInfo = await extractComicMetadata(path);
 
-  // Get or create publisher
-  const publisherId = await getOrCreatePublisher(
-    comicInfo.publisher,
-    publisherMap,
-  );
+  const publisherId = await getOrCreatePublisher(comicInfo.publisher);
 
   // Get or create series (no caching to avoid memory issues)
   const seriesRecord = await getOrCreateSeries(
@@ -172,7 +160,6 @@ async function updateComic(
 async function processComicFiles(
   directory: string,
   syncTime: Date,
-  publisherMap: PublisherMap,
   forceUpdate: boolean = false,
 ): Promise<number> {
   let processedCount = 0;
@@ -188,7 +175,6 @@ async function processComicFiles(
         const subCount = await processComicFiles(
           fullPath,
           syncTime,
-          publisherMap,
           forceUpdate,
         );
         processedCount += subCount;
@@ -202,7 +188,7 @@ async function processComicFiles(
           const existingFile = await findComicByFileName(fullPath);
 
           if (existingFile.length === 0) {
-            await createComic(fullPath, stats, publisherMap, syncTime);
+            await createComic(fullPath, stats, syncTime);
           } else {
             const existing = existingFile[0];
             const existingModified = new Date(existing.fileModified);
@@ -211,13 +197,7 @@ async function processComicFiles(
               forceUpdate ||
               existingModified.getTime() !== stats.mtime.getTime()
             ) {
-              await updateComic(
-                existingFile[0],
-                fullPath,
-                stats,
-                publisherMap,
-                syncTime,
-              );
+              await updateComic(existingFile[0], fullPath, stats, syncTime);
             } else {
               await updateComicLastSynced(fullPath, syncTime);
             }
@@ -325,7 +305,6 @@ async function main() {
   // Initialize publisher map for efficient lookups
   console.log(`\n📚 ${chalk.cyan('Loading existing publishers...')}`);
   const allPublishers = await getAllPublishers();
-  const publisherMap: PublisherMap = new Map();
 
   // Pre-populate the map with existing publishers
   allPublishers.forEach((publisher) => {
@@ -345,7 +324,6 @@ async function main() {
   const totalFiles = await processComicFiles(
     absolutePath,
     syncTime,
-    publisherMap,
     forceUpdate,
   );
 
