@@ -3,9 +3,9 @@ import { client } from '@retcon/common/db';
 import {
   createPublisher,
   createSeries,
-  deleteComicsOlderThan,
+  deleteEmptyPublishers,
+  deleteEmptySeries,
   findComicByFileName,
-  findComicsToDelete,
   findPublisherByName,
   getAllPublishers,
   getAllSeries,
@@ -17,8 +17,13 @@ import { createComicSlug } from '@retcon/common/lib';
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
-import { deleteCover, saveCover } from './lib/covers.js';
+import { deleteMissingIssues } from './lib/cleanup.js';
+import { saveCover } from './lib/covers.js';
 import { fetchArchiveInfo } from './lib/zip.js';
+
+const { cyan, gray, white } = chalk;
+
+const metrics: Record<string, number> = {};
 
 type PublisherMap = Map<string, number>;
 type SeriesMap = Map<
@@ -366,30 +371,27 @@ async function main() {
     forceUpdate,
   );
 
-  console.log(); // New line after dots
-
-  let deletedCount = 0;
+  console.log();
 
   if (!noCleanup) {
-    // Clean up missing files from database
-    console.log(`\n🧹 ${chalk.cyan('Cleaning up missing files...')}`);
+    console.log(`\n${cyan('🧹 Performing cleanup...')}`);
 
-    // First, get records that will be deleted to clean up their covers
-    const toDeleteRecords = await findComicsToDelete(syncTime);
-    deletedCount = toDeleteRecords.length;
+    const deleteComicsCount = await deleteMissingIssues(syncTime);
+    console.log(
+      cyan(
+        `  ◌ Removed ${white(deleteComicsCount)} missing comic(s) from database!`,
+      ),
+    );
 
-    // Delete cover files for comics that will be removed
-    if (deletedCount > 0) {
-      const coversDirectory = process.env.COVERS_DIRECTORY;
-      if (coversDirectory) {
-        for (const record of toDeleteRecords) {
-          await deleteCover(record.id, coversDirectory);
-        }
-      }
+    const deletedSeries = await deleteEmptySeries();
+    console.log(
+      cyan(`  ◌ Removed ${white(deletedSeries.length)} empty series.`),
+    );
 
-      // Then delete the database records
-      await deleteComicsOlderThan(syncTime);
-    }
+    const deletedPublishers = await deleteEmptyPublishers();
+    console.log(
+      cyan(`  ◌ Removed ${white(deletedPublishers.length)} empty publishers.`),
+    );
   } else {
     console.log(
       `\n🚫 ${chalk.yellow('Skipping cleanup of missing files (--no-cleanup flag active)')}`,
@@ -397,28 +399,16 @@ async function main() {
   }
 
   if (totalFiles === 0) {
-    console.log(
-      `📂 ${chalk.gray('No comic files found in the specified directory.')}`,
-    );
+    console.log(gray('📂 No comic files found in the specified directory.'));
   } else {
     console.log(
-      `\n✨ ${chalk.cyan('Processed')} ${chalk.white.bold(
+      `\n✨ ${cyan('Processed')} ${white(
         totalFiles,
-      )} ${chalk.cyan('comic file(s)!')}`,
+      )} ${cyan('comic file(s)!')}`,
     );
   }
 
-  if (deletedCount > 0) {
-    console.log(
-      `🗑️ ${chalk.cyan('Removed')} ${chalk.white.bold(
-        deletedCount,
-      )} ${chalk.cyan('missing comic(s) from database!')}`,
-    );
-  } else if (!noCleanup) {
-    console.log(`✅ ${chalk.gray('No missing comics to remove.')}`);
-  }
-
-  console.log(`\n🎉 ${chalk.cyan('Scan complete!')}`);
+  console.log(`\n${cyan('🎉 Scan complete!')}`);
 
   // Calculate and display execution time
   const endTime = new Date();
@@ -445,13 +435,11 @@ async function main() {
     );
   }
 
-  console.log(); // Extra newline for spacing
+  console.log();
 
-  // Close database connection
   await client.end();
 }
 
-// Run main function directly since this is the entry point
 main().catch(async (error) => {
   console.error(chalk.red('💥 Fatal error:', error));
   await client.end();

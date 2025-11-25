@@ -8,6 +8,7 @@ import {
   inArray,
   isNull,
   lt,
+  not,
   or,
   sql,
 } from 'drizzle-orm';
@@ -680,4 +681,26 @@ export async function deleteUserSeriesRecords(
     .where(
       and(eq(userComics.userId, userId), inArray(userComics.comicId, comicIds)),
     );
+}
+
+export function deleteEmptySeries() {
+  return db
+    .delete(series)
+    .where(
+      not(
+        sql`EXISTS (SELECT 1 FROM ${comics} WHERE ${comics.seriesId} = ${series.id})`,
+      ),
+    )
+    .returning({ deletedId: series.id });
+}
+
+export function deleteEmptyPublishers() {
+  return db
+    .delete(publishers)
+    .where(
+      not(
+        sql`EXISTS (SELECT 1 FROM ${comics} WHERE ${comics.publisherId} = ${publishers.id})`,
+      ),
+    )
+    .returning({ deletedId: publishers.id });
 }
