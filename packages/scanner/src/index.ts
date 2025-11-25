@@ -340,18 +340,19 @@ async function main() {
 
   allSeries.forEach((series) => {
     const publisherId = series.publisherId ?? 0;
+    const seriesName = series.name.trim().toLowerCase();
     const volume = series.volume?.trim().toLowerCase() ?? '__NA__';
     if (!seriesMap.has(publisherId)) {
       seriesMap.set(publisherId, new Map());
     }
 
-    if (!seriesMap.get(publisherId)!.has(series.name)) {
-      seriesMap.get(publisherId)!.set(series.name, new Map());
+    if (!seriesMap.get(publisherId)!.has(seriesName)) {
+      seriesMap.get(publisherId)!.set(seriesName, new Map());
     }
 
     seriesMap
       .get(publisherId)!
-      .get(series.name)!
+      .get(seriesName)!
       .set(volume, { id: series.id, name: series.name });
   });
 
