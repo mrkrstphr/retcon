@@ -336,7 +336,7 @@ export function createSeries(
   const normalizedName = name.trim();
   const slug = createSlug(normalizedName);
 
-  return firstOrNull(
+  return first(
     db
       .insert(series)
       .values({

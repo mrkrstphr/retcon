@@ -2,28 +2,32 @@ import { APP_NAME } from '@retcon/common/constants';
 import { client } from '@retcon/common/db';
 import {
   createPublisher,
+  createSeries,
   deleteComicsOlderThan,
   findComicByFileName,
   findComicsToDelete,
   findPublisherByName,
   getAllPublishers,
-  getOrCreateSeries,
+  getAllSeries,
   insertComic,
   updateComicLastSynced,
   updateComicMetadata,
 } from '@retcon/common/db/queries';
-import { createComicSlug, getSortedImagesFromZip } from '@retcon/common/lib';
+import { createComicSlug } from '@retcon/common/lib';
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
 import { join, resolve } from 'path';
-import { deleteCover, extractCover, saveCover } from './lib/covers.js';
-import { extractComicMetadata } from './lib/metadata.js';
+import { deleteCover, saveCover } from './lib/covers.js';
 import { fetchArchiveInfo } from './lib/zip.js';
 
-// Global publisher map for efficient lookups
 type PublisherMap = Map<string, number>;
+type SeriesMap = Map<
+  number,
+  Map<string, Map<string, { id: number; name: string }>>
+>;
 
 const publisherMap: PublisherMap = new Map();
+const seriesMap: SeriesMap = new Map();
 
 function formatReleaseDate(dateString?: string) {
   if (!dateString) return null;
@@ -36,13 +40,7 @@ function formatReleaseDate(dateString?: string) {
 /**
  * Get or create a publisher and return its ID
  */
-async function getOrCreatePublisher(
-  publisherName: string,
-): Promise<number | null> {
-  if (!publisherName?.trim()) {
-    return null;
-  }
-
+async function getOrCreatePublisher(publisherName: string): Promise<number> {
   const trimmedName = publisherName.trim();
 
   // Check if we already have this publisher in our map
@@ -69,34 +67,71 @@ async function getOrCreatePublisher(
   return publisherId;
 }
 
+async function getOrCreateSeriesX(
+  publisherId: number,
+  seriesName: string,
+  volume: string | null,
+): Promise<{ id: number; name: string }> {
+  const searchName = seriesName.trim().toLowerCase();
+  const searchVolume = volume?.trim().toLowerCase() || '__NA__';
+
+  const series = seriesMap.get(publisherId)?.get(searchName)?.get(searchVolume);
+
+  if (series) {
+    return series;
+  }
+
+  const newSeries = await createSeries(
+    seriesName.trim(),
+    volume?.trim(),
+    publisherId,
+  );
+
+  if (!seriesMap.has(publisherId)) {
+    seriesMap.set(publisherId, new Map());
+  }
+
+  if (!seriesMap.get(publisherId)!.has(searchName)) {
+    seriesMap.get(publisherId)!.set(searchName, new Map());
+  }
+
+  seriesMap
+    .get(publisherId)!
+    .get(searchName)!
+    .set(searchVolume, { id: newSeries.id, name: newSeries.name });
+
+  return { id: newSeries.id, name: newSeries.name };
+}
+
 async function createComic(path: string, stats: any, lastSynced: Date) {
   const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
 
-  const publisherId = await getOrCreatePublisher(metadata.publisher);
+  let publisherId, series;
 
-  const seriesRecord = await getOrCreateSeries(
-    metadata.series,
-    metadata.volume,
-    publisherId || undefined,
-  );
-  const seriesId = seriesRecord?.id || null;
+  if (metadata?.publisher) {
+    publisherId = await getOrCreatePublisher(metadata.publisher);
 
-  const slug = createComicSlug(
-    seriesRecord?.name || null,
-    metadata.number,
-    path,
-  );
+    if (metadata?.series) {
+      series = await getOrCreateSeriesX(
+        publisherId,
+        metadata.series,
+        metadata.volume,
+      );
+    }
+  }
+
+  const slug = createComicSlug(series?.name ?? null, metadata?.number, path);
 
   const [{ insertedId: id }] = await insertComic({
     fileName: path,
     fileModified: stats.mtime,
     lastSynced,
-    ...metadata,
+    ...(metadata ?? {}),
     slug,
     pageCount,
     publisherId,
-    seriesId,
-    releaseDate: formatReleaseDate(metadata.metadata?.releaseDate),
+    seriesId: series?.id,
+    releaseDate: formatReleaseDate(metadata?.metadata?.releaseDate),
   });
 
   const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
@@ -111,49 +146,38 @@ async function updateComic(
   stats: any,
   lastSynced: Date,
 ) {
-  const comicInfo = await extractComicMetadata(path);
+  const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
 
-  const publisherId = await getOrCreatePublisher(comicInfo.publisher);
+  let publisherId, series;
 
-  // Get or create series (no caching to avoid memory issues)
-  const seriesRecord = await getOrCreateSeries(
-    comicInfo.series,
-    comicInfo.volume,
-    publisherId || undefined,
-  );
-  const seriesId = seriesRecord?.id || null;
+  if (metadata?.publisher) {
+    publisherId = await getOrCreatePublisher(metadata.publisher);
 
-  // Generate comic slug
-  const slug = createComicSlug(
-    seriesRecord?.name || null,
-    comicInfo.number,
-    path,
-  );
-
-  // Calculate page count from archive
-  let pageCount = 0;
-  try {
-    const images = await getSortedImagesFromZip(path);
-    pageCount = images.length;
-  } catch (error) {
-    console.warn(`⚠️  Could not get page count for ${path}:`, error);
+    if (metadata?.series) {
+      series = await getOrCreateSeriesX(
+        publisherId,
+        metadata.series,
+        metadata.volume,
+      );
+    }
   }
+
+  const slug = createComicSlug(series?.name || null, metadata?.number, path);
 
   await updateComicMetadata(path, {
     fileModified: stats.mtime,
     lastSynced,
-    ...comicInfo,
+    ...metadata,
     slug,
     pageCount,
     publisherId,
-    seriesId,
-    releaseDate: formatReleaseDate(comicInfo.metadata?.releaseDate),
+    seriesId: series?.id,
+    releaseDate: formatReleaseDate(metadata?.releaseDate),
   });
 
-  // Re-extract cover image since file changed or force update
-  const coversDirectory = process.env.COVERS_DIRECTORY;
-  if (coversDirectory) {
-    await extractCover(comic.id, path, coversDirectory);
+  const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
+  if (cover && coversDirectory) {
+    await saveCover(comic.id, cover, coversDirectory);
   }
 }
 
@@ -216,13 +240,10 @@ async function processComicFiles(
 }
 
 async function main() {
-  // Start timing the scan
   const startTime = new Date();
 
-  // Parse command line arguments
   const args = process.argv.slice(2);
 
-  // Check for help flag
   if (args.includes('--help') || args.includes('-h')) {
     console.log(chalk.blue.bold(`\n📚 ${APP_NAME} - Scanner`));
     console.log(chalk.gray('─'.repeat(50)));
@@ -305,10 +326,28 @@ async function main() {
   // Initialize publisher map for efficient lookups
   console.log(`\n📚 ${chalk.cyan('Loading existing publishers...')}`);
   const allPublishers = await getAllPublishers();
+  const allSeries = await getAllSeries();
 
   // Pre-populate the map with existing publishers
   allPublishers.forEach((publisher) => {
-    publisherMap.set(publisher.name, publisher.id);
+    publisherMap.set(publisher.name.trim().toLowerCase(), publisher.id);
+  });
+
+  allSeries.forEach((series) => {
+    const publisherId = series.publisherId ?? 0;
+    const volume = series.volume?.trim().toLowerCase() ?? '__NA__';
+    if (!seriesMap.has(publisherId)) {
+      seriesMap.set(publisherId, new Map());
+    }
+
+    if (!seriesMap.get(publisherId)!.has(series.name)) {
+      seriesMap.get(publisherId)!.set(series.name, new Map());
+    }
+
+    seriesMap
+      .get(publisherId)!
+      .get(series.name)!
+      .set(volume, { id: series.id, name: series.name });
   });
 
   console.log(

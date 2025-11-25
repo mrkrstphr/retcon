@@ -4,6 +4,7 @@
     "src/**/*"
   ],
   "compilerOptions": {
+    "composite": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["node"],
     "target": "ES2022",

@@ -10,7 +10,7 @@ export function parseComicInfo(metadata: any) {
   return {
     series: metadata.Series || null,
     number: metadata.Number || null,
-    volume: metadata.Volume || null,
+    volume: metadata.Volume?.toString() || null,
     publisher: metadata.Publisher || null,
     metadata: {
       title: metadata.Title?.trim(),
