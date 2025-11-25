@@ -200,6 +200,7 @@ export function searchComics(
         ilike(series.name, searchPattern),
         sql`(${series.name} || ' #' || ${comics.number}) ILIKE ${searchPattern}`,
         sql`(${series.name} || ' ' || ${comics.number}) ILIKE ${searchPattern}`,
+        ilike(comics.fileName, searchPattern),
       ),
     )
     .orderBy(desc(comics.lastSynced))

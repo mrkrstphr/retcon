@@ -3,6 +3,7 @@ import { HiSearch } from 'react-icons/hi';
 import { useFetcher, useNavigate } from 'react-router';
 import { Cover } from '~/components/Cover';
 import { useOutsideClickDetector } from '~/hooks/useOutsideClickDetector';
+import { comicTitle } from '~/lib/comicTitle';
 import { comicDetailsHref } from '~/lib/links';
 
 function useDebouncedSearch<T>(
@@ -196,9 +197,7 @@ export function Search() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                        {comic.series
-                          ? `${comic.series} #${comic.number || '?'}`
-                          : comic.fileName}
+                        {comicTitle(comic)}
                       </div>
                       {comic.publisher && (
                         <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
