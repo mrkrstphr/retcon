@@ -13,6 +13,8 @@ export function Pagination({
   generatePageUrl: (page: number) => string;
   recordName?: string;
 }) {
+  if (totalPages <= 1) return null;
+
   return (
     <div className="py-6">
       <div className="flex items-center justify-between">

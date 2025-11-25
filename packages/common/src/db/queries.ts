@@ -1,5 +1,15 @@
 import { createSlug, normalizePublisherName } from '@retcon/common/lib';
-import { and, count, desc, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  lt,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from './index.js';
 import { countOrZero } from './lib/countOrZero.js';
@@ -227,6 +237,20 @@ export function getAllPublishers() {
     .orderBy(publishers.name);
 }
 
+export function getAllSeries() {
+  return db
+    .select({
+      id: series.id,
+      name: series.name,
+      volume: series.volume,
+      publisherId: series.publisherId,
+      publisher: publishers.name,
+    })
+    .from(series)
+    .leftJoin(publishers, eq(series.publisherId, publishers.id))
+    .orderBy(series.name);
+}
+
 export function findPublisherByName(name: string) {
   return firstOrNull(
     db
@@ -383,7 +407,11 @@ export async function getPublisherBySlug(slug: string) {
   return result[0] || null;
 }
 
-export async function getPublisherSeriesWithCounts(publisherId: number) {
+export async function getPublisherSeriesWithCounts(
+  publisherId: number,
+  limit: number = 25,
+  offset: number = 0,
+) {
   const comicsForCount = alias(comics, 'comics_for_count');
   const result = await db
     .selectDistinctOn([series.id], {
@@ -400,9 +428,20 @@ export async function getPublisherSeriesWithCounts(publisherId: number) {
     .leftJoin(userComics, eq(comicsForCount.id, userComics.comicId))
     .where(eq(series.publisherId, publisherId))
     .groupBy(series.id, series.name, series.slug, comics.id)
-    .orderBy(series.id, series.name, comics.releaseDate, comics.number);
+    .orderBy(series.id, series.name, comics.releaseDate, comics.number)
+    .limit(limit)
+    .offset(offset);
 
   return result;
+}
+
+export function getPublisherSeriesCount(publisherId: number) {
+  return countOrZero(
+    db
+      .select({ count: count() })
+      .from(series)
+      .where(eq(series.publisherId, publisherId)),
+  );
 }
 
 export function getPublisherComicCount(publisherId: number) {

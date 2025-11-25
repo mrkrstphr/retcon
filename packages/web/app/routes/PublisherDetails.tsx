@@ -2,6 +2,7 @@ import { APP_NAME } from '@retcon/common/constants';
 import {
   getPublisherBySlug,
   getPublisherComicCount,
+  getPublisherSeriesCount,
   getPublisherSeriesWithCounts,
 } from '@retcon/common/db/queries';
 import { Link } from 'react-router';
@@ -9,8 +10,10 @@ import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
+import { generatePageUrl } from '~/lib/generatePageUrl';
 import { integerFormat } from '~/lib/integerFormat';
 import { seriesDetailsHref } from '~/lib/links';
+import { paginateRecords } from '~/lib/paginateRecords';
 import type { Route } from './+types/PublisherDetails';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -36,26 +39,22 @@ export async function loader({
     throw new Response('Publisher not found', { status: 404 });
   }
 
-  // Get URL search params for pagination
-  const url = new URL(request.url);
-  const currentPage = parseInt(url.searchParams.get('page') || '1');
-  const itemsPerPage = 25;
-
-  const [totalComics, allSeries] = await Promise.all([
+  const [
+    { records: series, totalRecords: totalSeries, currentPage, totalPages },
+    totalComics,
+  ] = await Promise.all([
+    paginateRecords(
+      request,
+      (limit: number, offset: number) =>
+        getPublisherSeriesWithCounts(publisher.id, limit, offset),
+      getPublisherSeriesCount(publisher.id),
+    ),
     getPublisherComicCount(publisher.id),
-    getPublisherSeriesWithCounts(publisher.id),
   ]);
-
-  // Calculate pagination
-  const totalSeries = allSeries.length;
-  const totalPages = Math.ceil(totalSeries / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const series = allSeries.slice(startIndex, startIndex + itemsPerPage);
 
   return {
     publisher,
     totalComics,
-    allSeries,
     series,
     currentPage,
     totalPages,
@@ -66,19 +65,14 @@ export async function loader({
 export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
   const {
     publisher,
+    // how many total comics by the publisher
     totalComics,
     series,
     currentPage,
     totalPages,
+    // how many total series by the publisher
     totalSeries,
   } = loaderData;
-
-  // Generate pagination URLs
-  const generatePageUrl = (page: number) => {
-    const params = new URLSearchParams();
-    if (page > 1) params.set('page', page.toString());
-    return params.toString() ? `?${params.toString()}` : '';
-  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -134,15 +128,13 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalSeries}
-                generatePageUrl={generatePageUrl}
-                recordName="series"
-              />
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalRecords={totalSeries}
+              generatePageUrl={generatePageUrl}
+              recordName="series"
+            />
           </Box>
         </>
       )}

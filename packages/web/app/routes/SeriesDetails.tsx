@@ -9,10 +9,12 @@ import { data, Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { ButtonAction } from '~/components/ButtonAction';
 import { Cover } from '~/components/Cover';
+import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
 import { comicTitle } from '~/lib/comicTitle';
-import { getUser } from '~/lib/getUser';
+import { generatePageUrl } from '~/lib/generatePageUrl';
 import { comicDetailsHref } from '~/lib/links';
+import { paginateRecords } from '~/lib/paginateRecords';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/SeriesDetails';
@@ -45,14 +47,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const preferredLocale =
     request.headers.get('accept-language')?.split(',')[0] || 'en-US';
 
-  await protectRoute(request);
-  const user = await getUser(request);
+  const user = await protectRoute(request);
 
   const { sqid } = params;
-  const url = new URL(request.url);
-  const currentPage = parseInt(url.searchParams.get('page') || '1');
-  const itemsPerPage = 25;
-  const offset = (currentPage - 1) * itemsPerPage;
 
   // Get series info with publisher data by ID
   const series = await getSeriesById(sqidToId(sqid));
@@ -61,14 +58,20 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw data('Series not found', { status: 404 });
   }
 
-  // Get comics for this series with pagination and read status
-  const [comics, totalComics, readStatus] = await Promise.all([
-    getSeriesComicsForUser(series.id, user.id, itemsPerPage, offset),
+  const {
+    records: comics,
+    totalRecords: totalComics,
+    currentPage,
+    totalPages,
+  } = await paginateRecords(
+    request,
+    (limit: number, offset: number) =>
+      getSeriesComicsForUser(series.id, user.id, limit, offset),
     getSeriesComicCount(series.id),
-    getSeriesReadStatus(series.id, user.id),
-  ]);
+  );
 
-  const totalPages = Math.ceil(totalComics / itemsPerPage);
+  // Get comics for this series with pagination and read status
+  const readStatus = await getSeriesReadStatus(series.id, user.id);
 
   // we need to format the dates here to prevent a mismatch between the server and client rendering
   const formattedComics = comics.map((comic) => {
@@ -102,13 +105,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
   const { series, comics, totalComics, currentPage, totalPages, readStatus } =
     loaderData;
-
-  // Generate pagination URLs
-  const generatePageUrl = (page: number) => {
-    const params = new URLSearchParams();
-    if (page > 1) params.set('page', page.toString());
-    return params.toString() ? `?${params.toString()}` : '';
-  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -203,28 +199,10 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
       )}
 
       {comics.length === 0 && (
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
-          <div className="text-center text-slate-500 dark:text-slate-400">
-            <svg
-              className="mx-auto h-12 w-12 mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-              />
-            </svg>
-            <p>No comics found in this series</p>
-            <p className="text-sm mt-2">
-              Comics will appear here once they are scanned and assigned to this
-              series
-            </p>
-          </div>
-        </div>
+        <NoResults
+          title="No comics found in this series"
+          details="Comics will appear here once they are scanned and assigned to this series"
+        />
       )}
     </div>
   );
