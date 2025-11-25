@@ -1,4 +1,4 @@
-export const APP_NAME = 'Rack Manager';
+export const APP_NAME = 'Retcon';
 export const SQIDS_ALPHABET =
   '4lTp0WLY2D9mk1tcFxbw3QfOor5VXgzydBvRZNji8ShnqHM7UaAPGuKsCe6EIJ';
 
