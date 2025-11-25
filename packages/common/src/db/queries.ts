@@ -410,14 +410,14 @@ export async function getPublisherBySlug(slug: string) {
   return result[0] || null;
 }
 
-export async function getPublisherSeriesWithCounts(
+export function getPublisherSeriesWithCounts(
   publisherId: number,
   limit: number = 25,
   offset: number = 0,
 ) {
   const comicsForCount = alias(comics, 'comics_for_count');
-  const result = await db
-    .selectDistinctOn([series.id], {
+  const query = db
+    .select({
       id: series.id,
       name: series.name,
       slug: series.slug,
@@ -427,15 +427,24 @@ export async function getPublisherSeriesWithCounts(
     })
     .from(series)
     .leftJoin(comicsForCount, eq(comicsForCount.seriesId, series.id))
-    .leftJoin(comics, eq(comics.seriesId, series.id))
+    .leftJoinLateral(
+      db
+        .select({ id: comics.id })
+        .from(comics)
+        .where(eq(comics.seriesId, series.id))
+        .orderBy(comics.releaseDate, comics.number)
+        .limit(1)
+        .as('comics'),
+      sql`true`,
+    )
     .leftJoin(userComics, eq(comicsForCount.id, userComics.comicId))
     .where(eq(series.publisherId, publisherId))
-    .groupBy(series.id, series.name, series.slug, comics.id)
-    .orderBy(series.id, series.name, comics.releaseDate, comics.number)
+    .groupBy(series.id, comics.id)
+    .orderBy(series.name)
     .limit(limit)
     .offset(offset);
 
-  return result;
+  return query;
 }
 
 export function getPublisherSeriesCount(publisherId: number) {
