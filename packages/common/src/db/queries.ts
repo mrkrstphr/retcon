@@ -6,6 +6,7 @@ import {
   eq,
   ilike,
   inArray,
+  isNull,
   lt,
   or,
   sql,
@@ -491,6 +492,42 @@ export function getSeriesComicsForUser(
     )
     .leftJoin(series, eq(comics.seriesId, series.id))
     .where(eq(comics.seriesId, seriesId))
+    .orderBy(comics.releaseDate, comics.number, desc(comics.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export function getLooseComicsCount() {
+  return countOrZero(
+    db.select({ count: count() }).from(comics).where(isNull(comics.seriesId)),
+  );
+}
+
+export function getLooseComicsForUser(
+  userId: number,
+  limit: number = 25,
+  offset: number = 0,
+) {
+  return db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      slug: comics.slug,
+      number: comics.number,
+      volume: comics.volume,
+      currentPage: userComics.currentPage,
+      pageCount: comics.pageCount,
+      isRead: userComics.isRead,
+      metadata: comics.metadata,
+      releaseDate: comics.releaseDate,
+      createdAt: comics.createdAt,
+    })
+    .from(comics)
+    .leftJoin(
+      userComics,
+      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
+    )
+    .where(isNull(comics.seriesId))
     .orderBy(comics.releaseDate, comics.number, desc(comics.createdAt))
     .limit(limit)
     .offset(offset);

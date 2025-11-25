@@ -1,6 +1,7 @@
 import { APP_NAME } from '@retcon/common/constants';
 import { getComicCount, getLastScanTime } from '@retcon/common/db/queries';
 import { useState } from 'react';
+import { FaFileCircleQuestion } from 'react-icons/fa6';
 import { HiCollection, HiHome, HiX } from 'react-icons/hi';
 import { ImBooks } from 'react-icons/im';
 import type { IconType } from 'react-icons/lib';
@@ -63,6 +64,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 const navigation = [
   { name: 'Home', href: '/', icon: HiHome },
   { name: 'Publishers', href: '/publishers', icon: HiCollection },
+  { name: 'Loose Comics', href: '/loose', icon: FaFileCircleQuestion },
 ];
 
 export default function Layout({ loaderData }: Route.ComponentProps) {
