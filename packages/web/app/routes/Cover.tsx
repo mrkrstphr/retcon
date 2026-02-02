@@ -1,28 +1,44 @@
-import { existsSync } from 'fs';
+import { getComicByIdForUser } from '@retcon/common/db/queries';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, normalize } from 'path';
+import { protectRoute } from '~/lib/protectRoute';
 import { sqidToId } from '~/lib/sqids';
 import type { Route } from './+types/Cover';
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const { sqid } = params;
 
-  const comicId = sqidToId(sqid);
+  const user = await protectRoute(request);
+
+  let comicId: number;
+  try {
+    comicId = sqidToId(sqid);
+  } catch (error) {
+    throw new Response('Invalid comic ID', { status: 404 });
+  }
+
+  const comic = await getComicByIdForUser(comicId, user.id);
+  if (!comic) {
+    throw new Response('Comic not found', { status: 404 });
+  }
 
   const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
   if (!coversDirectory) {
     throw new Response('Covers directory not configured', { status: 500 });
   }
 
-  const filePath = join(
-    coversDirectory,
-    comicId.toString()[0].toLowerCase(),
-    `${comicId}.jpg`,
-  );
+  const subdirectory = comicId.toString()[0];
+  if (!/^[0-9]$/.test(subdirectory)) {
+    throw new Response('Invalid comic ID', { status: 404 });
+  }
 
-  if (!existsSync(filePath)) {
-    console.error(`Cover not found at path: ${filePath}`);
-    throw new Response('Cover not found', { status: 404 });
+  const filePath = join(coversDirectory, subdirectory, `${comicId}.jpg`);
+
+  const normalizedPath = normalize(filePath);
+  const normalizedCoversDir = normalize(coversDirectory);
+  if (!normalizedPath.startsWith(normalizedCoversDir)) {
+    console.error('Path traversal attempt detected:', filePath);
+    throw new Response('Invalid path', { status: 400 });
   }
 
   try {
@@ -35,6 +51,11 @@ export async function loader({ params }: Route.LoaderArgs) {
       },
     });
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.error(`Cover not found at path: ${filePath}`);
+      throw new Response('Cover not found', { status: 404 });
+    }
+    console.error('Error reading cover file:', error);
     throw new Response('Error reading file', { status: 500 });
   }
 }
