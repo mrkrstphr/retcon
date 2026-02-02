@@ -30,10 +30,12 @@
     "drizzle-orm": "^0.44.7",
     "node-stream-zip": "^1.15.0",
     "postgres": "^3.4.0",
+    "ramda": "^0.32.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/ramda": "^0.31.1",
     "drizzle-kit": "^0.31.7",
     "typescript": "^5.0.0"
   },

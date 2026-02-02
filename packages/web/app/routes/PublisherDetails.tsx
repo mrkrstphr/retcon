@@ -5,14 +5,14 @@ import {
   getPublisherSeriesCount,
   getPublisherSeriesWithCounts,
 } from '@retcon/common/db/queries';
-import { Link } from 'react-router';
+import { useRef } from 'react';
+import { FaSearch, FaTimes } from 'react-icons/fa';
+import { Form, useSubmit } from 'react-router';
 import { Box } from '~/components/Box';
-import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
-import { generatePageUrl } from '~/lib/generatePageUrl';
+import { SeriesList } from '~/components/SeriesList';
 import { integerFormat } from '~/lib/integerFormat';
-import { seriesDetailsHref } from '~/lib/links';
 import { paginateRecords } from '~/lib/paginateRecords';
 import type { Route } from './+types/PublisherDetails';
 
@@ -33,6 +33,9 @@ export async function loader({
   params: { slug: string };
   request: Request;
 }) {
+  const url = new URL(request.url);
+  const searchQuery = url.searchParams.get('search') || '';
+
   const publisher = await getPublisherBySlug(params.slug);
 
   if (!publisher) {
@@ -46,8 +49,14 @@ export async function loader({
     paginateRecords(
       request,
       (limit: number, offset: number) =>
-        getPublisherSeriesWithCounts(publisher.id, limit, offset),
-      getPublisherSeriesCount(publisher.id),
+        getPublisherSeriesWithCounts(
+          publisher.id,
+          searchQuery,
+          undefined,
+          limit,
+          offset,
+        ),
+      getPublisherSeriesCount(publisher.id, searchQuery),
     ),
     getPublisherComicCount(publisher.id),
   ]);
@@ -59,6 +68,7 @@ export async function loader({
     currentPage,
     totalPages,
     totalSeries,
+    searchQuery,
   };
 }
 
@@ -72,7 +82,37 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
     totalPages,
     // how many total series by the publisher
     totalSeries,
+    searchQuery,
   } = loaderData;
+
+  const submit = useSubmit();
+  const formRef = useRef<HTMLFormElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  const handleClearSearch = () => {
+    const form = formRef.current;
+    if (form) {
+      const input = form.querySelector(
+        'input[name="search"]',
+      ) as HTMLInputElement;
+      if (input) {
+        input.value = '';
+        submit(form);
+      }
+    }
+  };
+
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const form = e.target.form;
+    if (form) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        submit(form);
+      }, 300);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -89,60 +129,70 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
         </p>
       </Box>
 
+      {(series.length > 0 || searchQuery) && (
+        <Box>
+          <Form ref={formRef} method="get" className="">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                </div>
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Search series..."
+                  defaultValue={searchQuery}
+                  onChange={handleSearchInput}
+                  className="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    aria-label="Clear search"
+                  >
+                    <FaTimes className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </Form>
+        </Box>
+      )}
+
       {series.length > 0 && (
         <>
           <Box>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {series.map((series) => (
-                <Link
-                  key={series.id}
-                  to={seriesDetailsHref(series)}
-                  className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
-                >
-                  {series.firstComicId && (
-                    <Cover
-                      comic={{
-                        id: series.firstComicId,
-                        isRead: series.readCount === series.comicCount,
-                        pageCount: series.comicCount,
-                        currentPage: series.readCount ?? 0,
-                      }}
-                    />
-                  )}
-
-                  <div className="text-sm text-center mt-2">
-                    <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                      <div
-                        className="line-clamp-2 leading-tight truncate"
-                        title={series.name}
-                      >
-                        {series.name}
-                      </div>
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
-                      {series.comicCount} issue
-                      {series.comicCount !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <SeriesList series={series} />
 
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               totalRecords={totalSeries}
-              generatePageUrl={generatePageUrl}
+              generatePageUrl={(page: number) => {
+                const params = new URLSearchParams();
+                if (searchQuery) params.set('search', searchQuery);
+                if (page > 1) params.set('page', page.toString());
+                return params.toString() ? `?${params.toString()}` : '';
+              }}
               recordName="series"
             />
           </Box>
         </>
       )}
 
-      {series.length === 0 && (
+      {!searchQuery && series.length === 0 && (
         <NoResults
           title={`No series found for ${publisher.name}`}
           details="Series will appear here once comics are added"
+        />
+      )}
+
+      {searchQuery && series.length === 0 && (
+        <NoResults
+          title="No series found"
+          details={`No series matching "${searchQuery}" found for ${publisher.name}`}
         />
       )}
     </div>

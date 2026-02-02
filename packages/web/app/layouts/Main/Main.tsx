@@ -5,6 +5,7 @@ import { FaFileCircleQuestion } from 'react-icons/fa6';
 import { HiCollection, HiHome, HiX } from 'react-icons/hi';
 import { ImBooks } from 'react-icons/im';
 import type { IconType } from 'react-icons/lib';
+import { MdFiberNew } from 'react-icons/md';
 import { Link, Outlet, useLocation, type LinkProps } from 'react-router';
 import { Box } from '~/components/Box';
 import { getUser } from '~/lib/getUser';
@@ -64,6 +65,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 const navigation = [
   { name: 'Home', href: '/', icon: HiHome },
   { name: 'Publishers', href: '/publishers', icon: HiCollection },
+  { name: 'Unread', href: '/unread', icon: MdFiberNew },
   { name: 'Loose Comics', href: '/loose', icon: FaFileCircleQuestion },
 ];
 
@@ -163,7 +165,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
         </div>
 
         {/* Main content area */}
-        <main className="max-w-7xl w-full h-[calc(100dvh-8rem)] overflow-y-auto">
+        <main className="w-full h-[calc(100dvh-8rem)] overflow-y-auto">
           <Outlet />
         </main>
       </div>

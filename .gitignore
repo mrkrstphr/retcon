@@ -16,6 +16,7 @@ docker-compose.yml
 # Build outputs
 dist/
 build/
+.react-router/
 
 # IDE files
 .vscode/

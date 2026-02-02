@@ -4,13 +4,20 @@ import { Authenticator } from 'remix-auth';
 import { FormStrategy } from 'remix-auth-form';
 import type { User } from './types';
 
+const cookieSecret = process.env.COOKIE_SECRET;
+if (!cookieSecret) {
+  throw new Error(
+    'COOKIE_SECRET environment variable must be set for session security',
+  );
+}
+
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: '__session',
     httpOnly: true,
     path: '/',
     sameSite: 'lax',
-    secrets: [process.env.COOKIE_SECRET ?? 'b4n4n4z'],
+    secrets: [cookieSecret],
     secure: process.env.NODE_ENV === 'production',
   },
 });
