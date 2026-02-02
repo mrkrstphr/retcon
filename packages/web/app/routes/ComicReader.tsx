@@ -13,7 +13,7 @@ import { useFullScreenManager } from '~/hooks/useFullscreenManager';
 import { comicTitle } from '~/lib/comicTitle';
 import { comicPageHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
-import { idToSqid, sqidToId } from '~/lib/sqids';
+import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -37,7 +37,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const user = await protectRoute(request);
 
-  const id = sqidToId(sqid);
+  const id = sqidToIdOr404(sqid, 'Comic');
   const comic = await getComicByIdForUser(id, user.id);
 
   if (!comic) {

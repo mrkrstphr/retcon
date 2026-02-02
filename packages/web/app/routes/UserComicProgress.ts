@@ -3,14 +3,14 @@ import {
   upsertUserComicProgress,
 } from '@retcon/common/db/queries';
 import { protectRoute } from '~/lib/protectRoute';
-import { sqidToId } from '~/lib/sqids';
+import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/UserComicProgress';
 
 export const action = async ({ params, request }: Route.ActionArgs) => {
   const user = await protectRoute(request);
 
   const sqid = params.sqid;
-  const id = sqidToId(sqid);
+  const id = sqidToIdOr404(sqid, 'Comic');
 
   const { currentPage } = await request.json();
 

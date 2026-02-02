@@ -2,7 +2,7 @@ import { getComicByIdForUser } from '@retcon/common/db/queries';
 import { readFile } from 'fs/promises';
 import { join, normalize } from 'path';
 import { protectRoute } from '~/lib/protectRoute';
-import { sqidToId } from '~/lib/sqids';
+import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/Cover';
 
 export async function loader({ params, request }: Route.LoaderArgs) {
@@ -10,12 +10,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const user = await protectRoute(request);
 
-  let comicId: number;
-  try {
-    comicId = sqidToId(sqid);
-  } catch (error) {
-    throw new Response('Invalid comic ID', { status: 404 });
-  }
+  const comicId = sqidToIdOr404(sqid, 'Comic');
 
   const comic = await getComicByIdForUser(comicId, user.id);
   if (!comic) {

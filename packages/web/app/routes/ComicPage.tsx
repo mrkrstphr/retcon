@@ -5,7 +5,7 @@ import {
 } from '@retcon/common/lib';
 import { extname } from 'path';
 import { protectRoute } from '~/lib/protectRoute';
-import { sqidToId } from '~/lib/sqids';
+import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/ComicPage';
 
 export const loader = async ({ params, request }: Route.LoaderArgs) => {
@@ -17,7 +17,8 @@ export const loader = async ({ params, request }: Route.LoaderArgs) => {
 
   const user = await protectRoute(request);
 
-  const comicId = sqidToId(sqid);
+  const comicId = sqidToIdOr404(sqid, 'Comic');
+
   const pageNumber = parseInt(page, 10);
 
   if (isNaN(pageNumber) || pageNumber < 1) {

@@ -18,4 +18,15 @@ export const idToSqid = (id: number): string => {
   return sqids.encode([id]);
 };
 
+export const sqidToIdOr404 = (
+  sqid: string,
+  resourceType = 'Resource',
+): number => {
+  try {
+    return sqidToId(sqid);
+  } catch (error) {
+    throw new Response(`${resourceType} not found`, { status: 404 });
+  }
+};
+
 export { sqids };

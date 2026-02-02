@@ -16,7 +16,7 @@ import { generatePageUrl } from '~/lib/generatePageUrl';
 import { comicDetailsHref } from '~/lib/links';
 import { paginateRecords } from '~/lib/paginateRecords';
 import { protectRoute } from '~/lib/protectRoute';
-import { idToSqid, sqidToId } from '~/lib/sqids';
+import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/SeriesDetails';
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -50,9 +50,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await protectRoute(request);
 
   const { sqid } = params;
+  const seriesId = sqidToIdOr404(sqid, 'Series');
 
   // Get series info with publisher data by ID
-  const series = await getSeriesById(sqidToId(sqid));
+  const series = await getSeriesById(seriesId);
 
   if (!series) {
     throw data('Series not found', { status: 404 });

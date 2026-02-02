@@ -10,7 +10,7 @@ import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
 import { comicReaderHref, seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
-import { idToSqid, sqidToId } from '~/lib/sqids';
+import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import { APP_NAME } from '../../../common/src/constants';
 import type { Route } from './+types/ComicDetails';
 
@@ -30,7 +30,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   await protectRoute(request);
   const user = await getUser(request);
 
-  const id = sqidToId(params.sqid);
+  const id = sqidToIdOr404(params.sqid, 'Comic');
   const comic = await getComicByIdForUser(id, user.id);
 
   if (!comic) {

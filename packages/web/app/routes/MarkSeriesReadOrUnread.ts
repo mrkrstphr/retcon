@@ -6,14 +6,14 @@ import {
 import { redirect } from 'react-router';
 import { seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
-import { sqidToId } from '~/lib/sqids';
+import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/MarkSeriesReadOrUnread';
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await protectRoute(request);
 
   const { sqid } = params;
-  const seriesId = sqidToId(sqid);
+  const seriesId = sqidToIdOr404(sqid, 'Series');
 
   // Get series data for redirect
   const series = await getSeriesById(seriesId);

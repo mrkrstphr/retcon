@@ -6,7 +6,7 @@ import {
 import { redirect } from 'react-router';
 import { comicDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
-import { sqidToId } from '~/lib/sqids';
+import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/MarkIssueReadOrUnread';
 
 async function markIssueRead(
@@ -31,7 +31,7 @@ export async function action(args: Route.ActionArgs) {
   const user = await protectRoute(request);
 
   const { sqid } = params;
-  const comicId = sqidToId(sqid);
+  const comicId = sqidToIdOr404(sqid, 'Comic');
 
   // Get comic data for redirect
   const comic = await getComicByIdForUser(comicId, user.id);
