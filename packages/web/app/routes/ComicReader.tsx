@@ -85,7 +85,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { pageNumber, nextPage, previousPage } = usePageManager(comic);
   // open the overlays by default
   // TODO: add user preference for auto closing overlays
-  const [overlayOpen, setOverlayOpen] = useEagerUntoggler(true, 1000);
+  const [overlayOpen, setOverlayOpen] = useEagerUntoggler(true, 3000);
   const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullScreenManager(readerRef);
 
