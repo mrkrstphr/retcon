@@ -17,6 +17,7 @@ docker-compose.yml
 dist/
 build/
 .react-router/
+packages/**/tsconfig.tsbuildinfo
 
 # IDE files
 .vscode/

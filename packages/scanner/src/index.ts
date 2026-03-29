@@ -9,6 +9,7 @@ import {
   findPublisherByName,
   getAllPublishers,
   getAllSeries,
+  getComicCount,
   insertComic,
   updateComicLastSynced,
   updateComicMetadata,
@@ -260,18 +261,38 @@ async function main() {
     console.log(
       '  --no-cleanup       Skip deletion of missing files from database',
     );
+    console.log('  --check-empty      Only run scan if database has no comics');
     console.log('  --dir, --directory Override scan directory path');
     console.log('  --help, -h         Show this help message');
     console.log('\nExamples:');
     console.log('  npm run scan');
     console.log('  npm run scan -- --dir "/path/to/comics"');
     console.log('  npm run scan -- --force-update --no-cleanup');
+    console.log('  npm run scan -- --check-empty');
     console.log('  npm run scan -- --dir "/new/location" --no-cleanup\n');
     return;
   }
 
   const forceUpdate = args.includes('--force-update');
   const noCleanup = args.includes('--no-cleanup');
+  const checkEmpty = args.includes('--check-empty');
+
+  // If check-empty flag is set, exit early if database already has comics
+  if (checkEmpty) {
+    const comicCount = await getComicCount();
+    if (comicCount > 0) {
+      console.log(
+        chalk.gray(
+          `📚 Database already contains ${comicCount} comic(s). Skipping initial scan.`,
+        ),
+      );
+      await client.end();
+      return;
+    }
+    console.log(
+      chalk.cyan('📭 Database is empty. Proceeding with initial scan...'),
+    );
+  }
 
   // Check for directory override
   let scanDirectory = process.env.SCAN_DIRECTORY || './comics';

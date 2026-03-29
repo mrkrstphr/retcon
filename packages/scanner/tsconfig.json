@@ -1,6 +1,6 @@
 {
   "include": [
-    "src/*",
+    "src/**/*",
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
@@ -11,6 +11,8 @@
     "rootDir":  "src",
     "outDir": "dist",
     "baseUrl": ".",
+    "declaration": true,
+    "composite": true,
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,

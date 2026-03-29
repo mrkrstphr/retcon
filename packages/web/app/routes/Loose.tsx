@@ -3,10 +3,15 @@ import {
   getLooseComicsCount,
   getLooseComicsForUser,
 } from '@retcon/common/db/queries';
+import type { MetadataSearchResult } from '~/schemas/metadata';
+import { useState } from 'react';
 import { FaGrinStars } from 'react-icons/fa';
-import { Link } from 'react-router';
+import { MdSearch } from 'react-icons/md';
+import { Link, useRevalidator } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
+import { MetadataEditModal } from '~/components/MetadataEditModal';
+import { MetadataSearchModal } from '~/components/MetadataSearchModal';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
 import { comicTitle } from '~/lib/comicTitle';
@@ -41,11 +46,62 @@ export async function loader({ request }: Route.LoaderArgs) {
     getLooseComicsCount(),
   );
 
-  return { comics, currentPage, totalComics, totalPages };
+  const hasComicVineApiKey = !!process.env.COMICVINE_API_KEY;
+
+  return { comics, currentPage, totalComics, totalPages, hasComicVineApiKey };
 }
 
 export default function LooseComics({ loaderData }: Route.ComponentProps) {
-  const { comics, totalComics, currentPage, totalPages } = loaderData;
+  const { comics, totalComics, currentPage, totalPages, hasComicVineApiKey } =
+    loaderData;
+  const revalidator = useRevalidator();
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [selectedComicId, setSelectedComicId] = useState<number | null>(null);
+  const [selectedComicFileName, setSelectedComicFileName] = useState<
+    string | null
+  >(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editInitialData, setEditInitialData] = useState<any>(undefined);
+  const [editMetadataSource, setEditMetadataSource] = useState<{ provider: string; id: string } | undefined>(undefined);
+
+  const handleSearchClick = (comicId: number, fileName: string) => {
+    if (!hasComicVineApiKey) return;
+    setSelectedComicId(comicId);
+    setSelectedComicFileName(fileName);
+    setSearchModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setSearchModalOpen(false);
+    setSelectedComicId(null);
+    setSelectedComicFileName(null);
+  };
+
+  const handleSearchApply = (fullMetadata: MetadataSearchResult, originalResult: MetadataSearchResult) => {
+    const editData = {
+      series: fullMetadata.series || '',
+      number: fullMetadata.number || '',
+      volume: fullMetadata.volume || '',
+      title: fullMetadata.title || '',
+      publisher: fullMetadata.publisher || '',
+      summary: fullMetadata.summary || '',
+      releaseDate: fullMetadata.releaseDate || '',
+      writer: fullMetadata.creators?.writer?.join(', ') || '',
+      penciller: fullMetadata.creators?.penciller?.join(', ') || '',
+      inker: fullMetadata.creators?.inker?.join(', ') || '',
+      colorist: fullMetadata.creators?.colorist?.join(', ') || '',
+      letterer: fullMetadata.creators?.letterer?.join(', ') || '',
+      coverArtist: fullMetadata.creators?.coverArtist?.join(', ') || '',
+      editor: fullMetadata.creators?.editor?.join(', ') || '',
+    };
+    setEditInitialData(editData);
+    setEditMetadataSource({ provider: fullMetadata.provider, id: fullMetadata.id });
+    setEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    revalidator.revalidate();
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -63,27 +119,48 @@ export default function LooseComics({ loaderData }: Route.ComponentProps) {
         <Box>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {comics.map((comic) => (
-              <Link
-                key={comic.id}
-                to={comicDetailsHref(comic)}
-                className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
-              >
-                <Cover comic={comic} />
+              <div key={comic.id} className="relative group">
+                <Link
+                  to={comicDetailsHref(comic)}
+                  className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
+                >
+                  <Cover comic={comic} />
 
-                <div className="text-sm text-center mt-2">
-                  <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                    <div className="line-clamp-2 leading-tight">
-                      {comicTitle(comic)}
+                  <div className="text-sm text-center mt-2">
+                    <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
+                      <div className="line-clamp-2 leading-tight">
+                        {comicTitle(comic)}
+                      </div>
                     </div>
+                    {comic.metadata?.releaseDate && (
+                      <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
+                        {comic.metadata.releaseDate}
+                      </div>
+                    )}
                   </div>
-                  {/* Show release date if available */}
-                  {comic.metadata?.releaseDate && (
-                    <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
-                      {comic.metadata.releaseDate}
-                    </div>
-                  )}
+                </Link>
+
+                <div
+                  className="absolute top-3 right-3"
+                  title={
+                    hasComicVineApiKey
+                      ? 'Search for metadata'
+                      : 'ComicVine API not configured.'
+                  }
+                >
+                  <button
+                    onClick={() => handleSearchClick(comic.id, comic.fileName)}
+                    disabled={!hasComicVineApiKey}
+                    className={`rounded-full p-2 shadow-md transition-all ${
+                      hasComicVineApiKey
+                        ? 'bg-orange-600/80 hover:bg-orange-600 hover:shadow-lg text-white cursor-pointer'
+                        : 'bg-gray-400/60 dark:bg-gray-600/60 text-gray-300 dark:text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <MdSearch className="w-4 h-4" />
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
 
@@ -102,6 +179,32 @@ export default function LooseComics({ loaderData }: Route.ComponentProps) {
           icon={FaGrinStars}
           title="No loose comics found!"
           details="You keep a pretty clean house; we admire that."
+        />
+      )}
+
+      {selectedComicId && selectedComicFileName && (
+        <MetadataSearchModal
+          comicId={selectedComicId}
+          comicFileName={selectedComicFileName}
+          isOpen={searchModalOpen}
+          onClose={handleModalClose}
+          onApply={handleSearchApply}
+        />
+      )}
+
+      {selectedComicId && selectedComicFileName && (
+        <MetadataEditModal
+          comicId={selectedComicId}
+          comicFileName={selectedComicFileName}
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditInitialData(undefined);
+            setEditMetadataSource(undefined);
+          }}
+          onSuccess={handleEditSuccess}
+          initialMetadata={editInitialData}
+          metadataSource={editMetadataSource}
         />
       )}
     </div>

@@ -164,6 +164,10 @@ export async function deleteComicsOlderThan(syncTime: Date) {
   return db.delete(comics).where(lt(comics.lastSynced, syncTime));
 }
 
+export async function deleteComic(comicId: number) {
+  return db.delete(comics).where(eq(comics.id, comicId));
+}
+
 export async function getLastScanTime() {
   const result = await db
     .select({ lastSynced: comics.lastSynced })
@@ -283,6 +287,25 @@ export function createPublisher(name: string) {
         slug: publishers.slug,
       }),
   );
+}
+
+/**
+ * Get or create a publisher by name
+ * Returns the publisher ID
+ */
+export async function getOrCreatePublisher(name: string): Promise<number> {
+  const trimmedName = name.trim();
+
+  // Try to find existing publisher
+  const existing = await findPublisherByName(trimmedName);
+
+  if (existing) {
+    return existing.id;
+  }
+
+  // Create new publisher
+  const newPublisher = await createPublisher(trimmedName);
+  return newPublisher.id;
 }
 
 export function findSeriesByName(name: string, publisherId?: number) {
@@ -828,4 +851,55 @@ export function countUnreadSeriesForUser(
     .having(not(eq(count(userComics.isRead), count(comicsForCount.id))));
 
   return countOrZero(query);
+}
+
+/**
+ * Get a comic by ID (without user-specific data)
+ */
+export function getComicById(id: number) {
+  return firstOrNull(
+    db
+      .select({
+        id: comics.id,
+        fileName: comics.fileName,
+        slug: comics.slug,
+        fileModified: comics.fileModified,
+        lastSynced: comics.lastSynced,
+        number: comics.number,
+        volume: comics.volume,
+        pageCount: comics.pageCount,
+        publisherId: comics.publisherId,
+        seriesId: comics.seriesId,
+        series: series.name,
+        metadata: comics.metadata,
+        releaseDate: comics.releaseDate,
+        createdAt: comics.createdAt,
+      })
+      .from(comics)
+      .leftJoin(series, eq(comics.seriesId, series.id))
+      .where(eq(comics.id, id)),
+  );
+}
+
+/**
+ * Update comic metadata fields including publisher and series IDs
+ */
+export async function updateComicMetadataFields(
+  comicId: number,
+  updates: {
+    number?: string | null;
+    volume?: string | null;
+    releaseDate?: string | null;
+    metadata?: any;
+    publisherId?: number | null;
+    seriesId?: number | null;
+  },
+) {
+  return db
+    .update(comics)
+    .set({
+      ...updates,
+      lastSynced: new Date(),
+    })
+    .where(eq(comics.id, comicId));
 }

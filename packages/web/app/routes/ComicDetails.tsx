@@ -1,16 +1,19 @@
 import { getComicByIdForUser } from '@retcon/common/db/queries';
+import { useState } from 'react';
 import Markdown from 'react-markdown';
-import { Link } from 'react-router';
+import { Link, useFetcher, useNavigate, useRevalidator } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { Box } from '~/components/Box';
-import { ButtonAction } from '~/components/ButtonAction';
-import { ButtonLink } from '~/components/ButtonLink';
 import { Cover } from '~/components/Cover';
+import { MetadataEditModal } from '~/components/MetadataEditModal';
+import { MetadataSearchModal } from '~/components/MetadataSearchModal';
+import { SplitButtonDropdown } from '~/components/SplitButtonDropdown';
 import { comicTitle } from '~/lib/comicTitle';
 import { getUser } from '~/lib/getUser';
 import { comicReaderHref, seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
+import type { MetadataSearchResult } from '~/schemas/metadata';
 import { APP_NAME } from '../../../common/src/constants';
 import type { Route } from './+types/ComicDetails';
 
@@ -37,7 +40,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw new Response('Comic not found', { status: 404 });
   }
 
-  return { comic };
+  const hasComicVineApiKey = !!process.env.COMICVINE_API_KEY;
+
+  return { comic, hasComicVineApiKey };
 }
 
 function formatDate(dateString?: string) {
@@ -117,52 +122,123 @@ function Metadata({ metadata }: { metadata: any }) {
 }
 
 export default function ComicDetails({ loaderData }: Route.ComponentProps) {
-  const { comic } = loaderData;
+  const { comic, hasComicVineApiKey } = loaderData;
+  const revalidator = useRevalidator();
+  const navigate = useNavigate();
+  const fetcher = useFetcher();
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editInitialData, setEditInitialData] = useState<any>(undefined);
+  const [editMetadataSource, setEditMetadataSource] = useState<{ provider: string; id: string } | undefined>(undefined);
 
   const displayTitle = comicTitle(comic);
+
+  // Determine if comic has metadata
+  const hasMetadata =
+    comic.metadata &&
+    typeof comic.metadata === 'object' &&
+    Object.keys(comic.metadata).length > 0;
+
+  const handleMetadataSuccess = () => {
+    // Revalidate to refresh the data
+    revalidator.revalidate();
+  };
+
+  const handleReadComic = () => {
+    navigate(comicReaderHref(comic));
+  };
+
+  const handleMarkAsRead = () => {
+    fetcher.submit(null, {
+      method: 'POST',
+      action: `/issue/${idToSqid(comic.id)}/read`,
+    });
+  };
+
+  const handleMarkAsUnread = () => {
+    fetcher.submit(null, {
+      method: 'DELETE',
+      action: `/issue/${idToSqid(comic.id)}/read`,
+    });
+  };
+
+  const handleFixMatch = () => {
+    setSearchModalOpen(true);
+  };
+
+  const handleEditMetadata = () => {
+    setEditInitialData(undefined);
+    setEditMetadataSource(undefined);
+    setEditModalOpen(true);
+  };
+
+  const handleSearchApply = (fullMetadata: MetadataSearchResult, originalResult: MetadataSearchResult) => {
+    // Convert full ComicVine metadata to edit format
+    const editData = {
+      series: fullMetadata.series || '',
+      number: fullMetadata.number || '',
+      volume: fullMetadata.volume || '',
+      title: fullMetadata.title || '',
+      publisher: fullMetadata.publisher || '',
+      summary: fullMetadata.summary || '',
+      releaseDate: fullMetadata.releaseDate || '',
+      writer: fullMetadata.creators?.writer?.join(', ') || '',
+      penciller: fullMetadata.creators?.penciller?.join(', ') || '',
+      inker: fullMetadata.creators?.inker?.join(', ') || '',
+      colorist: fullMetadata.creators?.colorist?.join(', ') || '',
+      letterer: fullMetadata.creators?.letterer?.join(', ') || '',
+      coverArtist: fullMetadata.creators?.coverArtist?.join(', ') || '',
+      editor: fullMetadata.creators?.editor?.join(', ') || '',
+    };
+
+    setEditInitialData(editData);
+    setEditMetadataSource({ provider: fullMetadata.provider, id: fullMetadata.id });
+    setEditModalOpen(true);
+  };
+
+  const primaryLabel =
+    comic.currentPage && comic.currentPage > 1 && !comic.isRead
+      ? 'Continue Reading'
+      : 'Read Comic';
+
+  const dropdownItems = [
+    ...(!comic.isRead
+      ? [{ label: 'Mark as Read', onClick: handleMarkAsRead }]
+      : []),
+    ...(comic.currentPage && comic.currentPage > 0
+      ? [{ label: 'Mark as Unread', onClick: handleMarkAsUnread }]
+      : []),
+    {
+      label: 'Edit Metadata',
+      onClick: handleEditMetadata,
+    },
+    {
+      label: hasMetadata ? 'Fix Match' : 'Find Match',
+      onClick: handleFixMatch,
+      disabled: !hasComicVineApiKey,
+      tooltip: !hasComicVineApiKey
+        ? 'ComicVine API not configured.'
+        : undefined,
+    },
+  ];
 
   return (
     <Box>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 ">
-        {/* Cover Image */}
         <div className="lg:col-span-1">
           <Cover comic={comic} />
 
-          <div className="text-center mt-4 space-y-2">
-            {/* Primary Read Button */}
-            <div>
-              <ButtonLink to={comicReaderHref(comic)}>
-                {comic.currentPage && comic.currentPage > 1 && !comic.isRead
-                  ? 'Continue Reading'
-                  : 'Read Comic'}
-              </ButtonLink>
-            </div>
-
-            {!comic.isRead && (
-              <ButtonAction
-                method="POST"
-                action={`/issue/${idToSqid(comic.id)}/read`}
-                variant="primary"
-              >
-                Mark as Read
-              </ButtonAction>
-            )}
-
-            {comic.currentPage && comic.currentPage > 0 && (
-              <ButtonAction
-                method="DELETE"
-                action={`/issue/${idToSqid(comic.id)}/read`}
-                variant="secondary"
-              >
-                Mark as Unread
-              </ButtonAction>
-            )}
+          <div className="flex justify-center mt-4">
+            <SplitButtonDropdown
+              primaryLabel={primaryLabel}
+              primaryOnClick={handleReadComic}
+              items={dropdownItems}
+              variant="primary"
+            />
           </div>
         </div>
 
-        {/* Comic Info */}
         <div className="lg:col-span-2">
-          {/* Title Section */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               {displayTitle}
@@ -194,7 +270,6 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
 
           <Metadata metadata={comic.metadata} />
 
-          {/* File Information */}
           <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
               File Information
@@ -236,6 +311,28 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
       </div>
+
+      <MetadataSearchModal
+        comicId={comic.id}
+        comicFileName={comic.fileName}
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        onApply={handleSearchApply}
+      />
+
+      <MetadataEditModal
+        comicId={comic.id}
+        comicFileName={comic.fileName}
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditInitialData(undefined);
+          setEditMetadataSource(undefined);
+        }}
+        onSuccess={handleMetadataSuccess}
+        initialMetadata={editInitialData}
+        metadataSource={editMetadataSource}
+      />
     </Box>
   );
 }

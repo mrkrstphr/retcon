@@ -15,6 +15,15 @@
     "./lib": {
       "import": "./dist/lib/index.js"
     },
+    "./lib/parseFilename": {
+      "import": "./dist/lib/parseFilename.js"
+    },
+    "./lib/comicInfoBuilder": {
+      "import": "./dist/lib/comicInfoBuilder.js"
+    },
+    "./lib/writeComicInfo": {
+      "import": "./dist/lib/writeComicInfo.js"
+    },
     "./constants": {
       "import": "./dist/constants.js"
     },
@@ -23,18 +32,23 @@
     },
     "./db/queries": {
       "import": "./dist/db/queries.js"
+    },
+    "./metadata/providers": {
+      "import": "./dist/metadata/providers/index.js"
     }
   },
   "dependencies": {
     "chalk": "^4.1.2",
     "drizzle-orm": "^0.44.7",
+    "fast-xml-parser": "^4.3.0",
+    "lru-cache": "^11.2.5",
     "node-stream-zip": "^1.15.0",
     "postgres": "^3.4.0",
     "ramda": "^0.32.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.2.0",
     "@types/ramda": "^0.31.1",
     "drizzle-kit": "^0.31.7",
     "typescript": "^5.0.0"

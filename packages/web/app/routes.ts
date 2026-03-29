@@ -27,4 +27,8 @@ export default [
   route('issue/:sqid/read', 'routes/MarkIssueReadOrUnread.ts'),
   route('series/:sqid/read', 'routes/MarkSeriesReadOrUnread.ts'),
   route('search', 'routes/Search.tsx'),
+  route('comics/:sqid/metadata-search', 'routes/MetadataSearch.ts'),
+  route('comics/:sqid/apply-metadata', 'routes/ApplyMetadata.ts'),
+  route('comics/:sqid/metadata-edit', 'routes/MetadataEdit.ts'),
+  route('comics/:sqid/fetch-metadata', 'routes/FetchMetadata.ts'),
 ] satisfies RouteConfig;
