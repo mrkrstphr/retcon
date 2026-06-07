@@ -5,7 +5,7 @@ export default [
     index('routes/Home.tsx'),
     route('publishers', 'routes/Publishers.tsx'),
     route('publishers/:slug', 'routes/PublisherDetails.tsx'),
-    route('series/:sqid/:slug', 'routes/SeriesDetails.tsx'),
+    route('series/:sqid/:slug', 'routes/SeriesDetails/SeriesDetails.tsx'),
     route('comic/:sqid/:slug', 'routes/ComicDetails.tsx'),
     route('loose', 'routes/Loose.tsx'),
     route('unread', 'routes/Unread.tsx'),

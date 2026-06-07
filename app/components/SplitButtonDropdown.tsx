@@ -63,6 +63,7 @@ export function SplitButtonDropdown({
       {/* Dropdown Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle dropdown"
         className={`${baseClasses} px-2 py-2 rounded-r-md border-l border-white/20 dark:border-black/20 transition-colors`}
       >
         <svg

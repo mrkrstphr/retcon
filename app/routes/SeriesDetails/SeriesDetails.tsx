@@ -7,7 +7,6 @@ import {
 } from '@retcon/common/db/queries';
 import { data, Link } from 'react-router';
 import { Box } from '~/components/Box';
-import { ButtonAction } from '~/components/ButtonAction';
 import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
@@ -15,6 +14,7 @@ import { comicTitle } from '~/lib/comicTitle';
 import { generatePageUrl } from '~/lib/generatePageUrl';
 import { comicDetailsHref } from '~/lib/links';
 import { paginateRecords } from '~/lib/paginateRecords';
+import { ReadStateButtons } from './ReadStateButtons';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/SeriesDetails';
@@ -101,7 +101,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
   const { series, comics, totalComics, currentPage, totalPages, readStatus } = loaderData;
-
   return (
     <div className="flex flex-col gap-2">
       <Box>
@@ -126,31 +125,10 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          {readStatus.totalComics > 0 && (
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-              {!readStatus.allRead && (
-                <ButtonAction
-                  method="POST"
-                  action={`/series/${idToSqid(series.id)}/read`}
-                  type="submit"
-                  variant="primary"
-                >
-                  Mark Series as Read
-                </ButtonAction>
-              )}
-
-              {(!readStatus.noneRead || readStatus.allRead) && (
-                <ButtonAction
-                  method="DELETE"
-                  action={`/series/${idToSqid(series.id)}/read`}
-                  type="submit"
-                  variant="secondary"
-                >
-                  Mark Series as Unread
-                </ButtonAction>
-              )}
-            </div>
-          )}
+          <ReadStateButtons
+            readStatus={readStatus}
+            action={`/series/${idToSqid(series.id)}/read`}
+          />
         </div>
       </Box>
 
