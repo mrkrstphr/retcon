@@ -27,14 +27,14 @@ function useDebouncedSearch<T>(
     if (!searchQuery.trim()) {
       setState('idle');
       if (timerRef.current) clearTimeout(timerRef.current);
-      fetcher.unstable_reset({ reason: 'User Canceled' });
+      fetcher.reset();
       return;
     }
 
     if (timerRef.current) {
       setState('idle');
       clearTimeout(timerRef.current);
-      fetcher.unstable_reset({ reason: 'User Canceled' });
+      fetcher.reset();
     }
 
     timerRef.current = setTimeout(() => {

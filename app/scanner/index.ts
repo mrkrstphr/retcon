@@ -17,6 +17,7 @@ import {
 import { createComicSlug } from '../lib/index.js';
 import chalk from 'chalk';
 import { readdir, stat } from 'fs/promises';
+import type { Stats } from 'node:fs';
 import { join, resolve } from 'path';
 import { deleteMissingIssues } from './lib/cleanup.js';
 import { saveCover } from './lib/covers.js';
@@ -80,7 +81,7 @@ async function getOrCreateSeries(
 
 async function createComic(
   path: string,
-  stats: Awaited<ReturnType<typeof stat>>,
+  stats: Stats,
   lastSynced: Date,
   publisherMap: PublisherMap,
   seriesMap: SeriesMap,
@@ -117,7 +118,7 @@ async function createComic(
 async function updateComic(
   comic: { id: number },
   path: string,
-  stats: Awaited<ReturnType<typeof stat>>,
+  stats: Stats,
   lastSynced: Date,
   publisherMap: PublisherMap,
   seriesMap: SeriesMap,

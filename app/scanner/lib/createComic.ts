@@ -1,6 +1,6 @@
 import { insertComic } from '../../db/queries.js';
 import { createComicSlug } from '../../lib/index.js';
-import { stat } from 'fs/promises';
+import type { Stats } from 'node:fs';
 import { saveCover } from './covers.js';
 import { formatReleaseDate } from './formatReleaseDate.js';
 import { getOrCreatePublisher } from './getOrCreatePublisher.js';
@@ -9,7 +9,7 @@ import { fetchArchiveInfo } from './zip.js';
 
 export async function createComic(
   path: string,
-  stats: Awaited<ReturnType<typeof stat>>,
+  stats: Stats,
   lastSynced: Date,
 ) {
   const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
