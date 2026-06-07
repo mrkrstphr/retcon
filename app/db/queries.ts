@@ -786,6 +786,7 @@ export function findUnreadSeriesForUser(
   searchTerm: string = '',
   limit: number = 25,
   offset: number = 0,
+  publisherId?: number,
 ) {
   const comicsForCount = alias(comics, 'comics_for_count');
 
@@ -818,7 +819,10 @@ export function findUnreadSeriesForUser(
       sql`true`,
     )
     .where(
-      sql`REGEXP_REPLACE(LOWER(${series.name}), '[^a-z0-9 ]', '', 'g') ILIKE ${`%${cleanSearchTerm(searchTerm)}%`}`,
+      and(
+        sql`REGEXP_REPLACE(LOWER(${series.name}), '[^a-z0-9 ]', '', 'g') ILIKE ${`%${cleanSearchTerm(searchTerm)}%`}`,
+        publisherId ? eq(series.publisherId, publisherId) : undefined,
+      ),
     )
     .groupBy(series.id, comics.id)
     .having(not(eq(count(userComics.isRead), count(comicsForCount.id))))
@@ -830,11 +834,12 @@ export function findUnreadSeriesForUser(
 export function countUnreadSeriesForUser(
   userId: number,
   searchTerm: string = '',
+  publisherId?: number,
 ) {
   const comicsForCount = alias(comics, 'comics_for_count');
 
-  const query = db
-    .select({ count: count() })
+  const subquery = db
+    .select({ id: series.id })
     .from(series)
     .leftJoin(comicsForCount, eq(comicsForCount.seriesId, series.id))
     .leftJoin(
@@ -845,12 +850,16 @@ export function countUnreadSeriesForUser(
       ),
     )
     .where(
-      sql`REGEXP_REPLACE(LOWER(${series.name}), '[^a-z0-9 ]', '', 'g') ILIKE ${`%${cleanSearchTerm(searchTerm)}%`}`,
+      and(
+        sql`REGEXP_REPLACE(LOWER(${series.name}), '[^a-z0-9 ]', '', 'g') ILIKE ${`%${cleanSearchTerm(searchTerm)}%`}`,
+        publisherId ? eq(series.publisherId, publisherId) : undefined,
+      ),
     )
     .groupBy(series.id)
-    .having(not(eq(count(userComics.isRead), count(comicsForCount.id))));
+    .having(not(eq(count(userComics.isRead), count(comicsForCount.id))))
+    .as('unread_series');
 
-  return countOrZero(query);
+  return countOrZero(db.select({ count: count() }).from(subquery));
 }
 
 /**
