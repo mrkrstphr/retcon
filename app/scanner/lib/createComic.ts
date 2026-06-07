@@ -4,21 +4,23 @@ import type { Stats } from 'node:fs';
 import { saveCover } from './covers.js';
 import { formatReleaseDate } from './formatReleaseDate.js';
 import { getOrCreatePublisher } from './getOrCreatePublisher.js';
-import { getOrCreateSeries } from './getOrCreateSeries.js';
+import { getOrCreateSeries, type SeriesMap } from './getOrCreateSeries.js';
 import { fetchArchiveInfo } from './zip.js';
 
 export async function createComic(
   path: string,
   stats: Stats,
   lastSynced: Date,
+  publisherMap?: Map<string, number>,
+  seriesMap?: SeriesMap,
 ) {
   const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
   let publisherId: number | undefined, series: { id: number; name: string } | undefined;
 
   if (metadata?.publisher) {
-    publisherId = await getOrCreatePublisher(metadata.publisher);
+    publisherId = await getOrCreatePublisher(metadata.publisher, publisherMap);
     if (metadata?.series) {
-      series = await getOrCreateSeries(publisherId, metadata.series, metadata.volume);
+      series = await getOrCreateSeries(publisherId, metadata.series, metadata.volume, seriesMap);
     }
   }
 

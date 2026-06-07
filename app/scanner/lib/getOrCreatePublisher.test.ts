@@ -19,7 +19,7 @@ beforeEach(() => {
 
 describe('with map provided', () => {
   it('returns cached id on map hit without touching the DB', async () => {
-    const map = new Map([['DC Comics', 42]]);
+    const map = new Map([['dc comics', 42]]);
     const result = await getOrCreatePublisher('DC Comics', map);
     expect(result).toBe(42);
     expect(mockFind).not.toHaveBeenCalled();
@@ -33,7 +33,7 @@ describe('with map provided', () => {
     expect(result).toBe(42);
     expect(mockFind).toHaveBeenCalledWith('DC Comics');
     expect(mockCreate).not.toHaveBeenCalled();
-    expect(map.get('DC Comics')).toBe(42);
+    expect(map.get('dc comics')).toBe(42);
   });
 
   it('creates when both map and DB miss, and populates map', async () => {
@@ -43,7 +43,7 @@ describe('with map provided', () => {
     const result = await getOrCreatePublisher('DC Comics', map);
     expect(result).toBe(42);
     expect(mockCreate).toHaveBeenCalledWith('DC Comics');
-    expect(map.get('DC Comics')).toBe(42);
+    expect(map.get('dc comics')).toBe(42);
   });
 });
 

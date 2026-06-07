@@ -5,18 +5,19 @@ export async function getOrCreatePublisher(
   publisherMap?: Map<string, number>,
 ): Promise<number> {
   const trimmedName = publisherName.trim();
+  const cacheKey = trimmedName.toLowerCase();
 
-  if (publisherMap?.has(trimmedName)) {
-    return publisherMap.get(trimmedName)!;
+  if (publisherMap?.has(cacheKey)) {
+    return publisherMap.get(cacheKey)!;
   }
 
   const existingPublisher = await findPublisherByName(trimmedName);
   if (existingPublisher) {
-    publisherMap?.set(trimmedName, existingPublisher.id);
+    publisherMap?.set(cacheKey, existingPublisher.id);
     return existingPublisher.id;
   }
 
   const newPublisher = await createPublisher(trimmedName);
-  publisherMap?.set(trimmedName, newPublisher.id);
+  publisherMap?.set(cacheKey, newPublisher.id);
   return newPublisher.id;
 }

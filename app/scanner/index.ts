@@ -1,150 +1,32 @@
 import chalk from 'chalk';
 import 'dotenv/config';
 import { readdir, stat } from 'fs/promises';
-import type { Stats } from 'node:fs';
 import { join, resolve } from 'path';
 import { APP_NAME } from '../constants.js';
 import { client } from '../db/index.js';
 import {
-  createPublisher,
-  createSeries,
   deleteEmptyPublishers,
   deleteEmptySeries,
   findComicByFileName,
-  findPublisherByName,
   getAllPublishers,
   getAllSeries,
   getComicCount,
-  insertComic,
   updateComicLastSynced,
-  updateComicMetadata,
 } from '../db/queries.js';
-import { createComicSlug } from '../lib/index.js';
 import { deleteMissingIssues } from './lib/cleanup.js';
-import { saveCover } from './lib/covers.js';
-import { formatReleaseDate } from './lib/formatReleaseDate.js';
-import { fetchArchiveInfo } from './lib/zip.js';
+import { createComic } from './lib/createComic.js';
+import type { SeriesMap } from './lib/getOrCreateSeries.js';
+import { updateComic } from './lib/updateComic.js';
 
 const { cyan, gray, white } = chalk;
 
 type PublisherMap = Map<string, number>;
-type SeriesMap = Map<number, Map<string, Map<string, { id: number; name: string }>>>;
 
 export interface ScanOptions {
   forceUpdate?: boolean;
   noCleanup?: boolean;
   checkEmpty?: boolean;
   scanDirectory?: string;
-}
-
-async function getOrCreatePublisher(publisherName: string, publisherMap: PublisherMap): Promise<number> {
-  const trimmedName = publisherName.trim();
-  const cacheKey = trimmedName.toLowerCase();
-  if (publisherMap.has(cacheKey)) {
-    return publisherMap.get(cacheKey)!;
-  }
-  const existingPublisher = await findPublisherByName(trimmedName);
-  let publisherId: number;
-  if (!existingPublisher) {
-    const newPublisher = await createPublisher(trimmedName);
-    publisherId = newPublisher.id;
-  } else {
-    publisherId = existingPublisher.id;
-  }
-  publisherMap.set(cacheKey, publisherId);
-  return publisherId;
-}
-
-async function getOrCreateSeries(
-  publisherId: number,
-  seriesName: string,
-  volume: string | null,
-  seriesMap: SeriesMap,
-): Promise<{ id: number; name: string }> {
-  const searchName = seriesName.trim().toLowerCase();
-  const searchVolume = volume?.trim().toLowerCase() || '__NA__';
-  const series = seriesMap.get(publisherId)?.get(searchName)?.get(searchVolume);
-  if (series) return series;
-
-  const newSeries = await createSeries(seriesName.trim(), volume?.trim(), publisherId);
-
-  if (!seriesMap.has(publisherId)) seriesMap.set(publisherId, new Map());
-  if (!seriesMap.get(publisherId)!.has(searchName)) seriesMap.get(publisherId)!.set(searchName, new Map());
-  seriesMap.get(publisherId)!.get(searchName)!.set(searchVolume, { id: newSeries.id, name: newSeries.name });
-
-  return { id: newSeries.id, name: newSeries.name };
-}
-
-async function createComic(
-  path: string,
-  stats: Stats,
-  lastSynced: Date,
-  publisherMap: PublisherMap,
-  seriesMap: SeriesMap,
-) {
-  const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
-  let publisherId: number | undefined, series: { id: number; name: string } | undefined;
-
-  if (metadata?.publisher) {
-    publisherId = await getOrCreatePublisher(metadata.publisher, publisherMap);
-    if (metadata?.series) {
-      series = await getOrCreateSeries(publisherId, metadata.series, metadata.volume, seriesMap);
-    }
-  }
-
-  const slug = createComicSlug(series?.name ?? null, metadata?.number, path);
-  const [{ insertedId: id }] = await insertComic({
-    fileName: path,
-    fileModified: stats.mtime,
-    lastSynced,
-    ...(metadata ?? {}),
-    slug,
-    pageCount,
-    publisherId,
-    seriesId: series?.id,
-    releaseDate: formatReleaseDate(metadata?.metadata?.releaseDate),
-  });
-
-  const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
-  if (cover && coversDirectory) {
-    await saveCover(id, cover, coversDirectory);
-  }
-}
-
-async function updateComic(
-  comic: { id: number },
-  path: string,
-  stats: Stats,
-  lastSynced: Date,
-  publisherMap: PublisherMap,
-  seriesMap: SeriesMap,
-) {
-  const { metadata, cover, pageCount } = await fetchArchiveInfo(path);
-  let publisherId: number | undefined, series: { id: number; name: string } | undefined;
-
-  if (metadata?.publisher) {
-    publisherId = await getOrCreatePublisher(metadata.publisher, publisherMap);
-    if (metadata?.series) {
-      series = await getOrCreateSeries(publisherId, metadata.series, metadata.volume, seriesMap);
-    }
-  }
-
-  const slug = createComicSlug(series?.name || null, metadata?.number, path);
-  await updateComicMetadata(path, {
-    fileModified: stats.mtime,
-    lastSynced,
-    ...metadata,
-    slug,
-    pageCount,
-    publisherId,
-    seriesId: series?.id,
-    releaseDate: formatReleaseDate(metadata?.metadata?.releaseDate),
-  });
-
-  const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
-  if (cover && coversDirectory) {
-    await saveCover(comic.id, cover, coversDirectory);
-  }
 }
 
 async function processComicFiles(

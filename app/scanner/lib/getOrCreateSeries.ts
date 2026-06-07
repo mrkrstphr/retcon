@@ -1,6 +1,6 @@
 import { createSeries, findSeriesByNameAndVolume } from '../../db/queries.js';
 
-type SeriesMap = Map<number, Map<string, Map<string, { id: number; name: string }>>>;
+export type SeriesMap = Map<number, Map<string, Map<string, { id: number; name: string }>>>;
 
 export async function getOrCreateSeries(
   publisherId: number,
