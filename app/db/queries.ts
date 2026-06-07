@@ -20,6 +20,7 @@ import { countOrZero } from './lib/countOrZero.js';
 import { first } from './lib/first.js';
 import { firstOrNull } from './lib/firstOrNull.js';
 import { comics, publishers, series, userComics } from './schema.js';
+import type { Metadata } from './types.js';
 
 export * from './queries/users.js';
 
@@ -126,7 +127,7 @@ export function insertComic(data: {
   volume?: string | null;
   publisherId?: number | null;
   seriesId?: number | null;
-  metadata?: any;
+  metadata?: Metadata;
 }) {
   return db.insert(comics).values(data).returning({ insertedId: comics.id });
 }
@@ -150,7 +151,7 @@ export function updateComicMetadata(
     volume?: string | null;
     publisherId?: number | null;
     seriesId?: number | null;
-    metadata?: any;
+    metadata?: Metadata;
   },
 ) {
   return db.update(comics).set(data).where(eq(comics.fileName, fileName));
@@ -903,7 +904,7 @@ export async function updateComicMetadataFields(
     number?: string | null;
     volume?: string | null;
     releaseDate?: string | null;
-    metadata?: any;
+    metadata?: Metadata;
     publisherId?: number | null;
     seriesId?: number | null;
   },
