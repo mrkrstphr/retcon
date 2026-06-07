@@ -49,15 +49,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
             {inProgressComics.map((comic) => (
-              <Link
+              <div
                 key={comic.id}
-                to={comicReaderHref(comic)}
-                className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
+                className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2 transition-colors"
               >
-                <div className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded relative">
+                <Link
+                  to={comicReaderHref(comic)}
+                  className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded relative block hover:opacity-90 transition-opacity no-underline!"
+                >
                   <Cover comic={comic} />
-                </div>
-                <div className="text-sm text-center">
+                </Link>
+                <Link
+                  to={comicDetailsHref(comic)}
+                  className="text-sm text-center block hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 py-1 transition-colors no-underline!"
+                >
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
                     <div className="line-clamp-2 leading-tight">
                       {comicTitle(comic)}
@@ -68,8 +73,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       {comic.publisher}
                     </div>
                   )}
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))}
           </div>
         </Box>
