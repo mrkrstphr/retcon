@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from 'react';
+import { APP_VERSION } from '~/constants';
 import { integerFormat } from '~/lib/integerFormat';
 
 export type StatsProps = HTMLAttributes<HTMLDivElement> & {
@@ -35,6 +36,7 @@ export const Stats = ({
     <div className={classes} {...props}>
       <div>{integerFormat(comicCount)} total comics</div>
       <div>Last Scan: {lastScan}</div>
+      <div className="text-gray-400 dark:text-gray-600">v{APP_VERSION}</div>
     </div>
   );
 };
