@@ -8,7 +8,7 @@ import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
 import { ProgressBar } from '~/components/ProgressBar';
-import { useEagerUntoggler } from '~/hooks/useEagerUntoggler';
+
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
 import { comicTitle } from '~/lib/comicTitle';
 import { comicPageHref } from '~/lib/links';
@@ -87,9 +87,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     pageCount,
     currentPage: comic.currentPage,
   });
-  // open the overlays by default
-  // TODO: add user preference for auto closing overlays
-  const [overlayOpen, setOverlayOpen] = useEagerUntoggler(true, 3000);
+  const [overlayOpen, setOverlayOpen] = useState(true);
   const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [deletePageDialogOpen, setDeletePageDialogOpen] = useState(false);
@@ -107,10 +105,13 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     }
   }, [deleteFetcher.data]);
 
+  const goNextPage = () => { nextPage(); setOverlayOpen(false); };
+  const goPreviousPage = () => { previousPage(); setOverlayOpen(false); };
+
   const handlers = useSwipeable({
     onSwiped: (eventData) => console.log('User Swiped!', eventData),
-    onSwipedLeft: nextPage,
-    onSwipedRight: previousPage,
+    onSwipedLeft: goNextPage,
+    onSwipedRight: goPreviousPage,
   });
   const updateProgress = useProgressUpdater(comic.id);
 
@@ -138,10 +139,10 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
 
     // if click is in less than 40% of the page, go to previous page
     if (clickPosition < width * 0.4) {
-      previousPage();
+      goPreviousPage();
       // if the click is in more than 60% of the page, go to next page
     } else if (clickPosition > width * 0.6) {
-      nextPage();
+      goNextPage();
       // if we try to page past the last page, show a completion dialog
       if (pageNumber + 1 >= pageCount) setIssueCompleteDialogOpen(true);
     } else {
@@ -157,11 +158,11 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
       case 'ArrowLeft':
-        if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) previousPage();
+        if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) goPreviousPage();
         break;
       case 'ArrowRight':
         if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) {
-          nextPage();
+          goNextPage();
           if (pageNumber + 1 > pageCount) setIssueCompleteDialogOpen(true);
         }
         break;
