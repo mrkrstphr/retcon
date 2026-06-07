@@ -1,20 +1,32 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:16
-    container_name: comic-scanner-db
+  retcondb:
+    image: postgres:18
+    container_name: retcondb
     restart: unless-stopped
     environment:
-      POSTGRES_DB: comic_scanner
+      POSTGRES_DB: retcon-db
       POSTGRES_USER: comic_user
       POSTGRES_PASSWORD: comic_password
-    ports:
-      - "5432:5432"
     volumes:
-      - ./pg_data:/var/lib/postgresql/data
+      - "/path/to/a/place/to/store/your/dbdata:/var/lib/postgresql"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U comic_user -d comic_scanner"]
+      test: ["CMD-SHELL", "pg_isready -U comic_user -d retcon-db"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  retcon:
+    image: mrkrstphr/retcon:latest
+    container_name: retcon
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://comic_user:comic_password@retcondb:5432/retcon-db
+      COOKIE_SECRET: your-secret-key-here
+    ports:
+      - "3000:3000"
+    volumes:
+      - "/path/to/your/comics:/comics"
+      - "/path/to/a/directory/to/store/coversthumbnails/etc:/data"
+    depends_on:
+      retcondb:
+        condition: service_healthy

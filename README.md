@@ -17,3 +17,21 @@ For each file:
 3.  If they do not match, the metadata should be updated
 
 This script is written in Typescript.
+
+## Cutting a Release
+
+Bump the version, commit, and tag in one step:
+
+```bash
+npm version patch   # 1.0.0 → 1.0.1  (bug fixes)
+npm version minor   # 1.0.0 → 1.1.0  (new features)
+npm version major   # 1.0.0 → 2.0.0  (breaking changes)
+```
+
+Then push the commit and tag:
+
+```bash
+git push && git push --tags
+```
+
+Pushing the tag triggers the GitHub Actions release workflow, which builds a multi-arch Docker image (`linux/amd64` + `linux/arm64`) and pushes it to Docker Hub as `mrkrstphr/retcon` with tags `:x.y.z`, `:x`, and `:latest`.
