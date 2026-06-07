@@ -306,7 +306,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (args.includes('--help') || args.includes('-h')) {
     console.log(chalk.blue.bold(`\n📚 ${APP_NAME} - Scanner`));
     console.log(chalk.gray('─'.repeat(50)));
-    console.log('\nUsage: pnpm scan [options]');
+    console.log('\nUsage: npm run scan [options]');
     console.log('\nOptions:');
     console.log('  --force-update     Re-process all files regardless of modification time');
     console.log('  --no-cleanup       Skip deletion of missing files from database');

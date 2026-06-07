@@ -31,7 +31,7 @@ npm version major   # 1.0.0 → 2.0.0  (breaking changes)
 Then push the commit and tag:
 
 ```bash
-git push && git push --tags
+git push --follow-tags
 ```
 
 Pushing the tag triggers the GitHub Actions release workflow, which builds a multi-arch Docker image (`linux/amd64` + `linux/arm64`) and pushes it to Docker Hub as `mrkrstphr/retcon` with tags `:x.y.z`, `:x`, and `:latest`.
