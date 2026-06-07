@@ -452,7 +452,7 @@ export function getPublisherSeriesWithCounts(
       name: series.name,
       slug: series.slug,
       comicCount: count(comicsForCount.id),
-      readCount: count(userComics.isRead),
+      readCount: sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
       firstComicId: comics.id,
     })
     .from(series)
@@ -481,9 +481,9 @@ export function getPublisherSeriesWithCounts(
 
   if (notNil(filters?.unread)) {
     if (filters.unread) {
-      query.having(not(eq(count(userComics.isRead), count(comicsForCount.id))));
+      query.having(not(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id))));
     } else {
-      query.having(eq(count(userComics.isRead), count(comicsForCount.id)));
+      query.having(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id)));
     }
   }
 
@@ -514,9 +514,9 @@ export function getPublisherSeriesCount(
 
   if (notNil(filters?.unread)) {
     if (filters.unread) {
-      query.having(not(eq(count(userComics.isRead), count(comicsForCount.id))));
+      query.having(not(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id))));
     } else {
-      query.having(eq(count(userComics.isRead), count(comicsForCount.id)));
+      query.having(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id)));
     }
   }
 
@@ -796,7 +796,7 @@ export function findUnreadSeriesForUser(
       name: series.name,
       slug: series.slug,
       comicCount: count(comicsForCount.id),
-      readCount: count(userComics.isRead),
+      readCount: sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
       firstComicId: comics.id,
     })
     .from(series)
@@ -825,7 +825,7 @@ export function findUnreadSeriesForUser(
       ),
     )
     .groupBy(series.id, comics.id)
-    .having(not(eq(count(userComics.isRead), count(comicsForCount.id))))
+    .having(not(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id))))
     .orderBy(series.name)
     .limit(limit)
     .offset(offset);
@@ -856,7 +856,7 @@ export function countUnreadSeriesForUser(
       ),
     )
     .groupBy(series.id)
-    .having(not(eq(count(userComics.isRead), count(comicsForCount.id))))
+    .having(not(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id))))
     .as('unread_series');
 
   return countOrZero(db.select({ count: count() }).from(subquery));
