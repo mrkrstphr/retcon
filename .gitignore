@@ -37,9 +37,11 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
-pg_data
-data
+cache
+comics
 covers
+data
+dbdata
 
 # Logs
 logs/
