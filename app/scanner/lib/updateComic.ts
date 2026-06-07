@@ -32,7 +32,7 @@ export async function updateComic(
     pageCount,
     publisherId,
     seriesId: series?.id,
-    releaseDate: formatReleaseDate(metadata?.releaseDate),
+    releaseDate: formatReleaseDate(metadata?.metadata?.releaseDate),
   });
 
   const coversDirectory = `${process.env.DATA_DIRECTORY}/covers`;
