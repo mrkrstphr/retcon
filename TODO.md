@@ -1,0 +1,10 @@
+- [x] Handle cover path through API route
+- [x] Setup + test docker build
+- [ ] Cleanup styling on series page
+- [ ] Extract pagination component, cleanup
+- [ ] Better data display on publishers pages
+- [ ] Up next functionality
+- [ ] Probably need dotenv (built app doesn't work)
+- [ ] Link to series page from issue details
+- [ ] Continue reading, links to details + reader view
+- [ ] Speed up scanner

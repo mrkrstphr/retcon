@@ -12,7 +12,8 @@
     "db:studio": "drizzle-kit studio",
     "scan": "tsx app/scanner/index.ts",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "keywords": [
     "comics",
@@ -76,6 +77,7 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.60.1",
     "vite": "7.3.5",
-    "vite-tsconfig-paths": "5.1.4"
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "4.1.8"
   }
 }
