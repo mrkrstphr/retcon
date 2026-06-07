@@ -22,6 +22,7 @@ import {
 import { createComicSlug } from '../lib/index.js';
 import { deleteMissingIssues } from './lib/cleanup.js';
 import { saveCover } from './lib/covers.js';
+import { formatReleaseDate } from './lib/formatReleaseDate.js';
 import { fetchArchiveInfo } from './lib/zip.js';
 
 const { cyan, gray, white } = chalk;
@@ -34,13 +35,6 @@ export interface ScanOptions {
   noCleanup?: boolean;
   checkEmpty?: boolean;
   scanDirectory?: string;
-}
-
-function formatReleaseDate(dateString?: string) {
-  if (!dateString) return null;
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString;
-  if (dateString.match(/^\d{4}-\d{2}$/)) return `${dateString}-01`;
-  return null;
 }
 
 async function getOrCreatePublisher(publisherName: string, publisherMap: PublisherMap): Promise<number> {
