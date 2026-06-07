@@ -1,3 +1,4 @@
+export * from './combinePagesInArchive.js';
 export * from './comicInfoBuilder.js';
 export * from './deletePageFromArchive.js';
 export * from './extractPageFromArchive.js';

@@ -20,7 +20,7 @@ export function Button({
 }: ButtonProps) {
   const classes = [
     'rounded px-2.5 py-1.5 text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 dark:shadow-none',
-    'no-underline! cursor-pointer',
+    'no-underline! cursor-pointer disabled:bg-slate-600 disabled:text-slate-400 disabled:pointer-events-none',
     buttonStyles[variant],
     className,
   ]

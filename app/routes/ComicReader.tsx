@@ -91,10 +91,14 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [deletePageDialogOpen, setDeletePageDialogOpen] = useState(false);
+  const [combinePagesDialogOpen, setCombinePagesDialogOpen] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullScreenManager(readerRef);
 
   const deleteFetcher = useFetcher();
   const isDeleting = deleteFetcher.state !== 'idle';
+
+  const combineFetcher = useFetcher();
+  const isCombining = combineFetcher.state !== 'idle';
 
   useEffect(() => {
     if (deleteFetcher.data && (deleteFetcher.data as any).success) {
@@ -104,6 +108,21 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       setDeletePageDialogOpen(false);
     }
   }, [deleteFetcher.data]);
+
+  useEffect(() => {
+    if (combineFetcher.data && (combineFetcher.data as any).success) {
+      const newPageCount = (combineFetcher.data as any).newPageCount as number;
+      setPageCount(newPageCount);
+      setPageNumber((prev) => Math.min(prev, newPageCount));
+      setCombinePagesDialogOpen(false);
+    }
+  }, [combineFetcher.data]);
+
+  useEffect(() => {
+    if (!combinePagesDialogOpen) {
+      readerRef.current?.focus();
+    }
+  }, [combinePagesDialogOpen]);
 
   const goNextPage = () => {
     nextPage();
@@ -132,7 +151,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   }, [pageNumber]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (issueCompleteDialogOpen || deletePageDialogOpen) return;
+    if (issueCompleteDialogOpen || deletePageDialogOpen || combinePagesDialogOpen) return;
 
     if (optionsMenuOpen) {
       setOptionsMenuOpen(false);
@@ -164,16 +183,29 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
       case 'ArrowLeft':
-        if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) goPreviousPage();
+        if (
+          !issueCompleteDialogOpen &&
+          !deletePageDialogOpen &&
+          !combinePagesDialogOpen &&
+          !optionsMenuOpen
+        )
+          goPreviousPage();
         break;
       case 'ArrowRight':
-        if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) {
+        if (
+          !issueCompleteDialogOpen &&
+          !deletePageDialogOpen &&
+          !combinePagesDialogOpen &&
+          !optionsMenuOpen
+        ) {
           goNextPage();
           if (pageNumber + 1 > pageCount) setIssueCompleteDialogOpen(true);
         }
         break;
       case 'Escape':
-        if (deletePageDialogOpen) {
+        if (combinePagesDialogOpen) {
+          setCombinePagesDialogOpen(false);
+        } else if (deletePageDialogOpen) {
           setDeletePageDialogOpen(false);
         } else if (issueCompleteDialogOpen) {
           setIssueCompleteDialogOpen(false);
@@ -238,6 +270,18 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
               className="absolute top-full right-0 mt-1 bg-slate-800 border border-slate-600 rounded shadow-lg z-50 min-w-[140px]"
               onClick={(e) => e.stopPropagation()}
             >
+              {pageNumber < pageCount && (
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 rounded"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOptionsMenuOpen(false);
+                    setCombinePagesDialogOpen(true);
+                  }}
+                >
+                  Combine Pages
+                </button>
+              )}
               <button
                 className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700 rounded"
                 onClick={(e) => {
@@ -275,6 +319,58 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
                 Close
               </Button>
               <Button onClick={() => window.history.back()}>Exit</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {combinePagesDialogOpen && (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col items-center gap-4 p-4 max-w-full">
+            <h3 className="text-lg font-bold text-slate-100">Combine Pages?</h3>
+            <div className="flex">
+              <img
+                src={comicPageHref(comic, pageNumber, pageCount)}
+                className="max-h-[70vh] max-w-[50vw] object-contain"
+              />
+              <img
+                src={comicPageHref(comic, pageNumber + 1, pageCount)}
+                className="max-h-[70vh] max-w-[50vw] object-contain"
+              />
+            </div>
+            {combineFetcher.data && (combineFetcher.data as any).error && (
+              <p className="text-sm text-red-400">{(combineFetcher.data as any).error}</p>
+            )}
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                disabled={isCombining}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCombinePagesDialogOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={isCombining}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  combineFetcher.submit(
+                    {},
+                    {
+                      method: 'POST',
+                      action: `/comic/${idToSqid(comic.id)}/page/${pageNumber}/combine`,
+                      encType: 'application/json',
+                    },
+                  );
+                }}
+              >
+                {isCombining ? 'Combining…' : 'Combine'}
+              </Button>
             </div>
           </div>
         </div>
