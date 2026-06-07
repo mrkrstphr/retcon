@@ -1,4 +1,4 @@
-import { IMAGE_EXTENSIONS } from '@retcon/common/constants';
+import { IMAGE_EXTENSIONS } from '../../constants.js';
 import { XMLParser } from 'fast-xml-parser';
 import StreamZip, { type StreamZipAsync } from 'node-stream-zip';
 import { basename, extname } from 'path';

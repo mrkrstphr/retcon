@@ -2,7 +2,7 @@ import { getPublishersWithCounts } from '@retcon/common/db/queries';
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { NoResults } from '~/components/NoResults';
-import { APP_NAME } from '../../../common/src/constants';
+import { APP_NAME } from '@retcon/common/constants';
 import type { Route } from './+types/Publishers';
 
 export function meta() {

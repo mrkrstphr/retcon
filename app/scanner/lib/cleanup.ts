@@ -1,7 +1,7 @@
 import {
   deleteComicsOlderThan,
   findComicsToDelete,
-} from '@retcon/common/db/queries';
+} from '../../db/queries.js';
 import { deleteCover } from './covers.js';
 
 export async function deleteMissingIssues(syncTime: Date): Promise<number> {

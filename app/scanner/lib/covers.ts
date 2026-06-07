@@ -1,7 +1,7 @@
 import {
   extractPageFromArchive,
   getSortedImagesFromZip,
-} from '@retcon/common/lib';
+} from '../../lib/index.js';
 import { existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';

@@ -9,7 +9,7 @@ import { NoResults } from '~/components/NoResults';
 import { comicTitle } from '~/lib/comicTitle';
 import { comicDetailsHref, comicReaderHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
-import { APP_NAME } from '../../../common/src/constants';
+import { APP_NAME } from '@retcon/common/constants';
 import type { Route } from './+types/Home';
 
 export function meta({}: Route.MetaArgs) {

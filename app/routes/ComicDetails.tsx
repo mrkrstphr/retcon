@@ -14,7 +14,7 @@ import { comicReaderHref, seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import type { MetadataSearchResult } from '~/schemas/metadata';
-import { APP_NAME } from '../../../common/src/constants';
+import { APP_NAME } from '@retcon/common/constants';
 import type { Route } from './+types/ComicDetails';
 
 export function meta({ loaderData }: Route.MetaArgs) {
