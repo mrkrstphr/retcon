@@ -317,12 +317,6 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       )}
 
       <OverlayBar visible={overlayOpen} position="bottom">
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/10">
-          <div
-            className="h-full bg-blue-400 transition-[width] duration-500 ease-in-out"
-            style={{ width: `${(pageNumber / pageCount) * 100}%` }}
-          />
-        </div>
         <ProgressBar className="m-2" value={(pageNumber / pageCount) * 100} />
 
         <div className="p-2 text-sm text-center select-none">
