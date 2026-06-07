@@ -592,7 +592,7 @@ export async function getSeriesReadStatus(seriesId: number, userId: number) {
     .where(eq(comics.seriesId, seriesId));
 
   const totalComics = result[0]?.totalComics ?? 0;
-  const readComics = result[0]?.readComics ?? 0;
+  const readComics = Number(result[0]?.readComics ?? 0);
   return {
     totalComics,
     readComics,
@@ -647,29 +647,30 @@ export function markComicAsRead(userId: number, comicId: number) {
     });
 }
 
-export function markSeriesAsRead(userId: number, seriesId: number) {
+export async function markSeriesAsRead(userId: number, seriesId: number) {
   const now = new Date();
+  const seriesComics = await db
+    .select({ id: comics.id })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId));
+
+  if (seriesComics.length === 0) return;
+
   return db
     .insert(userComics)
-    .select(
-      db
-        .select({
-          userId: sql<number>`${userId}`.as('userId'),
-          comicId: comics.id,
-          isRead: sql<boolean>`true`.as('isRead'),
-          currentPage: sql<number>`1`.as('currentPage'),
-          createdAt: sql<Date>`${now}`.as('createdAt'),
-          updatedAt: sql<Date>`${now}`.as('updatedAt'),
-        })
-        .from(comics)
-        .where(eq(comics.seriesId, seriesId)),
+    .values(
+      seriesComics.map(({ id }) => ({
+        userId,
+        comicId: id,
+        isRead: true,
+        currentPage: 1,
+        createdAt: now,
+        updatedAt: now,
+      })),
     )
     .onConflictDoUpdate({
       target: [userComics.userId, userComics.comicId],
-      set: {
-        isRead: true,
-        updatedAt: now,
-      },
+      set: { isRead: true, updatedAt: now },
     });
 }
 
