@@ -1,4 +1,5 @@
 export * from './comicInfoBuilder.js';
+export * from './deletePageFromArchive.js';
 export * from './extractPageFromArchive.js';
 export * from './getSortedImagesFromZip.js';
 export * from './parseFilename.js';

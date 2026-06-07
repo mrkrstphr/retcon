@@ -21,6 +21,7 @@ export default [
   ]),
   route('logout', 'routes/Logout.tsx'),
   route('comic/:sqid/page/:page', 'routes/ComicPage.tsx'),
+  route('comic/:sqid/page/:page/delete', 'routes/DeletePage.ts'),
   route('cover/:sqid', 'routes/Cover.tsx'),
   route('comic/:sqid/read', 'routes/ComicReader.tsx'),
   route('comic/:sqid/progress', 'routes/UserComicProgress.ts'),

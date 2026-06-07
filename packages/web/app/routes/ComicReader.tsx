@@ -2,7 +2,7 @@ import { APP_NAME } from '@retcon/common/constants';
 import { getComicByIdForUser } from '@retcon/common/db/queries';
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
-import { MdFullscreen, MdFullscreenExit } from 'react-icons/md';
+import { MdFullscreen, MdFullscreenExit, MdMoreVert } from 'react-icons/md';
 import { useFetcher } from 'react-router';
 import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
@@ -76,18 +76,36 @@ const usePageManager = ({
   const nextPage = () => setPageNumber((prev) => Math.min(prev + 1, pageCount));
   const previousPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
 
-  return { pageNumber, nextPage, previousPage };
+  return { pageNumber, setPageNumber, nextPage, previousPage };
 };
 
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { comic } = loaderData;
   const readerRef = useRef<HTMLDivElement>(null);
-  const { pageNumber, nextPage, previousPage } = usePageManager(comic);
+  const [pageCount, setPageCount] = useState(comic.pageCount);
+  const { pageNumber, setPageNumber, nextPage, previousPage } = usePageManager({
+    pageCount,
+    currentPage: comic.currentPage,
+  });
   // open the overlays by default
   // TODO: add user preference for auto closing overlays
   const [overlayOpen, setOverlayOpen] = useEagerUntoggler(true, 3000);
   const [issueCompleteDialogOpen, setIssueCompleteDialogOpen] = useState(false);
+  const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
+  const [deletePageDialogOpen, setDeletePageDialogOpen] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullScreenManager(readerRef);
+
+  const deleteFetcher = useFetcher();
+  const isDeleting = deleteFetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (deleteFetcher.data && (deleteFetcher.data as any).success) {
+      const newPageCount = (deleteFetcher.data as any).newPageCount as number;
+      setPageCount(newPageCount);
+      setPageNumber((prev) => Math.min(prev, newPageCount));
+      setDeletePageDialogOpen(false);
+    }
+  }, [deleteFetcher.data]);
 
   const handlers = useSwipeable({
     onSwiped: (eventData) => console.log('User Swiped!', eventData),
@@ -107,7 +125,12 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   }, [pageNumber]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (issueCompleteDialogOpen) return;
+    if (issueCompleteDialogOpen || deletePageDialogOpen) return;
+
+    if (optionsMenuOpen) {
+      setOptionsMenuOpen(false);
+      return;
+    }
 
     const { clientX, currentTarget } = e;
     const { left, width } = currentTarget.getBoundingClientRect();
@@ -120,7 +143,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     } else if (clickPosition > width * 0.6) {
       nextPage();
       // if we try to page past the last page, show a completion dialog
-      if (pageNumber + 1 >= comic.pageCount) setIssueCompleteDialogOpen(true);
+      if (pageNumber + 1 >= pageCount) setIssueCompleteDialogOpen(true);
     } else {
       setOverlayOpen((open) => !open);
     }
@@ -134,18 +157,21 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.key) {
       case 'ArrowLeft':
-        if (!issueCompleteDialogOpen) previousPage();
+        if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) previousPage();
         break;
       case 'ArrowRight':
-        if (!issueCompleteDialogOpen) {
+        if (!issueCompleteDialogOpen && !deletePageDialogOpen && !optionsMenuOpen) {
           nextPage();
-          if (pageNumber + 1 > comic.pageCount)
-            setIssueCompleteDialogOpen(true);
+          if (pageNumber + 1 > pageCount) setIssueCompleteDialogOpen(true);
         }
         break;
       case 'Escape':
-        if (issueCompleteDialogOpen) {
+        if (deletePageDialogOpen) {
+          setDeletePageDialogOpen(false);
+        } else if (issueCompleteDialogOpen) {
           setIssueCompleteDialogOpen(false);
+        } else if (optionsMenuOpen) {
+          setOptionsMenuOpen(false);
         } else {
           handleCloseReader();
         }
@@ -153,6 +179,18 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       default:
         break;
     }
+  };
+
+  const handleConfirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteFetcher.submit(
+      {},
+      {
+        method: 'POST',
+        action: `/comic/${idToSqid(comic.id)}/page/${pageNumber}/delete`,
+        encType: 'application/json',
+      },
+    );
   };
 
   // double the ref, double the fun
@@ -188,15 +226,43 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
         <div className="flex-1 text-center truncate select-none">
           {comicTitle(comic)}
         </div>
-        <div
-          className="cursor-pointer justify-self-end mr-2"
-          onClick={handleCloseReader}
-        >
-          <FaWindowClose />
+        <div className="relative flex items-center gap-2 mr-2">
+          <div
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOptionsMenuOpen((open) => !open);
+            }}
+          >
+            <MdMoreVert size={24} />
+          </div>
+          {optionsMenuOpen && (
+            <div
+              className="absolute top-full right-0 mt-1 bg-slate-800 border border-slate-600 rounded shadow-lg z-50 min-w-[140px]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700 rounded"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOptionsMenuOpen(false);
+                  setDeletePageDialogOpen(true);
+                }}
+              >
+                Delete Page
+              </button>
+            </div>
+          )}
+          <div
+            className="cursor-pointer"
+            onClick={handleCloseReader}
+          >
+            <FaWindowClose />
+          </div>
         </div>
       </OverlayBar>
       <img
-        src={comicPageHref(comic, pageNumber)}
+        src={comicPageHref(comic, pageNumber, pageCount)}
         className="max-h-screen max-w-full object-contain select-none pointer-events-none"
       />
 
@@ -224,14 +290,52 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
+      {deletePageDialogOpen && (
+        <div
+          className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-slate-900/60 z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-slate-900 border border-slate-700 text-slate-100 p-6 max-w-[380px] w-full mx-4 rounded shadow-xl">
+            <h3 className="text-lg font-bold mb-2">Delete Page?</h3>
+            <p className="mb-5 text-sm text-slate-300">
+              Delete page {pageNumber} of {pageCount}?
+            </p>
+            {deleteFetcher.data && (deleteFetcher.data as any).error && (
+              <p className="mb-4 text-sm text-red-400">
+                {(deleteFetcher.data as any).error}
+              </p>
+            )}
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeletePageDialogOpen(false);
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <button
+                className="rounded px-2.5 py-1.5 text-sm font-semibold bg-red-700 hover:bg-red-800 text-white disabled:opacity-50 cursor-pointer"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <OverlayBar visible={overlayOpen} position="bottom">
         <ProgressBar
           className="m-2"
-          value={(pageNumber / comic.pageCount) * 100}
+          value={(pageNumber / pageCount) * 100}
         />
 
         <div className="p-2 text-sm text-center select-none">
-          Page {pageNumber} of {comic.pageCount}
+          Page {pageNumber} of {pageCount}
         </div>
       </OverlayBar>
     </div>

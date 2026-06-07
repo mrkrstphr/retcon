@@ -881,6 +881,10 @@ export function getComicById(id: number) {
   );
 }
 
+export function updateComicPageCount(comicId: number, pageCount: number) {
+  return db.update(comics).set({ pageCount }).where(eq(comics.id, comicId));
+}
+
 /**
  * Update comic metadata fields including publisher and series IDs
  */
