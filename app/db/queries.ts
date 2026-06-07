@@ -611,40 +611,25 @@ export function getLooseComicsForUser(
     .offset(offset);
 }
 
-// TODO: this AI generated function needs further review
 export async function getSeriesReadStatus(seriesId: number, userId: number) {
-  // Get total comic count for the series
-  const totalComicsResult = await db
-    .select({ count: count() })
+  const result = await db
+    .select({
+      totalComics: count(comics.id),
+      readComics: sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
+    })
     .from(comics)
-    .where(eq(comics.seriesId, seriesId));
-
-  const totalComics = totalComicsResult[0]?.count || 0;
-
-  if (totalComics === 0) {
-    return { totalComics: 0, readComics: 0, allRead: false, noneRead: true };
-  }
-
-  // Get count of read comics for this user
-  const readComicsResult = await db
-    .select({ count: count() })
-    .from(comics)
-    .innerJoin(
+    .leftJoin(
       userComics,
-      and(
-        eq(userComics.comicId, comics.id),
-        eq(userComics.userId, userId),
-        eq(userComics.isRead, true),
-      ),
+      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
     )
     .where(eq(comics.seriesId, seriesId));
 
-  const readComics = readComicsResult[0]?.count || 0;
-
+  const totalComics = result[0]?.totalComics ?? 0;
+  const readComics = result[0]?.readComics ?? 0;
   return {
     totalComics,
     readComics,
-    allRead: readComics === totalComics,
+    allRead: totalComics > 0 && readComics === totalComics,
     noneRead: readComics === 0,
   };
 }
@@ -695,36 +680,28 @@ export function markComicAsRead(userId: number, comicId: number) {
     });
 }
 
-// TODO: this AI generated function needs further review
-export async function markSeriesAsRead(userId: number, seriesId: number) {
-  // Get all comics in the series
-  const seriesComics = await db
-    .select({ id: comics.id })
-    .from(comics)
-    .where(eq(comics.seriesId, seriesId));
-
-  if (seriesComics.length === 0) {
-    return;
-  }
-
-  // Mark all comics in the series as read
-  const values = seriesComics.map((comic) => ({
-    userId,
-    comicId: comic.id,
-    currentPage: 1,
-    isRead: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }));
-
+export function markSeriesAsRead(userId: number, seriesId: number) {
+  const now = new Date();
   return db
     .insert(userComics)
-    .values(values)
+    .select(
+      db
+        .select({
+          userId: sql<number>`${userId}`.as('userId'),
+          comicId: comics.id,
+          isRead: sql<boolean>`true`.as('isRead'),
+          currentPage: sql<number>`1`.as('currentPage'),
+          createdAt: sql<Date>`${now}`.as('createdAt'),
+          updatedAt: sql<Date>`${now}`.as('updatedAt'),
+        })
+        .from(comics)
+        .where(eq(comics.seriesId, seriesId)),
+    )
     .onConflictDoUpdate({
       target: [userComics.userId, userComics.comicId],
       set: {
         isRead: true,
-        updatedAt: new Date(),
+        updatedAt: now,
       },
     });
 }
@@ -735,28 +712,17 @@ export function deleteUserComicRecord(userId: number, comicId: number) {
     .where(and(eq(userComics.userId, userId), eq(userComics.comicId, comicId)));
 }
 
-// TODO: this AI generated function needs further review
-export async function deleteUserSeriesRecords(
-  userId: number,
-  seriesId: number,
-) {
-  // First get all comic IDs in the series
-  const seriesComics = await db
-    .select({ id: comics.id })
-    .from(comics)
-    .where(eq(comics.seriesId, seriesId));
-
-  if (seriesComics.length === 0) {
-    return;
-  }
-
-  const comicIds = seriesComics.map((comic) => comic.id);
-
-  // Delete user_comics records for all comics in the series
+export function deleteUserSeriesRecords(userId: number, seriesId: number) {
   return db
     .delete(userComics)
     .where(
-      and(eq(userComics.userId, userId), inArray(userComics.comicId, comicIds)),
+      and(
+        eq(userComics.userId, userId),
+        inArray(
+          userComics.comicId,
+          db.select({ id: comics.id }).from(comics).where(eq(comics.seriesId, seriesId)),
+        ),
+      ),
     );
 }
 
