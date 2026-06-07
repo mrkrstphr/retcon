@@ -24,7 +24,6 @@ export function meta({}: Route.MetaArgs) {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await protectRoute(request);
-  7;
 
   const [recentComics, inProgressComics] = await Promise.all([
     getRecentComicsForUser(user.id, 10),
