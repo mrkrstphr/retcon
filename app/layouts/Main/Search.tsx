@@ -27,14 +27,12 @@ function useDebouncedSearch<T>(
     if (!searchQuery.trim()) {
       setState('idle');
       if (timerRef.current) clearTimeout(timerRef.current);
-      fetcher.reset();
       return;
     }
 
     if (timerRef.current) {
       setState('idle');
       clearTimeout(timerRef.current);
-      fetcher.reset();
     }
 
     timerRef.current = setTimeout(() => {
