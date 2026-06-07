@@ -41,6 +41,7 @@ beforeEach(() => {
   mockExec.mockImplementation((...args: unknown[]) => {
     const cb = args[args.length - 1] as (err: null, stdout: string, stderr: string) => void;
     cb(null, '', '');
+    return {} as ReturnType<typeof exec>;
   });
 
   const chain = {
