@@ -1,7 +1,4 @@
-import {
-  getInProgressComics,
-  getRecentComicsForUser,
-} from '@retcon/common/db/queries';
+import { getInProgressComics, getRecentComicsForUser } from '@retcon/common/db/queries';
 import { Link } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
@@ -63,9 +60,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   className="text-sm text-center block hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 py-1 transition-colors no-underline!"
                 >
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                    <div className="line-clamp-2 leading-tight">
-                      {comicTitle(comic)}
-                    </div>
+                    <div className="line-clamp-2 leading-tight">{comicTitle(comic)}</div>
                   </div>
                   {comic.publisher && (
                     <div className="text-xs text-slate-600 dark:text-slate-400 truncate">
@@ -96,9 +91,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 </div>
                 <div className="text-sm text-center">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                    <div className="line-clamp-2 leading-tight">
-                      {comicTitle(comic)}
-                    </div>
+                    <div className="line-clamp-2 leading-tight">{comicTitle(comic)}</div>
                   </div>
                   {comic.publisher && (
                     <div className="text-xs text-slate-600 dark:text-slate-400 truncate">

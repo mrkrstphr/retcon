@@ -29,12 +29,8 @@ const reset = '\x1b[0m';
 const procs = services.map(({ name, color, cmd, args }) => {
   const proc = spawn(cmd, args, { stdio: 'pipe', shell: true });
 
-  proc.stdout?.on('data', (d: Buffer) =>
-    process.stdout.write(`${color}[${name}]${reset} ${d}`),
-  );
-  proc.stderr?.on('data', (d: Buffer) =>
-    process.stderr.write(`${color}[${name}]${reset} ${d}`),
-  );
+  proc.stdout?.on('data', (d: Buffer) => process.stdout.write(`${color}[${name}]${reset} ${d}`));
+  proc.stderr?.on('data', (d: Buffer) => process.stderr.write(`${color}[${name}]${reset} ${d}`));
   proc.on('exit', (code) => {
     console.log(`${color}[${name}]${reset} exited with code ${code}`);
     // Exit the parent process if any service dies unexpectedly

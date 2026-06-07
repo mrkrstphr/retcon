@@ -15,10 +15,7 @@ const execAsync = promisify(exec);
  * @param xmlContent ComicInfo.xml content
  * @throws Error if file cannot be modified or zip command fails
  */
-export async function writeComicInfoToZip(
-  filePath: string,
-  xmlContent: string,
-): Promise<void> {
+export async function writeComicInfoToZip(filePath: string, xmlContent: string): Promise<void> {
   // Create temp directory if it doesn't exist
   const tempDir = '/tmp/comicinfo-temp';
   try {

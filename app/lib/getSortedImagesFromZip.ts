@@ -5,9 +5,7 @@ import { IMAGE_EXTENSIONS } from '../constants.js';
 /**
  * Get all image files from a CBZ archive, sorted alphabetically
  */
-export async function getSortedImagesFromZip(
-  filePath: string,
-): Promise<string[]> {
+export async function getSortedImagesFromZip(filePath: string): Promise<string[]> {
   const lowerPath = filePath.toLowerCase();
 
   if (!lowerPath.endsWith('.cbz') && !lowerPath.endsWith('.zip')) {

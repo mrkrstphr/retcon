@@ -35,8 +35,7 @@ export function MetadataSearchModal({
 }: MetadataSearchModalProps) {
   const searchFetcher = useFetcher<SearchResponse>();
   const applyFetcher = useFetcher<any>();
-  const [selectedResult, setSelectedResult] =
-    useState<MetadataSearchResult | null>(null);
+  const [selectedResult, setSelectedResult] = useState<MetadataSearchResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const previousApplyStateRef = useRef<'idle' | 'submitting' | 'loading'>('idle');
 
@@ -84,7 +83,6 @@ export function MetadataSearchModal({
     }
   }, [applyFetcher.state, applyFetcher.data, onApply, onClose, selectedResult]);
 
-
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -119,18 +117,12 @@ export function MetadataSearchModal({
 
   if (!isOpen) return null;
 
-  const isSearching =
-    searchFetcher.state === 'loading' || searchFetcher.state === 'submitting';
-  const isFetching =
-    applyFetcher.state === 'submitting' || applyFetcher.state === 'loading';
+  const isSearching = searchFetcher.state === 'loading' || searchFetcher.state === 'submitting';
+  const isFetching = applyFetcher.state === 'submitting' || applyFetcher.state === 'loading';
   const searchError =
-    searchFetcher.data && 'error' in searchFetcher.data
-      ? (searchFetcher.data as any).error
-      : null;
+    searchFetcher.data && 'error' in searchFetcher.data ? (searchFetcher.data as any).error : null;
   const fetchError =
-    applyFetcher.data && 'error' in applyFetcher.data
-      ? (applyFetcher.data as any).error
-      : null;
+    applyFetcher.data && 'error' in applyFetcher.data ? (applyFetcher.data as any).error : null;
 
   return (
     <div
@@ -159,9 +151,7 @@ export function MetadataSearchModal({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">Search Metadata</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {comicFileName}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{comicFileName}</p>
             </div>
             <button
               onClick={onClose}
@@ -180,10 +170,7 @@ export function MetadataSearchModal({
               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
               disabled={isFetching}
             />
-            <Button
-              type="submit"
-              disabled={!searchQuery.trim() || isSearching || isFetching}
-            >
+            <Button type="submit" disabled={!searchQuery.trim() || isSearching || isFetching}>
               {isSearching ? 'Searching...' : 'Search'}
             </Button>
           </form>
@@ -194,9 +181,7 @@ export function MetadataSearchModal({
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  Searching ComicVine...
-                </p>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">Searching ComicVine...</p>
               </div>
             </div>
           )}

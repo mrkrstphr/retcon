@@ -14,7 +14,10 @@ import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/MetadataEdit';
 
 const splitToMany = (str: string | undefined) =>
-  str?.split(',').map((s) => s.trim()).filter(Boolean);
+  str
+    ?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 const joinFromMany = (arr: string[] | undefined) =>
   arr && arr.length > 0 ? arr.join(', ') : undefined;
@@ -25,25 +28,69 @@ const joinFromMany = (arr: string[] | undefined) =>
  */
 const editMetadataSchema = z.object({
   metadata: z.object({
-    series: z.string().optional().transform(val => val === '' ? undefined : val),
-    number: z.coerce.string().optional().transform(val => val === '' ? undefined : val),
-    volume: z.coerce.string().optional().transform(val => val === '' ? undefined : val),
-    title: z.string().optional().transform(val => val === '' ? undefined : val),
-    publisher: z.string().optional().transform(val => val === '' ? undefined : val),
-    summary: z.string().optional().transform(val => val === '' ? undefined : val),
-    releaseDate: z.string().optional().transform(val => val === '' ? undefined : val),
-    writer: z.string().optional().transform(val => val === '' ? undefined : val),
-    penciller: z.string().optional().transform(val => val === '' ? undefined : val),
-    inker: z.string().optional().transform(val => val === '' ? undefined : val),
-    colorist: z.string().optional().transform(val => val === '' ? undefined : val),
-    letterer: z.string().optional().transform(val => val === '' ? undefined : val),
-    coverArtist: z.string().optional().transform(val => val === '' ? undefined : val),
-    editor: z.string().optional().transform(val => val === '' ? undefined : val),
+    series: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    number: z.coerce
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    volume: z.coerce
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    title: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    publisher: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    summary: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    releaseDate: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    writer: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    penciller: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    inker: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    colorist: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    letterer: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    coverArtist: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
+    editor: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val)),
   }),
-  source: z.object({
-    provider: z.string(),
-    id: z.string(),
-  }).optional(),
+  source: z
+    .object({
+      provider: z.string(),
+      id: z.string(),
+    })
+    .optional(),
 });
 
 /**
@@ -193,26 +240,20 @@ export async function action(args: Route.ActionArgs) {
     // Validate file path is within SCAN_DIRECTORY (security check)
     const scanDirectory = process.env.SCAN_DIRECTORY;
     if (!scanDirectory) {
-      return new Response(
-        JSON.stringify({ error: 'SCAN_DIRECTORY not configured' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      return new Response(JSON.stringify({ error: 'SCAN_DIRECTORY not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const normalizedScanDir = normalize(resolve(scanDirectory));
     const normalizedFilePath = normalize(resolve(comic.fileName));
 
     if (!normalizedFilePath.startsWith(normalizedScanDir)) {
-      return new Response(
-        JSON.stringify({ error: 'File path is outside scan directory' }),
-        {
-          status: 403,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      return new Response(JSON.stringify({ error: 'File path is outside scan directory' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Parse release date

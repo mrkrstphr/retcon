@@ -19,8 +19,7 @@ export const getUserByCredentials = (email: string, password: string) =>
       .limit(1),
   );
 
-export const getUserCount = () =>
-  countOrZero(db.select({ count: count() }).from(users));
+export const getUserCount = () => countOrZero(db.select({ count: count() }).from(users));
 
 export const createUser = (email: string, password: string) =>
   first(

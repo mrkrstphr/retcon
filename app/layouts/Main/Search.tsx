@@ -16,9 +16,7 @@ function useDebouncedSearch<T>(
   result?: T;
   state: 'idle' | 'searching' | 'results' | 'canceled';
 } {
-  const [state, setState] = useState<
-    'idle' | 'searching' | 'results' | 'canceled'
-  >('idle');
+  const [state, setState] = useState<'idle' | 'searching' | 'results' | 'canceled'>('idle');
   const [searchQuery, setSearchQuery] = useState('');
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const fetcher = useFetcher();
@@ -88,12 +86,7 @@ export function Search() {
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (
-      !searchOpen ||
-      !result?.searchResults ||
-      result.searchResults.length === 0
-    )
-      return;
+    if (!searchOpen || !result?.searchResults || result.searchResults.length === 0) return;
 
     // Typescript doesn't understand this can't be undefined now
     const searchResults = result.searchResults!;
@@ -101,15 +94,11 @@ export function Search() {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < searchResults.length - 1 ? prev + 1 : 0,
-        );
+        setSelectedIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : 0));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : searchResults.length - 1,
-        );
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : searchResults.length - 1));
         break;
       case 'Enter':
         e.preventDefault();
@@ -189,10 +178,7 @@ export function Search() {
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
                   <div className="flex items-start space-x-3">
-                    <Cover
-                      comic={comic}
-                      className="max-w-8 aspect-3/4 rounded-sm"
-                    />
+                    <Cover comic={comic} className="max-w-8 aspect-3/4 rounded-sm" />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                         {comicTitle(comic)}
@@ -209,12 +195,11 @@ export function Search() {
             </div>
           )}
 
-          {state === 'results' &&
-            (result?.searchResults ?? []).length === 0 && (
-              <div className="p-4 text-center text-slate-500 dark:text-slate-400">
-                <p className="text-sm">No comics found for "{searchQuery}"</p>
-              </div>
-            )}
+          {state === 'results' && (result?.searchResults ?? []).length === 0 && (
+            <div className="p-4 text-center text-slate-500 dark:text-slate-400">
+              <p className="text-sm">No comics found for "{searchQuery}"</p>
+            </div>
+          )}
         </div>
       )}
     </div>

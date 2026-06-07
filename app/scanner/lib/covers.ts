@@ -1,7 +1,4 @@
-import {
-  extractPageFromArchive,
-  getSortedImagesFromZip,
-} from '../../lib/index.js';
+import { extractPageFromArchive, getSortedImagesFromZip } from '../../lib/index.js';
 import { existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -33,10 +30,7 @@ async function getFirstImageFromArchive(
 
     // Get the first image
     const firstImage = imageFiles[0];
-    const { data: imageData } = await extractPageFromArchive(
-      filePath,
-      firstImage,
-    );
+    const { data: imageData } = await extractPageFromArchive(filePath, firstImage);
 
     return {
       name: firstImage,
@@ -138,10 +132,7 @@ export async function saveCover(
 /**
  * Delete cover image file for a comic
  */
-export async function deleteCover(
-  id: number,
-  coversDirectory: string,
-): Promise<boolean> {
+export async function deleteCover(id: number, coversDirectory: string): Promise<boolean> {
   if (!coversDirectory) {
     return false;
   }

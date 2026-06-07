@@ -18,10 +18,7 @@ export const idToSqid = (id: number): string => {
   return sqids.encode([id]);
 };
 
-export const sqidToIdOr404 = (
-  sqid: string,
-  resourceType = 'Resource',
-): number => {
+export const sqidToIdOr404 = (sqid: string, resourceType = 'Resource'): number => {
   try {
     return sqidToId(sqid);
   } catch (error) {

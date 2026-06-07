@@ -1,8 +1,5 @@
 import { APP_NAME } from '@retcon/common/constants';
-import {
-  getLooseComicsCount,
-  getLooseComicsForUser,
-} from '@retcon/common/db/queries';
+import { getLooseComicsCount, getLooseComicsForUser } from '@retcon/common/db/queries';
 import type { MetadataSearchResult } from '~/schemas/metadata';
 import { useState } from 'react';
 import { FaGrinStars } from 'react-icons/fa';
@@ -41,8 +38,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     totalPages,
   } = await paginateRecords(
     request,
-    (limit: number, offset: number) =>
-      getLooseComicsForUser(user.id, limit, offset),
+    (limit: number, offset: number) => getLooseComicsForUser(user.id, limit, offset),
     getLooseComicsCount(),
   );
 
@@ -52,17 +48,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function LooseComics({ loaderData }: Route.ComponentProps) {
-  const { comics, totalComics, currentPage, totalPages, hasComicVineApiKey } =
-    loaderData;
+  const { comics, totalComics, currentPage, totalPages, hasComicVineApiKey } = loaderData;
   const revalidator = useRevalidator();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [selectedComicId, setSelectedComicId] = useState<number | null>(null);
-  const [selectedComicFileName, setSelectedComicFileName] = useState<
-    string | null
-  >(null);
+  const [selectedComicFileName, setSelectedComicFileName] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editInitialData, setEditInitialData] = useState<any>(undefined);
-  const [editMetadataSource, setEditMetadataSource] = useState<{ provider: string; id: string } | undefined>(undefined);
+  const [editMetadataSource, setEditMetadataSource] = useState<
+    { provider: string; id: string } | undefined
+  >(undefined);
 
   const handleSearchClick = (comicId: number, fileName: string) => {
     if (!hasComicVineApiKey) return;
@@ -77,7 +72,10 @@ export default function LooseComics({ loaderData }: Route.ComponentProps) {
     setSelectedComicFileName(null);
   };
 
-  const handleSearchApply = (fullMetadata: MetadataSearchResult, originalResult: MetadataSearchResult) => {
+  const handleSearchApply = (
+    fullMetadata: MetadataSearchResult,
+    originalResult: MetadataSearchResult,
+  ) => {
     const editData = {
       series: fullMetadata.series || '',
       number: fullMetadata.number || '',
@@ -106,12 +104,9 @@ export default function LooseComics({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex flex-col gap-2">
       <Box className="p-6">
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-          Loose Comics
-        </h2>
+        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">Loose Comics</h2>
         <p className="text-slate-600 dark:text-slate-400">
-          The following comics do not have metadata to assign them to a
-          publisher and series.
+          The following comics do not have metadata to assign them to a publisher and series.
         </p>
       </Box>
 
@@ -128,9 +123,7 @@ export default function LooseComics({ loaderData }: Route.ComponentProps) {
 
                   <div className="text-sm text-center mt-2">
                     <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                      <div className="line-clamp-2 leading-tight">
-                        {comicTitle(comic)}
-                      </div>
+                      <div className="line-clamp-2 leading-tight">{comicTitle(comic)}</div>
                     </div>
                     {comic.metadata?.releaseDate && (
                       <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
@@ -143,9 +136,7 @@ export default function LooseComics({ loaderData }: Route.ComponentProps) {
                 <div
                   className="absolute top-3 right-3"
                   title={
-                    hasComicVineApiKey
-                      ? 'Search for metadata'
-                      : 'ComicVine API not configured.'
+                    hasComicVineApiKey ? 'Search for metadata' : 'ComicVine API not configured.'
                   }
                 >
                   <button

@@ -26,13 +26,7 @@ export function meta({ params }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({
-  params,
-  request,
-}: {
-  params: { slug: string };
-  request: Request;
-}) {
+export async function loader({ params, request }: { params: { slug: string }; request: Request }) {
   const url = new URL(request.url);
   const searchQuery = url.searchParams.get('search') || '';
 
@@ -42,24 +36,16 @@ export async function loader({
     throw new Response('Publisher not found', { status: 404 });
   }
 
-  const [
-    { records: series, totalRecords: totalSeries, currentPage, totalPages },
-    totalComics,
-  ] = await Promise.all([
-    paginateRecords(
-      request,
-      (limit: number, offset: number) =>
-        getPublisherSeriesWithCounts(
-          publisher.id,
-          searchQuery,
-          undefined,
-          limit,
-          offset,
-        ),
-      getPublisherSeriesCount(publisher.id, searchQuery),
-    ),
-    getPublisherComicCount(publisher.id),
-  ]);
+  const [{ records: series, totalRecords: totalSeries, currentPage, totalPages }, totalComics] =
+    await Promise.all([
+      paginateRecords(
+        request,
+        (limit: number, offset: number) =>
+          getPublisherSeriesWithCounts(publisher.id, searchQuery, undefined, limit, offset),
+        getPublisherSeriesCount(publisher.id, searchQuery),
+      ),
+      getPublisherComicCount(publisher.id),
+    ]);
 
   return {
     publisher,
@@ -92,9 +78,7 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
   const handleClearSearch = () => {
     const form = formRef.current;
     if (form) {
-      const input = form.querySelector(
-        'input[name="search"]',
-      ) as HTMLInputElement;
+      const input = form.querySelector('input[name="search"]') as HTMLInputElement;
       if (input) {
         input.value = '';
         submit(form);
@@ -124,8 +108,8 @@ export default function PublisherDetails({ loaderData }: Route.ComponentProps) {
           Browse your comic collection by {publisher.name}.
         </p>
         <p className="text-slate-600 dark:text-slate-400 text-sm">
-          This publisher has {integerFormat(totalSeries)} series and{' '}
-          {integerFormat(totalComics)} comics in your collection.
+          This publisher has {integerFormat(totalSeries)} series and {integerFormat(totalComics)}{' '}
+          comics in your collection.
         </p>
       </Box>
 

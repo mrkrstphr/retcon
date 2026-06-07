@@ -7,11 +7,7 @@ export type Props = {
   details?: string;
 };
 
-export function NoResults({
-  icon: Icon = LuBookDashed,
-  title,
-  details,
-}: Props) {
+export function NoResults({ icon: Icon = LuBookDashed, title, details }: Props) {
   return (
     <div className="bg-white dark:bg-slate-950 rounded-lg shadow-md p-8">
       <div className="text-center text-slate-500 dark:text-slate-400">

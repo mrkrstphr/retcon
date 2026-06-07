@@ -41,10 +41,7 @@ type SaveResponse = {
   message: string;
 };
 
-const Label = ({
-  className,
-  ...props
-}: React.LabelHTMLAttributes<HTMLLabelElement>) => {
+const Label = ({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => {
   const classNames = makeClassName(
     'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1',
     className,
@@ -63,15 +60,7 @@ const Input = ({
     'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500',
     className,
   );
-  return (
-    <input
-      {...props}
-      id={id || name}
-      name={name}
-      type={type}
-      className={classNames}
-    />
-  );
+  return <input {...props} id={id || name} name={name} type={type} className={classNames} />;
 };
 
 const Textarea = ({
@@ -84,9 +73,7 @@ const Textarea = ({
     'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500',
     className,
   );
-  return (
-    <textarea {...props} id={id || name} name={name} className={classNames} />
-  );
+  return <textarea {...props} id={id || name} name={name} className={classNames} />;
 };
 
 const InputWithLabel = ({
@@ -128,20 +115,13 @@ export function MetadataEditModal({
 }: MetadataEditModalProps) {
   const loadFetcher = useFetcher<LoadResponse>();
   const saveFetcher = useFetcher<SaveResponse>();
-  const previousSaveStateRef = useRef<'idle' | 'submitting' | 'loading'>(
-    'idle',
-  );
+  const previousSaveStateRef = useRef<'idle' | 'submitting' | 'loading'>('idle');
 
   const [formData, setFormData] = useState<EditMetadata>({});
 
   // Load existing metadata when modal opens (if no initial metadata provided)
   useEffect(() => {
-    if (
-      isOpen &&
-      !initialMetadata &&
-      loadFetcher.state === 'idle' &&
-      !loadFetcher.data
-    ) {
+    if (isOpen && !initialMetadata && loadFetcher.state === 'idle' && !loadFetcher.data) {
       loadFetcher.load(`/comics/${idToSqid(comicId)}/metadata-edit`);
     }
   }, [isOpen, comicId, loadFetcher, initialMetadata]);
@@ -181,9 +161,7 @@ export function MetadataEditModal({
     }
   }, [isOpen]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -208,12 +186,9 @@ export function MetadataEditModal({
   if (!isOpen) return null;
 
   const isLoading = !initialMetadata && loadFetcher.state === 'loading';
-  const isSaving =
-    saveFetcher.state === 'submitting' || saveFetcher.state === 'loading';
+  const isSaving = saveFetcher.state === 'submitting' || saveFetcher.state === 'loading';
   const saveError =
-    saveFetcher.data && 'error' in saveFetcher.data
-      ? (saveFetcher.data as any).error
-      : null;
+    saveFetcher.data && 'error' in saveFetcher.data ? (saveFetcher.data as any).error : null;
 
   return (
     <div
@@ -242,9 +217,7 @@ export function MetadataEditModal({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">Edit Metadata</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {comicFileName}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{comicFileName}</p>
             </div>
             <button
               onClick={onClose}
@@ -261,9 +234,7 @@ export function MetadataEditModal({
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  Loading metadata...
-                </p>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">Loading metadata...</p>
               </div>
             </div>
           )}

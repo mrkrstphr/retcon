@@ -9,18 +9,12 @@ import { protectRoute } from '~/lib/protectRoute';
 import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/MarkIssueReadOrUnread';
 
-async function markIssueRead(
-  comic: { id: number; slug: string },
-  userId: number,
-) {
+async function markIssueRead(comic: { id: number; slug: string }, userId: number) {
   await markComicAsRead(userId, comic.id);
   return redirect(comicDetailsHref({ id: comic.id, slug: comic.slug }));
 }
 
-async function markIssueUnread(
-  comic: { id: number; slug: string },
-  userId: number,
-) {
+async function markIssueUnread(comic: { id: number; slug: string }, userId: number) {
   await deleteUserComicRecord(userId, comic.id);
   return redirect(comicDetailsHref({ id: comic.id, slug: comic.slug }));
 }
@@ -53,12 +47,9 @@ export async function action(args: Route.ActionArgs) {
     }
   } catch (error) {
     console.error(`Error executing ${request.method} handler:`, error);
-    return new Response(
-      JSON.stringify({ error: 'An unknown error occurred' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
+    return new Response(JSON.stringify({ error: 'An unknown error occurred' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

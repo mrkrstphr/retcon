@@ -44,7 +44,13 @@ async function processComicFiles(
       const stats = await stat(fullPath);
 
       if (stats.isDirectory()) {
-        const subCount = await processComicFiles(fullPath, syncTime, forceUpdate, publisherMap, seriesMap);
+        const subCount = await processComicFiles(
+          fullPath,
+          syncTime,
+          forceUpdate,
+          publisherMap,
+          seriesMap,
+        );
         processedCount += subCount;
       } else if (stats.isFile()) {
         const lowerCase = item.toLowerCase();
@@ -58,7 +64,14 @@ async function processComicFiles(
             const existing = existingFile[0];
             const existingModified = new Date(existing.fileModified);
             if (forceUpdate || existingModified.getTime() !== stats.mtime.getTime()) {
-              await updateComic(existingFile[0], fullPath, stats, syncTime, publisherMap, seriesMap);
+              await updateComic(
+                existingFile[0],
+                fullPath,
+                stats,
+                syncTime,
+                publisherMap,
+                seriesMap,
+              );
             } else {
               await updateComicLastSynced(fullPath, syncTime);
             }
@@ -81,7 +94,9 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
   if (checkEmpty) {
     const comicCount = await getComicCount();
     if (comicCount > 0) {
-      console.log(chalk.gray(`📚 Database already contains ${comicCount} comic(s). Skipping initial scan.`));
+      console.log(
+        chalk.gray(`📚 Database already contains ${comicCount} comic(s). Skipping initial scan.`),
+      );
       return;
     }
     console.log(chalk.cyan('📭 Database is empty. Proceeding with initial scan...'));
@@ -97,7 +112,9 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
       process.exit(1);
     }
   } catch {
-    console.error(chalk.red(`❌ Error: Directory "${absolutePath}" does not exist or is not accessible`));
+    console.error(
+      chalk.red(`❌ Error: Directory "${absolutePath}" does not exist or is not accessible`),
+    );
     process.exit(1);
   }
 
@@ -105,10 +122,14 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
   console.log(chalk.gray('─'.repeat(50)));
 
   if (forceUpdate) {
-    console.log(`🔄 ${chalk.yellow('FORCE UPDATE MODE:')} ${chalk.white('Re-processing all files regardless of modification time')}`);
+    console.log(
+      `🔄 ${chalk.yellow('FORCE UPDATE MODE:')} ${chalk.white('Re-processing all files regardless of modification time')}`,
+    );
   }
   if (noCleanup) {
-    console.log(`🚫 ${chalk.yellow('NO CLEANUP MODE:')} ${chalk.white('Skipping deletion of missing files from database')}`);
+    console.log(
+      `🚫 ${chalk.yellow('NO CLEANUP MODE:')} ${chalk.white('Skipping deletion of missing files from database')}`,
+    );
   }
 
   console.log(`\n🔍 ${chalk.cyan('Scanning directory:')} ${chalk.yellow(absolutePath)}`);
@@ -131,15 +152,24 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
     const seriesName = series.name.trim().toLowerCase();
     const volume = series.volume?.trim().toLowerCase() ?? '__NA__';
     if (!seriesMap.has(publisherId)) seriesMap.set(publisherId, new Map());
-    if (!seriesMap.get(publisherId)!.has(seriesName)) seriesMap.get(publisherId)!.set(seriesName, new Map());
+    if (!seriesMap.get(publisherId)!.has(seriesName))
+      seriesMap.get(publisherId)!.set(seriesName, new Map());
     seriesMap.get(publisherId)!.get(seriesName)!.set(volume, { id: series.id, name: series.name });
   });
 
-  console.log(`   ${chalk.gray('Loaded')} ${chalk.white.bold(allPublishers.length)} ${chalk.gray('existing publisher(s)')}`);
+  console.log(
+    `   ${chalk.gray('Loaded')} ${chalk.white.bold(allPublishers.length)} ${chalk.gray('existing publisher(s)')}`,
+  );
   process.stdout.write(`${chalk.gray('Progress:')} `);
 
   const syncTime = new Date();
-  const totalFiles = await processComicFiles(absolutePath, syncTime, forceUpdate, publisherMap, seriesMap);
+  const totalFiles = await processComicFiles(
+    absolutePath,
+    syncTime,
+    forceUpdate,
+    publisherMap,
+    seriesMap,
+  );
 
   console.log();
 
@@ -152,7 +182,9 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
     const deletedPublishers = await deleteEmptyPublishers();
     console.log(cyan(`  ◌ Removed ${white(deletedPublishers.length)} empty publishers.`));
   } else {
-    console.log(`\n🚫 ${chalk.yellow('Skipping cleanup of missing files (--no-cleanup flag active)')}`);
+    console.log(
+      `\n🚫 ${chalk.yellow('Skipping cleanup of missing files (--no-cleanup flag active)')}`,
+    );
   }
 
   if (totalFiles === 0) {
@@ -170,9 +202,13 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
   const durationSecRemainder = (durationMs % 60000) / 1000;
 
   if (durationMs < 60000) {
-    console.log(`⏱️ ${chalk.cyan('Execution time:')} ${chalk.white.bold(durationSec.toFixed(2))} ${chalk.cyan('seconds')}`);
+    console.log(
+      `⏱️ ${chalk.cyan('Execution time:')} ${chalk.white.bold(durationSec.toFixed(2))} ${chalk.cyan('seconds')}`,
+    );
   } else {
-    console.log(`⏱️ ${chalk.cyan('Execution time:')} ${chalk.white.bold(durationMin)} ${chalk.cyan(`minute${durationMin > 1 ? 's' : ''}`)} ${chalk.white.bold(durationSecRemainder.toFixed(2))} ${chalk.cyan(`second${durationSecRemainder > 1 ? 's' : ''}`)}`);
+    console.log(
+      `⏱️ ${chalk.cyan('Execution time:')} ${chalk.white.bold(durationMin)} ${chalk.cyan(`minute${durationMin > 1 ? 's' : ''}`)} ${chalk.white.bold(durationSecRemainder.toFixed(2))} ${chalk.cyan(`second${durationSecRemainder > 1 ? 's' : ''}`)}`,
+    );
   }
 
   console.log();

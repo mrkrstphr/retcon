@@ -26,15 +26,11 @@ export async function action({ request, params }: Route.ActionArgs) {
       case 'POST':
         // Mark entire series as read
         await markSeriesAsRead(user.id, seriesId);
-        return redirect(
-          seriesDetailsHref({ id: series.id, slug: series.slug }),
-        );
+        return redirect(seriesDetailsHref({ id: series.id, slug: series.slug }));
       case 'DELETE':
         // Delete all user_comic records for the series
         await deleteUserSeriesRecords(user.id, seriesId);
-        return redirect(
-          seriesDetailsHref({ id: series.id, slug: series.slug }),
-        );
+        return redirect(seriesDetailsHref({ id: series.id, slug: series.slug }));
       default:
         return new Response(JSON.stringify({ error: 'Method not allowed' }), {
           status: 405,
@@ -43,12 +39,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   } catch (error) {
     console.error('Error updating series read status:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to update series status' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
+    return new Response(JSON.stringify({ error: 'Failed to update series status' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

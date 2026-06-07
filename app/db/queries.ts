@@ -1,17 +1,5 @@
 import { createSlug, normalizePublisherName } from '@retcon/common/lib';
-import {
-  and,
-  count,
-  desc,
-  eq,
-  ilike,
-  inArray,
-  isNull,
-  lt,
-  not,
-  or,
-  sql,
-} from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, isNull, lt, not, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { notNil } from '../lib/notNil.js';
 import { db } from './index.js';
@@ -48,10 +36,7 @@ export function getRecentComicsForUser(userId: number, limit: number = 10) {
     .from(comics)
     .leftJoin(publishers, eq(comics.publisherId, publishers.id))
     .leftJoin(series, eq(comics.seriesId, series.id))
-    .leftJoin(
-      userComics,
-      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
-    )
+    .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
     .orderBy(desc(comics.createdAt))
     .limit(limit);
 }
@@ -109,10 +94,7 @@ export function getComicByIdForUser(id: number, userId: number) {
       .from(comics)
       .leftJoin(publishers, eq(comics.publisherId, publishers.id))
       .leftJoin(series, eq(comics.seriesId, series.id))
-      .leftJoin(
-        userComics,
-        and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
-      )
+      .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
       .where(eq(comics.id, id))
       .limit(1),
   );
@@ -135,10 +117,7 @@ export function insertComic(data: {
 }
 
 export function updateComicLastSynced(fileName: string, lastSynced: Date) {
-  return db
-    .update(comics)
-    .set({ lastSynced })
-    .where(eq(comics.fileName, fileName));
+  return db.update(comics).set({ lastSynced }).where(eq(comics.fileName, fileName));
 }
 
 export function updateComicMetadata(
@@ -181,11 +160,7 @@ export async function getLastScanTime() {
   return result[0]?.lastSynced || null;
 }
 
-export function searchComics(
-  searchTerm: string,
-  limit: number = 25,
-  offset: number = 0,
-) {
+export function searchComics(searchTerm: string, limit: number = 25, offset: number = 0) {
   if (!searchTerm.trim()) {
     return [];
   }
@@ -330,11 +305,7 @@ export function findSeriesByName(name: string, publisherId?: number) {
   );
 }
 
-export function findSeriesByNameAndVolume(
-  name: string,
-  volume?: string,
-  publisherId?: number,
-) {
+export function findSeriesByNameAndVolume(name: string, volume?: string, publisherId?: number) {
   const normalizedName = name.trim();
 
   const conditions = [eq(series.name, normalizedName)];
@@ -357,11 +328,7 @@ export function findSeriesByNameAndVolume(
   );
 }
 
-export function createSeries(
-  name: string,
-  volume?: string,
-  publisherId?: number,
-) {
+export function createSeries(name: string, volume?: string, publisherId?: number) {
   const normalizedName = name.trim();
   const slug = createSlug(normalizedName);
 
@@ -385,21 +352,13 @@ export function createSeries(
   );
 }
 
-export async function getOrCreateSeries(
-  name: string,
-  volume?: string,
-  publisherId?: number,
-) {
+export async function getOrCreateSeries(name: string, volume?: string, publisherId?: number) {
   if (!name?.trim()) {
     return null;
   }
 
   // Try to find existing series
-  let existingSeries = await findSeriesByNameAndVolume(
-    name,
-    volume,
-    publisherId,
-  );
+  let existingSeries = await findSeriesByNameAndVolume(name, volume, publisherId);
 
   // If not found, create new series
   if (!existingSeries) {
@@ -429,11 +388,7 @@ export async function getSeriesById(id: number) {
 }
 
 export async function getPublisherBySlug(slug: string) {
-  const result = await db
-    .select()
-    .from(publishers)
-    .where(eq(publishers.slug, slug))
-    .limit(1);
+  const result = await db.select().from(publishers).where(eq(publishers.slug, slug)).limit(1);
 
   return result[0] || null;
 }
@@ -483,9 +438,21 @@ export function getPublisherSeriesWithCounts(
 
   if (notNil(filters?.unread)) {
     if (filters.unread) {
-      query.having(not(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id))));
+      query.having(
+        not(
+          eq(
+            sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
+            count(comicsForCount.id),
+          ),
+        ),
+      );
     } else {
-      query.having(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id)));
+      query.having(
+        eq(
+          sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
+          count(comicsForCount.id),
+        ),
+      );
     }
   }
 
@@ -514,9 +481,21 @@ export function getPublisherSeriesCount(
 
   if (notNil(filters?.unread)) {
     if (filters.unread) {
-      query.having(not(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id))));
+      query.having(
+        not(
+          eq(
+            sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
+            count(comicsForCount.id),
+          ),
+        ),
+      );
     } else {
-      query.having(eq(sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`, count(comicsForCount.id)));
+      query.having(
+        eq(
+          sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
+          count(comicsForCount.id),
+        ),
+      );
     }
   }
 
@@ -525,19 +504,13 @@ export function getPublisherSeriesCount(
 
 export function getPublisherComicCount(publisherId: number) {
   return countOrZero(
-    db
-      .select({ count: count() })
-      .from(comics)
-      .where(eq(comics.publisherId, publisherId)),
+    db.select({ count: count() }).from(comics).where(eq(comics.publisherId, publisherId)),
   );
 }
 
 export function getSeriesComicCount(seriesId: number) {
   return countOrZero(
-    db
-      .select({ count: count() })
-      .from(comics)
-      .where(eq(comics.seriesId, seriesId)),
+    db.select({ count: count() }).from(comics).where(eq(comics.seriesId, seriesId)),
   );
 }
 
@@ -563,10 +536,7 @@ export function getSeriesComicsForUser(
       createdAt: comics.createdAt,
     })
     .from(comics)
-    .leftJoin(
-      userComics,
-      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
-    )
+    .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
     .leftJoin(series, eq(comics.seriesId, series.id))
     .where(eq(comics.seriesId, seriesId))
     .orderBy(
@@ -580,16 +550,10 @@ export function getSeriesComicsForUser(
 }
 
 export function getLooseComicsCount() {
-  return countOrZero(
-    db.select({ count: count() }).from(comics).where(isNull(comics.seriesId)),
-  );
+  return countOrZero(db.select({ count: count() }).from(comics).where(isNull(comics.seriesId)));
 }
 
-export function getLooseComicsForUser(
-  userId: number,
-  limit: number = 25,
-  offset: number = 0,
-) {
+export function getLooseComicsForUser(userId: number, limit: number = 25, offset: number = 0) {
   return db
     .select({
       id: comics.id,
@@ -605,10 +569,7 @@ export function getLooseComicsForUser(
       createdAt: comics.createdAt,
     })
     .from(comics)
-    .leftJoin(
-      userComics,
-      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
-    )
+    .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
     .where(isNull(comics.seriesId))
     .orderBy(
       sql`${comics.releaseDate} nulls last`,
@@ -627,10 +588,7 @@ export async function getSeriesReadStatus(seriesId: number, userId: number) {
       readComics: sql<number>`count(${userComics.isRead}) filter (where ${userComics.isRead} = true)`,
     })
     .from(comics)
-    .leftJoin(
-      userComics,
-      and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
-    )
+    .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
     .where(eq(comics.seriesId, seriesId));
 
   const totalComics = result[0]?.totalComics ?? 0;
@@ -738,11 +696,7 @@ export function deleteUserSeriesRecords(userId: number, seriesId: number) {
 export function deleteEmptySeries() {
   return db
     .delete(series)
-    .where(
-      not(
-        sql`EXISTS (SELECT 1 FROM ${comics} WHERE ${comics.seriesId} = ${series.id})`,
-      ),
-    )
+    .where(not(sql`EXISTS (SELECT 1 FROM ${comics} WHERE ${comics.seriesId} = ${series.id})`))
     .returning({ deletedId: series.id });
 }
 
@@ -750,9 +704,7 @@ export function deleteEmptyPublishers() {
   return db
     .delete(publishers)
     .where(
-      not(
-        sql`EXISTS (SELECT 1 FROM ${comics} WHERE ${comics.publisherId} = ${publishers.id})`,
-      ),
+      not(sql`EXISTS (SELECT 1 FROM ${comics} WHERE ${comics.publisherId} = ${publishers.id})`),
     )
     .returning({ deletedId: publishers.id });
 }
@@ -791,10 +743,7 @@ export function findUnreadSeriesForUser(
     .leftJoin(comicsForCount, eq(comicsForCount.seriesId, series.id))
     .leftJoin(
       userComics,
-      and(
-        eq(comicsForCount.id, userComics.comicId),
-        eq(userComics.userId, userId),
-      ),
+      and(eq(comicsForCount.id, userComics.comicId), eq(userComics.userId, userId)),
     )
     .leftJoinLateral(
       db
@@ -825,10 +774,7 @@ export function countUnreadSeriesForUser(
     .leftJoin(comicsForCount, eq(comicsForCount.seriesId, series.id))
     .leftJoin(
       userComics,
-      and(
-        eq(comicsForCount.id, userComics.comicId),
-        eq(userComics.userId, userId),
-      ),
+      and(eq(comicsForCount.id, userComics.comicId), eq(userComics.userId, userId)),
     )
     .where(buildUnreadSeriesFilter(searchTerm, publisherId))
     .groupBy(series.id)

@@ -92,9 +92,7 @@ async function getZipComicCommentInfo(zip: StreamZipAsync) {
   }
 }
 
-export async function getSortedImagesFromZip(
-  zip: StreamZipAsync,
-): Promise<string[]> {
+export async function getSortedImagesFromZip(zip: StreamZipAsync): Promise<string[]> {
   try {
     const entries = await zip.entries();
 

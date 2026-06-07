@@ -89,13 +89,10 @@ export async function action(args: Route.ActionArgs) {
     // Validate file path is within SCAN_DIRECTORY (security check)
     const scanDirectory = process.env.SCAN_DIRECTORY;
     if (!scanDirectory) {
-      return new Response(
-        JSON.stringify({ error: 'SCAN_DIRECTORY not configured' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      return new Response(JSON.stringify({ error: 'SCAN_DIRECTORY not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const normalizedScanDir = normalize(resolve(scanDirectory));
@@ -104,13 +101,10 @@ export async function action(args: Route.ActionArgs) {
     if (!normalizedFilePath.startsWith(normalizedScanDir)) {
       console.log('Normalized Scan Dir:', normalizedScanDir);
       console.log('Normalized File Path:', normalizedFilePath);
-      return new Response(
-        JSON.stringify({ error: 'File path is outside scan directory' }),
-        {
-          status: 403,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      return new Response(JSON.stringify({ error: 'File path is outside scan directory' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Build ComicInfo.xml from full metadata
@@ -162,8 +156,7 @@ export async function action(args: Route.ActionArgs) {
     return new Response(
       JSON.stringify({
         success: true,
-        message:
-          'Metadata applied successfully! Comic has been matched to publisher and series.',
+        message: 'Metadata applied successfully! Comic has been matched to publisher and series.',
       }),
       {
         status: 200,

@@ -1,4 +1,9 @@
-import { deleteComic, deleteEmptyPublishers, deleteEmptySeries, findComicByFileName } from '../db/queries.js';
+import {
+  deleteComic,
+  deleteEmptyPublishers,
+  deleteEmptySeries,
+  findComicByFileName,
+} from '../db/queries.js';
 import chokidar from 'chokidar';
 import { existsSync } from 'fs';
 import { stat } from 'fs/promises';
@@ -54,7 +59,8 @@ async function processQueue() {
       const deletedSeries = await deleteEmptySeries();
       const deletedPublishers = await deleteEmptyPublishers();
       if (deletedSeries.length > 0) console.log(`🗑️  Deleted ${deletedSeries.length} empty series`);
-      if (deletedPublishers.length > 0) console.log(`🗑️  Deleted ${deletedPublishers.length} empty publishers`);
+      if (deletedPublishers.length > 0)
+        console.log(`🗑️  Deleted ${deletedPublishers.length} empty publishers`);
     }
   }
 }
@@ -64,11 +70,14 @@ function handleFileEvent(path: string) {
     clearTimeout(debounceMap.get(path));
   }
   // Debounce: chokidar emits multiple events for a single file change (especially over network)
-  debounceMap.set(path, setTimeout(async () => {
-    debounceMap.delete(path);
-    queue.push(path);
-    processQueue();
-  }, debounceDelay));
+  debounceMap.set(
+    path,
+    setTimeout(async () => {
+      debounceMap.delete(path);
+      queue.push(path);
+      processQueue();
+    }, debounceDelay),
+  );
 }
 
 watcher
@@ -80,10 +89,13 @@ watcher
     if (existingFile) {
       await deleteCover(existingFile.id, COVERS_DIRECTORY);
       await deleteComic(existingFile.id);
-      console.log(`❌ Deleted comic record and cover for removed file: ${path} [ID=${existingFile.id}]`);
+      console.log(
+        `❌ Deleted comic record and cover for removed file: ${path} [ID=${existingFile.id}]`,
+      );
       const deletedSeries = await deleteEmptySeries();
       const deletedPublishers = await deleteEmptyPublishers();
       if (deletedSeries.length > 0) console.log(`🗑️  Deleted ${deletedSeries.length} empty series`);
-      if (deletedPublishers.length > 0) console.log(`🗑️  Deleted ${deletedPublishers.length} empty publishers`);
+      if (deletedPublishers.length > 0)
+        console.log(`🗑️  Deleted ${deletedPublishers.length} empty publishers`);
     }
   });

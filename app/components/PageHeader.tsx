@@ -32,9 +32,7 @@ export function PageHeader({ title, attributes }: PageHeaderProps) {
           ))}
         </div>
       </div>
-      <div className="mt-5 flex lg:mt-0 lg:ml-4">
-        {/* future actions area */}
-      </div>
+      <div className="mt-5 flex lg:mt-0 lg:ml-4">{/* future actions area */}</div>
     </div>
   );
 }

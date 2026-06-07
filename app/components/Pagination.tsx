@@ -19,9 +19,8 @@ export function Pagination({
     <div className="py-6">
       <div className="flex items-center justify-between">
         <div className="text-sm text-slate-600 dark:text-slate-400">
-          Showing {(currentPage - 1) * 25 + 1} to{' '}
-          {Math.min(currentPage * 25, totalRecords)} of {totalRecords}{' '}
-          {recordName}
+          Showing {(currentPage - 1) * 25 + 1} to {Math.min(currentPage * 25, totalRecords)} of{' '}
+          {totalRecords} {recordName}
         </div>
         <div className="flex space-x-2">
           {/* Previous Page */}

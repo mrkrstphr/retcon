@@ -44,8 +44,7 @@ function formatReleaseDate(dateString?: string) {
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  const preferredLocale =
-    request.headers.get('accept-language')?.split(',')[0] || 'en-US';
+  const preferredLocale = request.headers.get('accept-language')?.split(',')[0] || 'en-US';
 
   const user = await protectRoute(request);
 
@@ -66,8 +65,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     totalPages,
   } = await paginateRecords(
     request,
-    (limit: number, offset: number) =>
-      getSeriesComicsForUser(series.id, user.id, limit, offset),
+    (limit: number, offset: number) => getSeriesComicsForUser(series.id, user.id, limit, offset),
     getSeriesComicCount(series.id),
   );
 
@@ -77,9 +75,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   // we need to format the dates here to prevent a mismatch between the server and client rendering
   const formattedComics = comics.map((comic) => {
     if (comic.metadata?.releaseDate) {
-      const formattedReleaseDate = formatReleaseDate(
-        comic.metadata.releaseDate,
-      );
+      const formattedReleaseDate = formatReleaseDate(comic.metadata.releaseDate);
       return {
         ...comic,
         metadata: {
@@ -104,8 +100,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
-  const { series, comics, totalComics, currentPage, totalPages, readStatus } =
-    loaderData;
+  const { series, comics, totalComics, currentPage, totalPages, readStatus } = loaderData;
 
   return (
     <div className="flex flex-col gap-2">
@@ -116,9 +111,7 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
           </h2>
           <div className="flex flex-col sm:flex-row justify-center gap-6 text-lg">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-2">
-              <span className="text-slate-600 dark:text-slate-400">
-                Publisher:{' '}
-              </span>
+              <span className="text-slate-600 dark:text-slate-400">Publisher: </span>
               <Link
                 to={`/publishers/${series.publisherSlug}`}
                 className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
@@ -174,9 +167,7 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
 
                 <div className="text-sm text-center mt-2">
                   <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-                    <div className="line-clamp-2 leading-tight">
-                      {comicTitle(comic)}
-                    </div>
+                    <div className="line-clamp-2 leading-tight">{comicTitle(comic)}</div>
                   </div>
                   {/* Show release date if available */}
                   {comic.metadata?.releaseDate && (

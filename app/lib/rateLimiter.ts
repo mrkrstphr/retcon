@@ -31,9 +31,7 @@ export class RateLimiter {
 
     if (this.requests.length >= this.maxRequests) {
       const oldestRequest = this.requests[0];
-      const timeUntilReset = Math.ceil(
-        (oldestRequest + this.windowMs - Date.now()) / 1000 / 60,
-      );
+      const timeUntilReset = Math.ceil((oldestRequest + this.windowMs - Date.now()) / 1000 / 60);
       throw new Error(
         `Rate limit exceeded. Try again in ${timeUntilReset} minute${timeUntilReset !== 1 ? 's' : ''}.`,
       );
@@ -63,9 +61,7 @@ export class RateLimiter {
    */
   private cleanupOldRequests(): void {
     const now = Date.now();
-    this.requests = this.requests.filter(
-      (timestamp) => now - timestamp < this.windowMs,
-    );
+    this.requests = this.requests.filter((timestamp) => now - timestamp < this.windowMs);
   }
 
   /**

@@ -57,9 +57,7 @@ export function parseFilename(filename: string): ParsedFilename {
 
     // Check if the first part looks like a publisher (common names)
     if (
-      /^(Marvel|DC|Image|Dark Horse|IDW|Vertigo|Dynamite|Boom|Valiant)/i.test(
-        potentialPublisher,
-      )
+      /^(Marvel|DC|Image|Dark Horse|IDW|Vertigo|Dynamite|Boom|Valiant)/i.test(potentialPublisher)
     ) {
       result.publisher = potentialPublisher;
       name = rest;

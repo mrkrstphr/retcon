@@ -71,9 +71,7 @@ function CreatorRow({ label, value }: { label: string; value: string[] }) {
           {value.length > 1 ? 's' : ''}:
         </dt>
         <dd className="text-sm text-slate-900 dark:text-slate-100 sm:w-2/3">
-          <pre className="whitespace-pre-wrap font-sans leading-relaxed">
-            {value.join(', ')}
-          </pre>
+          <pre className="whitespace-pre-wrap font-sans leading-relaxed">{value.join(', ')}</pre>
         </dd>
       </div>
     </div>
@@ -129,15 +127,15 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editInitialData, setEditInitialData] = useState<any>(undefined);
-  const [editMetadataSource, setEditMetadataSource] = useState<{ provider: string; id: string } | undefined>(undefined);
+  const [editMetadataSource, setEditMetadataSource] = useState<
+    { provider: string; id: string } | undefined
+  >(undefined);
 
   const displayTitle = comicTitle(comic);
 
   // Determine if comic has metadata
   const hasMetadata =
-    comic.metadata &&
-    typeof comic.metadata === 'object' &&
-    Object.keys(comic.metadata).length > 0;
+    comic.metadata && typeof comic.metadata === 'object' && Object.keys(comic.metadata).length > 0;
 
   const handleMetadataSuccess = () => {
     // Revalidate to refresh the data
@@ -172,7 +170,10 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
     setEditModalOpen(true);
   };
 
-  const handleSearchApply = (fullMetadata: MetadataSearchResult, originalResult: MetadataSearchResult) => {
+  const handleSearchApply = (
+    fullMetadata: MetadataSearchResult,
+    originalResult: MetadataSearchResult,
+  ) => {
     // Convert full ComicVine metadata to edit format
     const editData = {
       series: fullMetadata.series || '',
@@ -197,14 +198,10 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
   };
 
   const primaryLabel =
-    comic.currentPage && comic.currentPage > 1 && !comic.isRead
-      ? 'Continue Reading'
-      : 'Read Comic';
+    comic.currentPage && comic.currentPage > 1 && !comic.isRead ? 'Continue Reading' : 'Read Comic';
 
   const dropdownItems = [
-    ...(!comic.isRead
-      ? [{ label: 'Mark as Read', onClick: handleMarkAsRead }]
-      : []),
+    ...(!comic.isRead ? [{ label: 'Mark as Read', onClick: handleMarkAsRead }] : []),
     ...(comic.currentPage && comic.currentPage > 0
       ? [{ label: 'Mark as Unread', onClick: handleMarkAsUnread }]
       : []),
@@ -216,9 +213,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
       label: hasMetadata ? 'Fix Match' : 'Find Match',
       onClick: handleFixMatch,
       disabled: !hasComicVineApiKey,
-      tooltip: !hasComicVineApiKey
-        ? 'ComicVine API not configured.'
-        : undefined,
+      tooltip: !hasComicVineApiKey ? 'ComicVine API not configured.' : undefined,
     },
   ];
 
@@ -257,9 +252,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
               ) : null}
               {comic.publisher ? (
                 <span>
-                  <Link to={`/publishers/${comic.publisherSlug}`}>
-                    {comic.publisher}
-                  </Link>
+                  <Link to={`/publishers/${comic.publisherSlug}`}>{comic.publisher}</Link>
                 </span>
               ) : null}
               {comic.metadata?.releaseDate ? (
@@ -276,9 +269,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-slate-600 dark:text-slate-400">
-                  File Path:
-                </span>
+                <span className="font-medium text-slate-600 dark:text-slate-400">File Path:</span>
                 <p className="text-slate-900 dark:text-slate-100 break-all mt-1">
                   {comic.fileName}
                 </p>
@@ -292,17 +283,13 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
                 </p>
               </div>
               <div>
-                <span className="font-medium text-slate-600 dark:text-slate-400">
-                  Last Synced:
-                </span>
+                <span className="font-medium text-slate-600 dark:text-slate-400">Last Synced:</span>
                 <p className="text-slate-900 dark:text-slate-100 mt-1">
                   {new Date(comic.lastSynced).toLocaleString()}
                 </p>
               </div>
               <div>
-                <span className="font-medium text-slate-600 dark:text-slate-400">
-                  Comic ID:
-                </span>
+                <span className="font-medium text-slate-600 dark:text-slate-400">Comic ID:</span>
                 <p className="text-slate-900 dark:text-slate-100 font-mono text-xs mt-1">
                   {comic.id}
                 </p>

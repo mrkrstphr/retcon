@@ -39,18 +39,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   const publisherId = publisherIdStr ? parseInt(publisherIdStr) : undefined;
 
   if (mode === 'series') {
-    const [
-      { records: results, totalRecords, currentPage, totalPages },
-      allPublishers,
-    ] = await Promise.all([
-      paginateRecords(
-        request,
-        (limit, offset) =>
-          findUnreadSeriesForUser(user.id, searchQuery, limit, offset, publisherId),
-        countUnreadSeriesForUser(user.id, searchQuery, publisherId),
-      ),
-      getAllPublishers(),
-    ]);
+    const [{ records: results, totalRecords, currentPage, totalPages }, allPublishers] =
+      await Promise.all([
+        paginateRecords(
+          request,
+          (limit, offset) =>
+            findUnreadSeriesForUser(user.id, searchQuery, limit, offset, publisherId),
+          countUnreadSeriesForUser(user.id, searchQuery, publisherId),
+        ),
+        getAllPublishers(),
+      ]);
 
     return {
       mode: 'series' as Mode,
@@ -142,9 +140,7 @@ export default function UnreadPage({ loaderData }: Route.ComponentProps) {
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
           Unread Comics
         </h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Comics you haven't read yet.
-        </p>
+        <p className="text-slate-600 dark:text-slate-400">Comics you haven't read yet.</p>
       </Box>
 
       <Box>

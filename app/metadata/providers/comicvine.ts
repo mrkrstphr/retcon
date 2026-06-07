@@ -33,10 +33,7 @@ export class ComicVineProvider implements MetadataProvider {
     url.searchParams.set('format', 'json');
     url.searchParams.set('resources', 'issue');
     url.searchParams.set('query', query);
-    url.searchParams.set(
-      'field_list',
-      'id,name,volume,issue_number,cover_date,description,image',
-    );
+    url.searchParams.set('field_list', 'id,name,volume,issue_number,cover_date,description,image');
     url.searchParams.set('limit', '25');
 
     const response = await fetch(url.toString(), {
@@ -128,9 +125,7 @@ export class ComicVineProvider implements MetadataProvider {
     });
 
     if (!response.ok) {
-      console.warn(
-        `Failed to fetch volume ${volumeId}: ${response.statusText}`,
-      );
+      console.warn(`Failed to fetch volume ${volumeId}: ${response.statusText}`);
       return null;
     }
 
@@ -152,9 +147,7 @@ export class ComicVineProvider implements MetadataProvider {
    */
   private mapToMetadataResult(result: any): MetadataSearchResult {
     // Strip HTML from description
-    const summary = result.description
-      ? this.stripHtml(result.description)
-      : undefined;
+    const summary = result.description ? this.stripHtml(result.description) : undefined;
 
     // Parse person credits if available
     const creators: MetadataSearchResult['creators'] = {};
@@ -162,13 +155,10 @@ export class ComicVineProvider implements MetadataProvider {
       const creditsByRole = this.groupCreditsByRole(result.person_credits);
 
       if (creditsByRole.writer?.length) creators.writer = creditsByRole.writer;
-      if (creditsByRole.penciller?.length)
-        creators.penciller = creditsByRole.penciller;
+      if (creditsByRole.penciller?.length) creators.penciller = creditsByRole.penciller;
       if (creditsByRole.inker?.length) creators.inker = creditsByRole.inker;
-      if (creditsByRole.colorist?.length)
-        creators.colorist = creditsByRole.colorist;
-      if (creditsByRole.letterer?.length)
-        creators.letterer = creditsByRole.letterer;
+      if (creditsByRole.colorist?.length) creators.colorist = creditsByRole.colorist;
+      if (creditsByRole.letterer?.length) creators.letterer = creditsByRole.letterer;
       if (creditsByRole['cover artist']?.length)
         creators.coverArtist = creditsByRole['cover artist'];
       if (creditsByRole.editor?.length) creators.editor = creditsByRole.editor;

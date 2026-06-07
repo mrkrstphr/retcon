@@ -20,17 +20,10 @@ export function Cover({ className, comic, ...props }: CoverProps) {
   const pageCount = comic.pageCount || 0;
 
   return (
-    <div
-      className={['relative', className].filter(Boolean).join(' ')}
-      {...props}
-    >
+    <div className={['relative', className].filter(Boolean).join(' ')} {...props}>
       <img
         src={getCoverPath(comic.id)}
-        alt={
-          comic.series && comic.number
-            ? `${comic.series} #${comic.number}`
-            : 'Comic cover'
-        }
+        alt={comic.series && comic.number ? `${comic.series} #${comic.number}` : 'Comic cover'}
         className="w-full h-full object-cover object-top aspect-3/4 rounded-md"
         onError={(e) => {
           // Hide broken images

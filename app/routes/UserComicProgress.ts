@@ -1,7 +1,4 @@
-import {
-  getComicByIdForUser,
-  upsertUserComicProgress,
-} from '@retcon/common/db/queries';
+import { getComicByIdForUser, upsertUserComicProgress } from '@retcon/common/db/queries';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/UserComicProgress';
@@ -24,12 +21,7 @@ export const action = async ({ params, request }: Route.ActionArgs) => {
     return new Response('Comic not found', { status: 404 });
   }
 
-  await upsertUserComicProgress(
-    user.id,
-    id,
-    currentPage,
-    currentPage >= comic.pageCount,
-  );
+  await upsertUserComicProgress(user.id, id, currentPage, currentPage >= comic.pageCount);
 
   return new Response('OK');
 };

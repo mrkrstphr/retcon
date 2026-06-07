@@ -7,12 +7,7 @@ export type StatsProps = HTMLAttributes<HTMLDivElement> & {
   lastScanTime: Date | null;
 };
 
-export const Stats = ({
-  className,
-  comicCount,
-  lastScanTime,
-  ...props
-}: StatsProps) => {
+export const Stats = ({ className, comicCount, lastScanTime, ...props }: StatsProps) => {
   const classes = [
     'flex flex-col gap-1',
     'pt-2 mx-2',

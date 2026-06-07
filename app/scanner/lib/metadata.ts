@@ -1,5 +1,4 @@
-const splitToMany = (str: string | undefined) =>
-  str?.split(',').map((s) => s.trim());
+const splitToMany = (str: string | undefined) => str?.split(',').map((s) => s.trim());
 
 export function parseComicInfo(metadata: any) {
   if (!metadata) return {};
@@ -31,17 +30,11 @@ export function parseComicInfo(metadata: any) {
   };
 }
 
-function findContributor(
-  credits: { role: string; person: string }[],
-  role: string,
-) {
+function findContributor(credits: { role: string; person: string }[], role: string) {
   if (!credits || !Array.isArray(credits)) return;
 
   return credits
-    .filter(
-      (credit) =>
-        credit.role.trim().toLowerCase() === role.trim().toLowerCase(),
-    )
+    .filter((credit) => credit.role.trim().toLowerCase() === role.trim().toLowerCase())
     .map((credit) => credit.person.trim())
     .filter(Boolean);
 }
@@ -73,4 +66,3 @@ export function parseComicBookInfo(comicBookInfo: any) {
     },
   };
 }
-

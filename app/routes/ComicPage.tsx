@@ -1,8 +1,5 @@
 import { getComicByIdForUser } from '@retcon/common/db/queries';
-import {
-  extractPageFromArchive,
-  getSortedImagesFromZip,
-} from '@retcon/common/lib';
+import { extractPageFromArchive, getSortedImagesFromZip } from '@retcon/common/lib';
 import { extname } from 'path';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToIdOr404 } from '~/lib/sqids';
@@ -52,10 +49,7 @@ export const loader = async ({ params, request }: Route.LoaderArgs) => {
     const pageFileName = imageFiles[pageNumber - 1]; // Convert to 0-based index
 
     // Extract the specific page from the archive
-    const { data, mimeType } = await extractPageFromArchive(
-      comic.fileName,
-      pageFileName,
-    );
+    const { data, mimeType } = await extractPageFromArchive(comic.fileName, pageFileName);
 
     // Return the image with proper headers for caching
     return new Response(new Uint8Array(data), {
@@ -67,10 +61,7 @@ export const loader = async ({ params, request }: Route.LoaderArgs) => {
       },
     });
   } catch (error) {
-    console.error(
-      `Error serving page ${pageNumber} of comic ${comicId}:`,
-      error,
-    );
+    console.error(`Error serving page ${pageNumber} of comic ${comicId}:`, error);
     throw new Response('Error reading comic page', { status: 500 });
   }
 };

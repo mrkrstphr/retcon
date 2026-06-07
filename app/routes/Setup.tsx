@@ -37,8 +37,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (!validation.success) {
       return {
-        error:
-          'There was a problem with your submission. Please check the errors below.',
+        error: 'There was a problem with your submission. Please check the errors below.',
         fieldErrors: validation.error.flatten().fieldErrors,
       };
     }
@@ -79,9 +78,7 @@ export default function SetupPage({ actionData }: Route.ComponentProps) {
           </p>
         </div>
 
-        {actionData?.error && (
-          <GeneralError className="mb-4">{actionData.error}</GeneralError>
-        )}
+        {actionData?.error && <GeneralError className="mb-4">{actionData.error}</GeneralError>}
 
         <Form method="post" className="space-y-6">
           <input type="hidden" name="actionType" value="setup" />

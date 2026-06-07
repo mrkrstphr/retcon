@@ -12,9 +12,7 @@ export async function action({ request }: Route.ActionArgs) {
     };
   }
 
-  const [searchResults] = await Promise.all([
-    searchComics(searchTerm.trim(), limit, 0),
-  ]);
+  const [searchResults] = await Promise.all([searchComics(searchTerm.trim(), limit, 0)]);
 
   return {
     searchResults,

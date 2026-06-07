@@ -5,10 +5,7 @@ vi.mock('../../db/queries.js', () => ({
   createSeries: vi.fn(),
 }));
 
-import {
-  createSeries,
-  findSeriesByNameAndVolume,
-} from '../../db/queries.js';
+import { createSeries, findSeriesByNameAndVolume } from '../../db/queries.js';
 import { getOrCreateSeries } from './getOrCreateSeries.js';
 
 type SeriesMap = Map<number, Map<string, Map<string, { id: number; name: string }>>>;

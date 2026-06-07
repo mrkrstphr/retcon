@@ -6,9 +6,7 @@ import type { User } from './types';
 
 const cookieSecret = process.env.COOKIE_SECRET;
 if (!cookieSecret) {
-  throw new Error(
-    'COOKIE_SECRET environment variable must be set for session security',
-  );
+  throw new Error('COOKIE_SECRET environment variable must be set for session security');
 }
 
 export const sessionStorage = createCookieSessionStorage({
@@ -41,9 +39,7 @@ async function login(email: string, password: string): Promise<User> {
 }
 
 export async function storeUserSession(user: User, request: Request) {
-  const session = await sessionStorage.getSession(
-    request.headers.get('cookie'),
-  );
+  const session = await sessionStorage.getSession(request.headers.get('cookie'));
 
   session.set('user', user);
 

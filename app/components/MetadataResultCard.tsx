@@ -70,9 +70,7 @@ export function MetadataResultCard({
               <h3 className="font-semibold text-base leading-tight">
                 {result.series}
                 {result.volume && (
-                  <span className="text-gray-500 text-sm ml-1">
-                    v{result.volume}
-                  </span>
+                  <span className="text-gray-500 text-sm ml-1">v{result.volume}</span>
                 )}
               </h3>
               {result.number && (
@@ -82,17 +80,11 @@ export function MetadataResultCard({
                 </p>
               )}
             </div>
-            {isSelected && (
-              <div className="text-orange-500 font-semibold text-sm">
-                Selected
-              </div>
-            )}
+            {isSelected && <div className="text-orange-500 font-semibold text-sm">Selected</div>}
           </div>
 
           {result.publisher && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {result.publisher}
-            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{result.publisher}</p>
           )}
 
           {result.releaseDate && (
@@ -109,8 +101,7 @@ export function MetadataResultCard({
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 space-y-0.5">
               {result.creators.writer && (
                 <p>
-                  <span className="font-medium">Writer:</span>{' '}
-                  {result.creators.writer.join(', ')}
+                  <span className="font-medium">Writer:</span> {result.creators.writer.join(', ')}
                 </p>
               )}
               {result.creators.penciller && (

@@ -134,11 +134,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
                 ))}
               </nav>
 
-              <Stats
-                className="mt-4"
-                comicCount={comicCount}
-                lastScanTime={lastScanTime}
-              />
+              <Stats className="mt-4" comicCount={comicCount} lastScanTime={lastScanTime} />
             </div>
           </div>
         </div>
@@ -156,11 +152,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
               ))}
             </nav>
 
-            <Stats
-              className="mt-4"
-              comicCount={comicCount}
-              lastScanTime={lastScanTime}
-            />
+            <Stats className="mt-4" comicCount={comicCount} lastScanTime={lastScanTime} />
           </Box>
         </div>
 

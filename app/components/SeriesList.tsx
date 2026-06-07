@@ -35,10 +35,7 @@ export function SeriesList({ series }: SeriesListProps) {
 
           <div className="text-sm text-center mt-2">
             <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
-              <div
-                className="line-clamp-2 leading-tight truncate"
-                title={result.name}
-              >
+              <div className="line-clamp-2 leading-tight truncate" title={result.name}>
                 {result.name}
               </div>
             </div>

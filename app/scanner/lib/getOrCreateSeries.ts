@@ -19,7 +19,8 @@ export async function getOrCreateSeries(
     const result = { id: existingSeries.id, name: existingSeries.name };
     if (seriesMap) {
       if (!seriesMap.has(publisherId)) seriesMap.set(publisherId, new Map());
-      if (!seriesMap.get(publisherId)!.has(searchName)) seriesMap.get(publisherId)!.set(searchName, new Map());
+      if (!seriesMap.get(publisherId)!.has(searchName))
+        seriesMap.get(publisherId)!.set(searchName, new Map());
       seriesMap.get(publisherId)!.get(searchName)!.set(searchVolume, result);
     }
     return result;
@@ -29,8 +30,12 @@ export async function getOrCreateSeries(
 
   if (seriesMap) {
     if (!seriesMap.has(publisherId)) seriesMap.set(publisherId, new Map());
-    if (!seriesMap.get(publisherId)!.has(searchName)) seriesMap.get(publisherId)!.set(searchName, new Map());
-    seriesMap.get(publisherId)!.get(searchName)!.set(searchVolume, { id: newSeries.id, name: newSeries.name });
+    if (!seriesMap.get(publisherId)!.has(searchName))
+      seriesMap.get(publisherId)!.set(searchName, new Map());
+    seriesMap
+      .get(publisherId)!
+      .get(searchName)!
+      .set(searchVolume, { id: newSeries.id, name: newSeries.name });
   }
 
   return { id: newSeries.id, name: newSeries.name };

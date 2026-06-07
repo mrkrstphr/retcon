@@ -105,8 +105,14 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
     }
   }, [deleteFetcher.data]);
 
-  const goNextPage = () => { nextPage(); setOverlayOpen(false); };
-  const goPreviousPage = () => { previousPage(); setOverlayOpen(false); };
+  const goNextPage = () => {
+    nextPage();
+    setOverlayOpen(false);
+  };
+  const goPreviousPage = () => {
+    previousPage();
+    setOverlayOpen(false);
+  };
 
   const handlers = useSwipeable({
     onSwiped: (eventData) => console.log('User Swiped!', eventData),
@@ -210,23 +216,13 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       className="flex justify-center items-center relative h-dvh bg-slate-900"
       ref={refPassthrough}
     >
-      <OverlayBar
-        className="flex items-center gap-4"
-        visible={overlayOpen}
-        position="top"
-      >
+      <OverlayBar className="flex items-center gap-4" visible={overlayOpen} position="top">
         <div className="justify-flex-start ml-2">
           <div className="cursor-pointer" onClick={toggleFullscreen}>
-            {isFullscreen ? (
-              <MdFullscreenExit size={24} />
-            ) : (
-              <MdFullscreen size={24} />
-            )}
+            {isFullscreen ? <MdFullscreenExit size={24} /> : <MdFullscreen size={24} />}
           </div>
         </div>
-        <div className="flex-1 text-center truncate select-none">
-          {comicTitle(comic)}
-        </div>
+        <div className="flex-1 text-center truncate select-none">{comicTitle(comic)}</div>
         <div className="relative flex items-center gap-2 mr-2">
           <div
             className="cursor-pointer"
@@ -254,10 +250,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
               </button>
             </div>
           )}
-          <div
-            className="cursor-pointer"
-            onClick={handleCloseReader}
-          >
+          <div className="cursor-pointer" onClick={handleCloseReader}>
             <FaWindowClose />
           </div>
         </div>
@@ -275,14 +268,10 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
             <h3 className="text-xl font-bold mb-2">Issue Complete!</h3>
             <p className="mb-2">You've reached the end of this one!</p>
             <p className="mb-4 text-sm">
-              At some point we'll have some suggestions of what to read next
-              here...
+              At some point we'll have some suggestions of what to read next here...
             </p>
             <div className="flex items-center justify-center gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => setIssueCompleteDialogOpen(false)}
-              >
+              <Button variant="secondary" onClick={() => setIssueCompleteDialogOpen(false)}>
                 Close
               </Button>
               <Button onClick={() => window.history.back()}>Exit</Button>
@@ -302,9 +291,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
               Delete page {pageNumber} of {pageCount}?
             </p>
             {deleteFetcher.data && (deleteFetcher.data as any).error && (
-              <p className="mb-4 text-sm text-red-400">
-                {(deleteFetcher.data as any).error}
-              </p>
+              <p className="mb-4 text-sm text-red-400">{(deleteFetcher.data as any).error}</p>
             )}
             <div className="flex items-center justify-end gap-3">
               <Button
@@ -336,10 +323,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
             style={{ width: `${(pageNumber / pageCount) * 100}%` }}
           />
         </div>
-        <ProgressBar
-          className="m-2"
-          value={(pageNumber / pageCount) * 100}
-        />
+        <ProgressBar className="m-2" value={(pageNumber / pageCount) * 100} />
 
         <div className="p-2 text-sm text-center select-none">
           Page {pageNumber} of {pageCount}

@@ -9,8 +9,8 @@ export function ConnectionError() {
         <div>
           <h1 className="text-2xl font-bold mb-4">Connection Error</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-2">
-            We are having trouble connecting to your database. Please check your
-            internet connection and try again.
+            We are having trouble connecting to your database. Please check your internet connection
+            and try again.
           </p>
         </div>
       </div>

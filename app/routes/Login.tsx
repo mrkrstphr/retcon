@@ -1,11 +1,7 @@
 import { getUserCount } from '@retcon/common/db/queries';
 import { Form, redirect } from 'react-router';
 import { getUser } from '~/lib/getUser';
-import {
-  authenticator,
-  sessionStorage,
-  storeUserSession,
-} from '~/services/auth.server';
+import { authenticator, sessionStorage, storeUserSession } from '~/services/auth.server';
 import type { Route } from './+types/Login';
 
 export async function action({ request }: Route.ActionArgs) {
@@ -66,10 +62,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="password" className="mb-2 block text-sm font-medium">
               Password
             </label>
             <input

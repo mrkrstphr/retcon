@@ -19,16 +19,10 @@ export const OverlayBar = ({
     .filter(Boolean)
     .join(' ');
 
-  const preventBubbling = (e: Pick<Event, 'stopPropagation'>) =>
-    e.stopPropagation();
+  const preventBubbling = (e: Pick<Event, 'stopPropagation'>) => e.stopPropagation();
 
   return (
-    <div
-      className={classes}
-      {...props}
-      onClick={preventBubbling}
-      onDoubleClick={preventBubbling}
-    >
+    <div className={classes} {...props} onClick={preventBubbling} onDoubleClick={preventBubbling}>
       {children}
     </div>
   );
