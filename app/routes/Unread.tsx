@@ -10,7 +10,6 @@ import { PiFileText, PiFiles } from 'react-icons/pi';
 import { Form, useSubmit } from 'react-router';
 import { useRef } from 'react';
 import { Box } from '~/components/Box';
-import { ComicList } from '~/components/ComicList';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
 import { SeriesList } from '~/components/SeriesList';
@@ -229,11 +228,7 @@ export default function UnreadPage({ loaderData }: Route.ComponentProps) {
 
       {results.length > 0 && (
         <Box>
-          {mode === 'series' ? (
-            <SeriesList series={results} />
-          ) : (
-            <ComicList comics={results} />
-          )}
+          <SeriesList series={results} />
 
           <Pagination
             currentPage={currentPage}
