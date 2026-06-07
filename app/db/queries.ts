@@ -570,7 +570,12 @@ export function getSeriesComicsForUser(
     )
     .leftJoin(series, eq(comics.seriesId, series.id))
     .where(eq(comics.seriesId, seriesId))
-    .orderBy(comics.releaseDate, comics.number, desc(comics.createdAt))
+    .orderBy(
+      sql`${comics.releaseDate} nulls last`,
+      sql`(case when ${comics.number} ~ '^[0-9]+$' then ${comics.number}::integer end) nulls last`,
+      comics.number,
+      desc(comics.createdAt),
+    )
     .limit(limit)
     .offset(offset);
 }
@@ -606,7 +611,12 @@ export function getLooseComicsForUser(
       and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)),
     )
     .where(isNull(comics.seriesId))
-    .orderBy(comics.releaseDate, comics.number, desc(comics.createdAt))
+    .orderBy(
+      sql`${comics.releaseDate} nulls last`,
+      sql`(case when ${comics.number} ~ '^[0-9]+$' then ${comics.number}::integer end) nulls last`,
+      comics.number,
+      desc(comics.createdAt),
+    )
     .limit(limit)
     .offset(offset);
 }
