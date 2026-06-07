@@ -10,9 +10,10 @@ export async function getOrCreatePublisher(
     return publisherMap.get(trimmedName)!;
   }
 
-  if (!publisherMap) {
-    const existingPublisher = await findPublisherByName(trimmedName);
-    if (existingPublisher) return existingPublisher.id;
+  const existingPublisher = await findPublisherByName(trimmedName);
+  if (existingPublisher) {
+    publisherMap?.set(trimmedName, existingPublisher.id);
+    return existingPublisher.id;
   }
 
   const newPublisher = await createPublisher(trimmedName);
