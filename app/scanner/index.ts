@@ -45,8 +45,9 @@ function formatReleaseDate(dateString?: string) {
 
 async function getOrCreatePublisher(publisherName: string, publisherMap: PublisherMap): Promise<number> {
   const trimmedName = publisherName.trim();
-  if (publisherMap.has(trimmedName)) {
-    return publisherMap.get(trimmedName)!;
+  const cacheKey = trimmedName.toLowerCase();
+  if (publisherMap.has(cacheKey)) {
+    return publisherMap.get(cacheKey)!;
   }
   const existingPublisher = await findPublisherByName(trimmedName);
   let publisherId: number;
@@ -56,7 +57,7 @@ async function getOrCreatePublisher(publisherName: string, publisherMap: Publish
   } else {
     publisherId = existingPublisher.id;
   }
-  publisherMap.set(trimmedName, publisherId);
+  publisherMap.set(cacheKey, publisherId);
   return publisherId;
 }
 
