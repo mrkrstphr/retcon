@@ -303,6 +303,12 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
         src={comicPageHref(comic, pageNumber, pageCount)}
         className="max-h-screen max-w-full object-contain select-none pointer-events-none"
       />
+      <div className="absolute overflow-hidden w-0 h-0" aria-hidden="true">
+        {pageNumber > 1 && <img src={comicPageHref(comic, pageNumber - 1, pageCount)} alt="" />}
+        {pageNumber < pageCount && (
+          <img src={comicPageHref(comic, pageNumber + 1, pageCount)} alt="" />
+        )}
+      </div>
 
       {issueCompleteDialogOpen && (
         <div
