@@ -1,6 +1,7 @@
 import { getComicById, updateComicPageCount } from '@retcon/common/db/queries';
 import { combinePagesInArchive } from '@retcon/common/lib';
-import { normalize, resolve } from 'path';
+import { rm } from 'fs/promises';
+import { join, normalize, resolve } from 'path';
 import { data } from 'react-router';
 import { protectRoute } from '~/lib/protectRoute';
 import { sqidToIdOr404 } from '~/lib/sqids';
@@ -56,6 +57,11 @@ export async function action({ params, request }: Route.ActionArgs) {
     );
 
     await updateComicPageCount(comicId, newPageCount);
+
+    // Best-effort: clear thumbnail disk cache so page numbers regenerate correctly
+    rm(join(dataDirectory, 'thumbnails', String(comicId)), { recursive: true, force: true }).catch(
+      () => undefined,
+    );
 
     return data({ success: true, newPageCount }, { status: 200 });
   } catch (error) {

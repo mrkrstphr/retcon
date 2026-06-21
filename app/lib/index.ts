@@ -3,6 +3,7 @@ export * from './comicInfoBuilder.js';
 export * from './deletePageFromArchive.js';
 export * from './extractPageFromArchive.js';
 export * from './getSortedImagesFromZip.js';
+export * from './makeThumbnail.js';
 export * from './parseFilename.js';
 export * from './rateLimiter.js';
 export * from './slugs.js';

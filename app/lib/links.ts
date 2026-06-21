@@ -8,5 +8,8 @@ export const comicReaderHref = ({ id }: { id: number }) => `/comic/${idToSqid(id
 export const comicPageHref = ({ id }: { id: number }, page: number, v?: number) =>
   `/comic/${idToSqid(id)}/page/${page}${v !== undefined ? `?v=${v}` : ''}`;
 
+export const comicPageThumbnailHref = ({ id }: { id: number }, page: number, v?: number) =>
+  `/comic/${idToSqid(id)}/page/${page}/thumbnail${v !== undefined ? `?v=${v}` : ''}`;
+
 export const seriesDetailsHref = ({ id, slug }: { id: number; slug: string }) =>
   `/series/${idToSqid(id)}/${slug}`;

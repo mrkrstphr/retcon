@@ -2,11 +2,12 @@ import { APP_NAME } from '@retcon/common/constants';
 import { getComicByIdForUser } from '@retcon/common/db/queries';
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
-import { MdFullscreen, MdFullscreenExit, MdMoreVert } from 'react-icons/md';
+import { MdFullscreen, MdFullscreenExit, MdGridView, MdMoreVert } from 'react-icons/md';
 import { useFetcher } from 'react-router';
 import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
+import { PageThumbnailGrid } from '~/components/PageThumbnailGrid';
 import { ProgressBar } from '~/components/ProgressBar';
 
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
@@ -92,6 +93,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [deletePageDialogOpen, setDeletePageDialogOpen] = useState(false);
   const [combinePagesDialogOpen, setCombinePagesDialogOpen] = useState(false);
+  const [thumbnailsOpen, setThumbnailsOpen] = useState(false);
   const { isFullscreen, toggleFullscreen } = useFullScreenManager(readerRef);
 
   const deleteFetcher = useFetcher();
@@ -151,7 +153,8 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   }, [pageNumber]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (issueCompleteDialogOpen || deletePageDialogOpen || combinePagesDialogOpen) return;
+    if (issueCompleteDialogOpen || deletePageDialogOpen || combinePagesDialogOpen || thumbnailsOpen)
+      return;
 
     if (optionsMenuOpen) {
       setOptionsMenuOpen(false);
@@ -187,7 +190,8 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
           !issueCompleteDialogOpen &&
           !deletePageDialogOpen &&
           !combinePagesDialogOpen &&
-          !optionsMenuOpen
+          !optionsMenuOpen &&
+          !thumbnailsOpen
         )
           goPreviousPage();
         break;
@@ -196,14 +200,17 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
           !issueCompleteDialogOpen &&
           !deletePageDialogOpen &&
           !combinePagesDialogOpen &&
-          !optionsMenuOpen
+          !optionsMenuOpen &&
+          !thumbnailsOpen
         ) {
           goNextPage();
           if (pageNumber + 1 > pageCount) setIssueCompleteDialogOpen(true);
         }
         break;
       case 'Escape':
-        if (combinePagesDialogOpen) {
+        if (thumbnailsOpen) {
+          setThumbnailsOpen(false);
+        } else if (combinePagesDialogOpen) {
           setCombinePagesDialogOpen(false);
         } else if (deletePageDialogOpen) {
           setDeletePageDialogOpen(false);
@@ -258,6 +265,16 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
         <div className="relative flex items-center gap-2 mr-2">
           <div
             className="cursor-pointer"
+            title="Page thumbnails"
+            onClick={(e) => {
+              e.stopPropagation();
+              setThumbnailsOpen(true);
+            }}
+          >
+            <MdGridView size={22} />
+          </div>
+          <div
+            className="cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setOptionsMenuOpen((open) => !open);
@@ -309,6 +326,19 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
           <img src={comicPageHref(comic, pageNumber + 1, pageCount)} alt="" />
         )}
       </div>
+
+      {thumbnailsOpen && (
+        <PageThumbnailGrid
+          comic={comic}
+          pageCount={pageCount}
+          currentPage={pageNumber}
+          onSelectPage={(page) => {
+            setPageNumber(page);
+            setThumbnailsOpen(false);
+          }}
+          onClose={() => setThumbnailsOpen(false)}
+        />
+      )}
 
       {issueCompleteDialogOpen && (
         <div
