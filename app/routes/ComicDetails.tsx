@@ -238,26 +238,29 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               {displayTitle}
             </h2>
-            <div className="flex text-slate-600 gap-1 md:gap-0 dark:text-slate-400 mb-2 text-sm flex-col md:flex-row items-start md:items-center md:[&>*+*]:before:content-['·'] md:[&>*+*]:before:inline-block md:[&>*+*]:before:mx-2 md:[&>*+*]:before:text-gray-400 dark:md:[&>*+*]:before:text-gray-600">
-              {comic.volume ? <div>{`Volume ${comic.volume}`}</div> : null}
-              {comic.seriesId && comic.seriesSlug ? (
-                <Link
-                  to={seriesDetailsHref({
-                    id: comic.seriesId,
-                    slug: comic.seriesSlug,
-                  })}
-                >
-                  {comic.series}
-                </Link>
-              ) : null}
-              {comic.publisher ? (
-                <span>
+            <div className="flex flex-col gap-1 mb-2">
+              <div className="flex flex-wrap items-center gap-y-0.5 text-sm text-slate-700 dark:text-slate-300 [&>*+*]:before:content-['|'] [&>*+*]:before:mx-3 [&>*+*]:before:text-slate-300 dark:[&>*+*]:before:text-slate-600 [&>*+*]:before:select-none">
+                {comic.seriesId && comic.seriesSlug ? (
+                  <Link
+                    to={seriesDetailsHref({
+                      id: comic.seriesId,
+                      slug: comic.seriesSlug,
+                    })}
+                  >
+                    {comic.series}
+                  </Link>
+                ) : null}
+                {comic.publisher ? (
                   <Link to={`/publishers/${comic.publisherSlug}`}>{comic.publisher}</Link>
-                </span>
-              ) : null}
-              {comic.metadata?.releaseDate ? (
-                <div>{formatDate(comic.metadata?.releaseDate)}</div>
-              ) : null}
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-y-0.5 text-xs text-slate-500 dark:text-slate-400 [&>*+*]:before:content-['|'] [&>*+*]:before:mx-3 [&>*+*]:before:text-slate-300 dark:[&>*+*]:before:text-slate-600 [&>*+*]:before:select-none">
+                {comic.pageCount ? <span>{comic.pageCount} pages</span> : null}
+                {comic.volume ? <span>{`Vol. ${comic.volume}`}</span> : null}
+                {comic.metadata?.releaseDate ? (
+                  <span>{formatDate(comic.metadata?.releaseDate)}</span>
+                ) : null}
+              </div>
             </div>
           </div>
 
