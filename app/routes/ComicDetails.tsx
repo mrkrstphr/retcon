@@ -1,4 +1,6 @@
 import { getComicByIdForUser } from '@retcon/common/db/queries';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 import { useState } from 'react';
 import Markdown from 'react-markdown';
 import { Link, useFetcher, useNavigate, useRevalidator } from 'react-router';
@@ -29,6 +31,33 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
+type TrashEntry =
+  | { type: 'delete'; pageNumber: number; fileName: string; deletedAt: string }
+  | {
+      type: 'combine';
+      pageNumber: number;
+      fileName: string;
+      pairedPageNumber: number;
+      pairedFileName: string;
+      combinedAt: string;
+    };
+
+interface TrashIndex {
+  comicId: number;
+  changes: TrashEntry[];
+}
+
+function readTrashIndex(comicId: number, dataDirectory: string): TrashEntry[] {
+  const indexPath = join(dataDirectory, 'trash', String(comicId), 'index.json');
+  if (!existsSync(indexPath)) return [];
+  try {
+    const raw = JSON.parse(readFileSync(indexPath, 'utf-8')) as TrashIndex;
+    return raw.changes ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   await protectRoute(request);
   const user = await getUser(request);
@@ -42,7 +71,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const hasComicVineApiKey = !!process.env.COMICVINE_API_KEY;
 
-  return { comic, hasComicVineApiKey };
+  const dataDirectory = process.env.DATA_DIRECTORY ?? '';
+  const trashItems = dataDirectory ? readTrashIndex(id, dataDirectory) : [];
+
+  return { comic, hasComicVineApiKey, trashItems };
 }
 
 function formatDate(dateString?: string) {
@@ -119,8 +151,65 @@ function Metadata({ metadata }: { metadata: any }) {
   );
 }
 
+function TrashItems({ items }: { items: TrashEntry[] }) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
+        Trash ({items.length})
+      </h3>
+      <ul className="space-y-2">
+        {items.map((entry, i) => {
+          if (entry.type === 'delete') {
+            return (
+              <li
+                key={i}
+                className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+              >
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 shrink-0">
+                  Deleted
+                </span>
+                <span className="text-slate-700 dark:text-slate-300">
+                  Page {entry.pageNumber}{' '}
+                  <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
+                    ({entry.fileName})
+                  </span>
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 sm:ml-auto text-xs">
+                  {new Date(entry.deletedAt).toLocaleString()}
+                </span>
+              </li>
+            );
+          }
+
+          return (
+            <li
+              key={i}
+              className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+            >
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">
+                Combined
+              </span>
+              <span className="text-slate-700 dark:text-slate-300">
+                Pages {entry.pageNumber} + {entry.pairedPageNumber}{' '}
+                <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
+                  ({entry.fileName}, {entry.pairedFileName})
+                </span>
+              </span>
+              <span className="text-slate-400 dark:text-slate-500 sm:ml-auto text-xs">
+                {new Date(entry.combinedAt).toLocaleString()}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export default function ComicDetails({ loaderData }: Route.ComponentProps) {
-  const { comic, hasComicVineApiKey } = loaderData;
+  const { comic, hasComicVineApiKey, trashItems } = loaderData;
   const revalidator = useRevalidator();
   const navigate = useNavigate();
   const fetcher = useFetcher();
@@ -299,6 +388,8 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
           </div>
+
+          <TrashItems items={trashItems} />
         </div>
       </div>
 
