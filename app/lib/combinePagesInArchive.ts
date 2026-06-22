@@ -10,13 +10,15 @@ import { getSortedImagesFromZip } from './getSortedImagesFromZip.js';
 const execAsync = promisify(exec);
 
 type TrashEntry =
-  | { type: 'delete'; pageNumber: number; fileName: string; deletedAt: string }
+  | { type: 'delete'; pageNumber: number; fileName: string; entryName: string; deletedAt: string }
   | {
       type: 'combine';
       pageNumber: number;
       fileName: string;
+      entryName: string;
       pairedPageNumber: number;
       pairedFileName: string;
+      pairedEntryName: string;
       combinedAt: string;
     };
 
@@ -62,8 +64,10 @@ export async function combinePagesInArchive(
     type: 'combine',
     pageNumber,
     fileName: fileName1,
+    entryName: entry1,
     pairedPageNumber: pageNumber + 1,
     pairedFileName: fileName2,
+    pairedEntryName: entry2,
     combinedAt: new Date().toISOString(),
   });
   writeFileSync(indexPath, JSON.stringify(trashIndex, null, 2), 'utf-8');

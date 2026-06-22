@@ -32,13 +32,15 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 type TrashEntry =
-  | { type: 'delete'; pageNumber: number; fileName: string; deletedAt: string }
+  | { type: 'delete'; pageNumber: number; fileName: string; entryName?: string; deletedAt: string }
   | {
       type: 'combine';
       pageNumber: number;
       fileName: string;
+      entryName?: string;
       pairedPageNumber: number;
       pairedFileName: string;
+      pairedEntryName?: string;
       combinedAt: string;
     };
 
@@ -151,58 +153,88 @@ function Metadata({ metadata }: { metadata: any }) {
   );
 }
 
-function TrashItems({ items }: { items: TrashEntry[] }) {
+function TrashEntryRow({
+  entry,
+  index,
+  comicId,
+}: {
+  entry: TrashEntry;
+  index: number;
+  comicId: number;
+}) {
+  const fetcher = useFetcher();
+  const isSubmitting = fetcher.state !== 'idle';
+  const restoreAction = `/comic/${idToSqid(comicId)}/trash/${index}/restore`;
+
+  const badge =
+    entry.type === 'delete' ? (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 shrink-0">
+        Deleted
+      </span>
+    ) : (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">
+        Combined
+      </span>
+    );
+
+  const description =
+    entry.type === 'delete' ? (
+      <span className="text-slate-700 dark:text-slate-300">
+        Page {entry.pageNumber}{' '}
+        <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
+          ({entry.fileName})
+        </span>
+      </span>
+    ) : (
+      <span className="text-slate-700 dark:text-slate-300">
+        Pages {entry.pageNumber} + {entry.pairedPageNumber}{' '}
+        <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
+          ({entry.fileName}, {entry.pairedFileName})
+        </span>
+      </span>
+    );
+
+  const timestamp =
+    entry.type === 'delete'
+      ? new Date(entry.deletedAt).toLocaleString()
+      : new Date(entry.combinedAt).toLocaleString();
+
+  const buttonLabel = entry.type === 'delete' ? 'Restore' : 'Undo';
+
+  return (
+    <li className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0">
+      {badge}
+      {description}
+      <span className="text-slate-400 dark:text-slate-500 sm:ml-auto text-xs">{timestamp}</span>
+      <fetcher.Form method="POST" action={restoreAction}>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        >
+          {isSubmitting ? '…' : buttonLabel}
+        </button>
+      </fetcher.Form>
+    </li>
+  );
+}
+
+function TrashItems({ items, comicId }: { items: TrashEntry[]; comicId: number }) {
   if (items.length === 0) return null;
 
   return (
     <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
         Trash ({items.length})
       </h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+        Pages moved here when deleted or combined in the reader. Originals are kept so changes can
+        be undone.
+      </p>
       <ul className="space-y-2">
-        {items.map((entry, i) => {
-          if (entry.type === 'delete') {
-            return (
-              <li
-                key={i}
-                className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
-              >
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 shrink-0">
-                  Deleted
-                </span>
-                <span className="text-slate-700 dark:text-slate-300">
-                  Page {entry.pageNumber}{' '}
-                  <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
-                    ({entry.fileName})
-                  </span>
-                </span>
-                <span className="text-slate-400 dark:text-slate-500 sm:ml-auto text-xs">
-                  {new Date(entry.deletedAt).toLocaleString()}
-                </span>
-              </li>
-            );
-          }
-
-          return (
-            <li
-              key={i}
-              className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
-            >
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">
-                Combined
-              </span>
-              <span className="text-slate-700 dark:text-slate-300">
-                Pages {entry.pageNumber} + {entry.pairedPageNumber}{' '}
-                <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
-                  ({entry.fileName}, {entry.pairedFileName})
-                </span>
-              </span>
-              <span className="text-slate-400 dark:text-slate-500 sm:ml-auto text-xs">
-                {new Date(entry.combinedAt).toLocaleString()}
-              </span>
-            </li>
-          );
-        })}
+        {items.map((entry, i) => (
+          <TrashEntryRow key={i} entry={entry} index={i} comicId={comicId} />
+        ))}
       </ul>
     </div>
   );
@@ -389,7 +421,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <TrashItems items={trashItems} />
+          <TrashItems items={trashItems} comicId={comic.id} />
         </div>
       </div>
 

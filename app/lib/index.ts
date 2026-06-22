@@ -6,5 +6,6 @@ export * from './getSortedImagesFromZip.js';
 export * from './makeThumbnail.js';
 export * from './parseFilename.js';
 export * from './rateLimiter.js';
+export * from './restoreTrashEntry.js';
 export * from './slugs.js';
 export * from './writeComicInfo.js';

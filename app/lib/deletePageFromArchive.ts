@@ -11,6 +11,7 @@ interface TrashEntry {
   type: 'delete';
   pageNumber: number;
   fileName: string;
+  entryName: string;
   deletedAt: string;
 }
 
@@ -50,6 +51,7 @@ export async function deletePageFromArchive(
     type: 'delete',
     pageNumber,
     fileName,
+    entryName,
     deletedAt: new Date().toISOString(),
   });
   writeFileSync(indexPath, JSON.stringify(trashIndex, null, 2), 'utf-8');
