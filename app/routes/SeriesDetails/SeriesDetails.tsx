@@ -7,6 +7,7 @@ import {
 } from '@retcon/common/db/queries';
 import { data, Link } from 'react-router';
 import { Box } from '~/components/Box';
+import { StarDisplay } from '~/components/StarDisplay';
 import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
@@ -153,6 +154,7 @@ export default function SeriesDetails({ loaderData }: Route.ComponentProps) {
                       {comic.metadata.releaseDate}
                     </div>
                   )}
+                  <StarDisplay rating={comic.rating} className="justify-center" />
                 </div>
               </Link>
             ))}

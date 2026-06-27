@@ -6,6 +6,7 @@ import Markdown from 'react-markdown';
 import { Link, useFetcher, useNavigate, useRevalidator } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { Box } from '~/components/Box';
+import { StarRating } from '~/components/StarRating';
 import { Cover } from '~/components/Cover';
 import { MetadataEditModal } from '~/components/MetadataEditModal';
 import { MetadataSearchModal } from '~/components/MetadataSearchModal';
@@ -406,6 +407,10 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
                   <span>{formatDate(comic.metadata?.releaseDate)}</span>
                 ) : null}
               </div>
+            </div>
+
+            <div className="mt-3">
+              <StarRating comicId={comic.id} rating={comic.rating} />
             </div>
           </div>
 

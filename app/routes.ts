@@ -25,6 +25,7 @@ export default [
   route('comic/:sqid/read', 'routes/ComicReader.tsx'),
   route('comic/:sqid/progress', 'routes/UserComicProgress.ts'),
   route('issue/:sqid/read', 'routes/MarkIssueReadOrUnread.ts'),
+  route('issue/:sqid/rating', 'routes/IssueRating.ts'),
   route('series/:sqid/read', 'routes/MarkSeriesReadOrUnread.ts'),
   route('search', 'routes/Search.tsx'),
   route('comics/:sqid/metadata-search', 'routes/MetadataSearch.ts'),

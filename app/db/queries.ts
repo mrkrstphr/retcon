@@ -29,6 +29,7 @@ export function getRecentComicsForUser(userId: number, limit: number = 10) {
       volume: comics.volume,
       currentPage: userComics.currentPage,
       isRead: userComics.isRead,
+      rating: userComics.rating,
       pageCount: comics.pageCount,
       publisher: publishers.name,
       lastSynced: comics.lastSynced,
@@ -52,6 +53,7 @@ export function getInProgressComics(userId: number, limit: number = 10) {
       volume: comics.volume,
       currentPage: userComics.currentPage,
       isRead: userComics.isRead,
+      rating: userComics.rating,
       pageCount: comics.pageCount,
       publisher: publishers.name,
       lastSynced: comics.lastSynced,
@@ -89,6 +91,7 @@ export function getComicByIdForUser(id: number, userId: number) {
         metadata: comics.metadata,
         currentPage: userComics.currentPage,
         isRead: userComics.isRead,
+        rating: userComics.rating,
         createdAt: comics.createdAt,
       })
       .from(comics)
@@ -531,6 +534,7 @@ export function getSeriesComicsForUser(
       currentPage: userComics.currentPage,
       pageCount: comics.pageCount,
       isRead: userComics.isRead,
+      rating: userComics.rating,
       metadata: comics.metadata,
       releaseDate: comics.releaseDate,
       createdAt: comics.createdAt,
@@ -599,6 +603,7 @@ export function getLooseComicsForUser(userId: number, limit: number = 25, offset
       currentPage: userComics.currentPage,
       pageCount: comics.pageCount,
       isRead: userComics.isRead,
+      rating: userComics.rating,
       metadata: comics.metadata,
       releaseDate: comics.releaseDate,
       createdAt: comics.createdAt,
@@ -659,6 +664,30 @@ export function upsertUserComicProgress(
         isRead,
         updatedAt: new Date(),
       },
+    });
+}
+
+export function upsertUserComicRating(userId: number, comicId: number, rating: number | null) {
+  if (rating === null) {
+    return db
+      .update(userComics)
+      .set({ rating: null, updatedAt: new Date() })
+      .where(and(eq(userComics.userId, userId), eq(userComics.comicId, comicId)));
+  }
+  return db
+    .insert(userComics)
+    .values({
+      userId,
+      comicId,
+      currentPage: 1,
+      isRead: false,
+      rating,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [userComics.userId, userComics.comicId],
+      set: { rating, updatedAt: new Date() },
     });
 }
 
