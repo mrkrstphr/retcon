@@ -468,7 +468,7 @@ export function getPublisherSeriesCount(
   const searchPattern = `%${cleanedSearch}%`;
 
   const query = db
-    .select({ count: count() })
+    .select({ count: sql<number>`count(DISTINCT ${series.id})` })
     .from(series)
     .leftJoin(comicsForCount, eq(comicsForCount.seriesId, series.id))
     .leftJoin(userComics, eq(comicsForCount.id, userComics.comicId))
