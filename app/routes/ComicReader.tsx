@@ -80,7 +80,8 @@ const usePageManager = ({
   pageCount: number;
   currentPage?: number | null;
 }) => {
-  const [pageNumber, setPageNumber] = useState(currentPage ?? 1);
+  const initialPage = currentPage && currentPage >= pageCount ? 1 : (currentPage ?? 1);
+  const [pageNumber, setPageNumber] = useState(initialPage);
 
   const nextPage = () => setPageNumber((prev) => Math.min(prev + 1, pageCount));
   const previousPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
