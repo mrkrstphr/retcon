@@ -684,29 +684,31 @@ export function markComicAsRead(userId: number, comicId: number) {
 
 export async function markSeriesAsRead(userId: number, seriesId: number) {
   const now = new Date();
-  const seriesComics = await db
-    .select({ id: comics.id })
-    .from(comics)
-    .where(eq(comics.seriesId, seriesId));
+  return db.transaction(async (tx) => {
+    const seriesComics = await tx
+      .select({ id: comics.id })
+      .from(comics)
+      .where(eq(comics.seriesId, seriesId));
 
-  if (seriesComics.length === 0) return;
+    if (seriesComics.length === 0) return;
 
-  return db
-    .insert(userComics)
-    .values(
-      seriesComics.map(({ id }) => ({
-        userId,
-        comicId: id,
-        isRead: true,
-        currentPage: 1,
-        createdAt: now,
-        updatedAt: now,
-      })),
-    )
-    .onConflictDoUpdate({
-      target: [userComics.userId, userComics.comicId],
-      set: { isRead: true, updatedAt: now },
-    });
+    return tx
+      .insert(userComics)
+      .values(
+        seriesComics.map(({ id }) => ({
+          userId,
+          comicId: id,
+          isRead: true,
+          currentPage: 1,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: [userComics.userId, userComics.comicId],
+        set: { isRead: true, updatedAt: now },
+      });
+  });
 }
 
 export function deleteUserComicRecord(userId: number, comicId: number) {
