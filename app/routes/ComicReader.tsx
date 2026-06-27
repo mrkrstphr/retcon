@@ -3,7 +3,7 @@ import { getComicByIdForUser, getNextComicInSeries } from '@retcon/common/db/que
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { MdFullscreen, MdFullscreenExit, MdGridView, MdMoreVert } from 'react-icons/md';
-import { useFetcher } from 'react-router';
+import { Link, useFetcher } from 'react-router';
 import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
@@ -378,19 +378,19 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
                 Close
               </Button>
               {nextComic ? (
-                <a href={comicReaderHref(nextComic)}>
+                <Link to={comicReaderHref(nextComic)}>
                   <Button>Read Next Issue</Button>
-                </a>
+                </Link>
               ) : (
-                <a
-                  href={
+                <Link
+                  to={
                     comic.seriesId && comic.seriesSlug
                       ? seriesDetailsHref({ id: comic.seriesId, slug: comic.seriesSlug })
                       : '/'
                   }
                 >
                   <Button>Exit</Button>
-                </a>
+                </Link>
               )}
             </div>
           </div>
