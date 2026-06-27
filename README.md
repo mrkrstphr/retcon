@@ -1,22 +1,63 @@
-# Rack Manager
+# Retcon
 
-A comic book collection manager that scans directories for comic files (CBZ/CBR), extracts metadata, and provides a web interface for browsing your collection.
+A comic book collection manager that scans directories for comic files (CBZ/CBR), extracts metadata, and provides a web interface for browsing and reading your collection.
 
 ## Features
 
-- **Smart Scanning**: Efficiently processes CBZ and CBR files with intelligent sync logic
-- **Metadata Extraction**: Supports ComicInfo.xml and ComicBookInfo formats
+- **Smart Scanning**: Efficiently processes CBZ files with intelligent sync logic — only re-reads metadata when files change
+- **Metadata Extraction**: Supports ComicInfo.xml and ComicBookInfo formats, with filename parsing as a fallback
 - **Cover Extraction**: Automatically generates optimized cover images
-- **Web Interface**: Beautiful card-based view of your collection
-- **PostgreSQL Storage**: Reliable database backend with full-text search capabilities
+- **Publisher & Series Organization**: Hierarchical browsing by publisher and series
+- **In-Browser Reader**: Read comics directly in the browser with page-by-page navigation
+- **Reading Progress**: Tracks current page and read/unread status per user
+- **Search**: Full-text search across your collection
+- **Authentication**: Multi-user support with session-based login
+- **PostgreSQL Storage**: Reliable database backend via Drizzle ORM
 
-For each file:
+## Setup
 
-1.  If it doesn't exist in the database, insert it
-2.  If it does, and the `file_modified` matches the file modified time, simply update its last_synced timestamp
-3.  If they do not match, the metadata should be updated
+### Environment Variables
 
-This script is written in Typescript.
+Create a `.env` file:
+
+```
+DATABASE_URL=postgresql://user:pass@localhost:5432/comics
+SCAN_DIRECTORY=/path/to/comics
+DATA_DIRECTORY=/path/to/data
+COOKIE_SECRET=random-secret-key
+```
+
+### Running
+
+```bash
+npm install
+npm run db:migrate
+npm run dev        # development
+npm run build && npm run start  # production
+```
+
+### Scanning Your Collection
+
+```bash
+npm run scan
+```
+
+Scanner options:
+
+```bash
+--dir <path>       # Override SCAN_DIRECTORY
+--force-update     # Force metadata update for all comics
+--no-cleanup       # Skip deletion of missing comics/series/publishers
+--help             # Show help
+```
+
+## Docker
+
+A multi-arch Docker image (`linux/amd64` + `linux/arm64`) is available on Docker Hub:
+
+```
+mrkrstphr/retcon:latest
+```
 
 ## Cutting a Release
 
@@ -34,4 +75,4 @@ Then push the commit and tag:
 git push --follow-tags
 ```
 
-Pushing the tag triggers the GitHub Actions release workflow, which builds a multi-arch Docker image (`linux/amd64` + `linux/arm64`) and pushes it to Docker Hub as `mrkrstphr/retcon` with tags `:x.y.z`, `:x`, and `:latest`.
+Pushing the tag triggers the GitHub Actions release workflow, which builds and pushes the Docker image with tags `:x.y.z`, `:x`, and `:latest`.
