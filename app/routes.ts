@@ -19,6 +19,7 @@ export default [
   route('comic/:sqid/page/:page/delete', 'routes/DeletePage.ts'),
   route('comic/:sqid/page/:page/combine', 'routes/CombinePages.ts'),
   route('comic/:sqid/trash/:index/restore', 'routes/RestoreTrashEntry.ts'),
+  route('comic/:sqid/trash/clear', 'routes/ClearTrash.ts'),
   route('comic/:sqid/page/:page', 'routes/ComicPage.tsx'),
   route('cover/:sqid', 'routes/Cover.tsx'),
   route('comic/:sqid/read', 'routes/ComicReader.tsx'),

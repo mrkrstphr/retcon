@@ -220,13 +220,37 @@ function TrashEntryRow({
 }
 
 function TrashItems({ items, comicId }: { items: TrashEntry[]; comicId: number }) {
+  const fetcher = useFetcher();
+  const isClearing = fetcher.state !== 'idle';
+
   if (items.length === 0) return null;
+
+  const clearAction = `/comic/${idToSqid(comicId)}/trash/clear`;
 
   return (
     <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
-        Trash ({items.length})
-      </h3>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Trash ({items.length})
+        </h3>
+        <fetcher.Form
+          method="POST"
+          action={clearAction}
+          onSubmit={(e) => {
+            if (!confirm('Permanently delete all trashed items? This cannot be undone.')) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <button
+            type="submit"
+            disabled={isClearing}
+            className="text-xs px-2 py-1 rounded border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {isClearing ? '…' : 'Clear Trash'}
+          </button>
+        </fetcher.Form>
+      </div>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
         Pages moved here when deleted or combined in the reader. Originals are kept so changes can
         be undone.
