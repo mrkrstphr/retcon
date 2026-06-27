@@ -3,7 +3,7 @@ import { getComicByIdForUser, getNextComicInSeries } from '@retcon/common/db/que
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { MdFullscreen, MdFullscreenExit, MdGridView, MdMoreVert } from 'react-icons/md';
-import { Link, useFetcher } from 'react-router';
+import { Link, useFetcher, useNavigate } from 'react-router';
 import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
@@ -87,6 +87,7 @@ const usePageManager = ({
 
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { comic, nextComic } = loaderData;
+  const navigate = useNavigate();
   const readerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(comic.pageCount);
   const { pageNumber, setPageNumber, nextPage, previousPage } = usePageManager({
@@ -185,7 +186,11 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
 
   const handleCloseReader = (e?: React.MouseEvent<HTMLDivElement>) => {
     e?.stopPropagation();
-    window.history.back();
+    const destination =
+      comic.seriesId && comic.seriesSlug
+        ? seriesDetailsHref({ id: comic.seriesId, slug: comic.seriesSlug })
+        : '/';
+    navigate(destination);
   };
 
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
