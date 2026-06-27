@@ -88,7 +88,9 @@ async function getZipComicCommentInfo(zip: StreamZipAsync) {
       if (commentData && commentData['ComicBookInfo/1.0']) {
         return parseComicBookInfo(commentData['ComicBookInfo/1.0']);
       }
-    } catch (jsonError) {}
+    } catch (jsonError) {
+      console.info(`ZIP comment is not valid JSON:`, jsonError);
+    }
   }
 }
 
