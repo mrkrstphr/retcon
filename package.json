@@ -1,6 +1,6 @@
 {
   "name": "retcon",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A comic book collection manager that scans directories for comic files (CBZ/CBR), extracts metadata, and provides a web interface for browsing your collection",
   "type": "module",
   "scripts": {
