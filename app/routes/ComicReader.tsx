@@ -146,7 +146,6 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
   };
 
   const handlers = useSwipeable({
-    onSwiped: (eventData) => console.log('User Swiped!', eventData),
     onSwipedLeft: goNextPage,
     onSwipedRight: goPreviousPage,
   });
