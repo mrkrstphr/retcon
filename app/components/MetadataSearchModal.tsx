@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
+import { useFocusTrap } from '~/hooks/useFocusTrap';
 import { idToSqid } from '~/lib/sqids';
 import type { MetadataSearchResult } from '~/schemas/metadata';
 import { Button } from './Button';
@@ -38,6 +39,7 @@ export function MetadataSearchModal({
   const [selectedResult, setSelectedResult] = useState<MetadataSearchResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const previousApplyStateRef = useRef<'idle' | 'submitting' | 'loading'>('idle');
+  const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   useEffect(() => {
     if (isOpen && searchFetcher.state === 'idle' && !searchFetcher.data) {
@@ -130,6 +132,7 @@ export function MetadataSearchModal({
       onClick={isFetching ? undefined : onClose}
     >
       <div
+        ref={focusTrapRef}
         className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >

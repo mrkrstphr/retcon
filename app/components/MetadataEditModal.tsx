@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaX } from 'react-icons/fa6';
 import { useFetcher } from 'react-router';
+import { useFocusTrap } from '~/hooks/useFocusTrap';
 import { makeClassName } from '~/lib/makeClassName';
 import { idToSqid } from '~/lib/sqids';
 import { Button } from './Button';
@@ -116,6 +117,7 @@ export function MetadataEditModal({
   const loadFetcher = useFetcher<LoadResponse>();
   const saveFetcher = useFetcher<SaveResponse>();
   const previousSaveStateRef = useRef<'idle' | 'submitting' | 'loading'>('idle');
+  const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   const [formData, setFormData] = useState<EditMetadata>({});
 
@@ -196,6 +198,7 @@ export function MetadataEditModal({
       onClick={isSaving ? undefined : onClose}
     >
       <div
+        ref={focusTrapRef}
         className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
