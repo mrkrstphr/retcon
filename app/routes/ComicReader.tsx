@@ -1,6 +1,6 @@
 import { APP_NAME } from '@retcon/common/constants';
 import { getComicByIdForUser, getNextComicInSeries } from '@retcon/common/db/queries';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { MdFullscreen, MdFullscreenExit, MdGridView, MdMoreVert } from 'react-icons/md';
 import { Link, useFetcher, useNavigate } from 'react-router';
@@ -56,16 +56,19 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 const useProgressUpdater = (comicId: number) => {
   const fetcher = useFetcher();
 
-  const updateProgress = (currentPage: number) => {
-    fetcher.submit(
-      { currentPage },
-      {
-        method: 'POST',
-        action: `/comic/${idToSqid(comicId)}/progress`,
-        encType: 'application/json',
-      },
-    );
-  };
+  const updateProgress = useCallback(
+    (currentPage: number) => {
+      fetcher.submit(
+        { currentPage },
+        {
+          method: 'POST',
+          action: `/comic/${idToSqid(comicId)}/progress`,
+          encType: 'application/json',
+        },
+      );
+    },
+    [fetcher, comicId],
+  );
 
   return updateProgress;
 };
@@ -156,7 +159,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     updateProgress(pageNumber);
-  }, [pageNumber]);
+  }, [pageNumber, updateProgress]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (issueCompleteDialogOpen || deletePageDialogOpen || combinePagesDialogOpen || thumbnailsOpen)
