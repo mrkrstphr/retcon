@@ -27,7 +27,9 @@ export const series = pgTable(
     name: varchar('name', { length: 300 }).notNull(),
     volume: varchar('volume', { length: 50 }),
     slug: varchar('slug', { length: 300 }).notNull(),
-    publisherId: bigint('publisher_id', { mode: 'number' }).references(() => publishers.id),
+    publisherId: bigint('publisher_id', { mode: 'number' }).references(() => publishers.id, {
+      onDelete: 'cascade',
+    }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [index('series_publisher_id_idx').on(t.publisherId)],
@@ -44,8 +46,12 @@ export const comics = pgTable(
     number: varchar('number', { length: 50 }),
     volume: varchar('volume', { length: 50 }),
     pageCount: integer('page_count').default(0).notNull(),
-    publisherId: bigint('publisher_id', { mode: 'number' }).references(() => publishers.id),
-    seriesId: bigint('series_id', { mode: 'number' }).references(() => series.id),
+    publisherId: bigint('publisher_id', { mode: 'number' }).references(() => publishers.id, {
+      onDelete: 'cascade',
+    }),
+    seriesId: bigint('series_id', { mode: 'number' }).references(() => series.id, {
+      onDelete: 'cascade',
+    }),
     metadata: jsonb('metadata').$type<Metadata>().notNull().default({}),
     releaseDate: varchar('release_date', { length: 10 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
