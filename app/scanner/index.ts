@@ -7,10 +7,10 @@ import { client } from '../db/index.js';
 import {
   deleteEmptyPublishers,
   deleteEmptySeries,
-  findComicByFileName,
   getAllPublishers,
   getAllSeries,
   getComicCount,
+  getComicsByDirectory,
   updateComicLastSynced,
 } from '../db/queries.js';
 import { deleteMissingIssues } from './lib/cleanup.js';
@@ -29,12 +29,15 @@ export interface ScanOptions {
   scanDirectory?: string;
 }
 
+type ExistingComicsMap = Map<string, { id: number; fileModified: Date }>;
+
 async function processComicFiles(
   directory: string,
   syncTime: Date,
   forceUpdate: boolean,
   publisherMap: PublisherMap,
   seriesMap: SeriesMap,
+  existingComicsMap: ExistingComicsMap,
 ): Promise<number> {
   let processedCount = 0;
   try {
@@ -50,28 +53,21 @@ async function processComicFiles(
           forceUpdate,
           publisherMap,
           seriesMap,
+          existingComicsMap,
         );
         processedCount += subCount;
       } else if (stats.isFile()) {
         const lowerCase = item.toLowerCase();
         if (lowerCase.endsWith('.cbz') || lowerCase.endsWith('.zip')) {
           processedCount++;
-          const existingFile = await findComicByFileName(fullPath);
+          const existing = existingComicsMap.get(fullPath);
 
-          if (existingFile.length === 0) {
+          if (existing === undefined) {
             await createComic(fullPath, stats, syncTime, publisherMap, seriesMap);
           } else {
-            const existing = existingFile[0];
             const existingModified = new Date(existing.fileModified);
             if (forceUpdate || existingModified.getTime() !== stats.mtime.getTime()) {
-              await updateComic(
-                existingFile[0],
-                fullPath,
-                stats,
-                syncTime,
-                publisherMap,
-                seriesMap,
-              );
+              await updateComic(existing, fullPath, stats, syncTime, publisherMap, seriesMap);
             } else {
               await updateComicLastSynced(fullPath, syncTime);
             }
@@ -160,6 +156,12 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
   console.log(
     `   ${chalk.gray('Loaded')} ${chalk.white.bold(allPublishers.length)} ${chalk.gray('existing publisher(s)')}`,
   );
+
+  const allExistingComics = await getComicsByDirectory(absolutePath);
+  const existingComicsMap: ExistingComicsMap = new Map(
+    allExistingComics.map((comic) => [comic.fileName, comic]),
+  );
+
   process.stdout.write(`${chalk.gray('Progress:')} `);
 
   const syncTime = new Date();
@@ -169,6 +171,7 @@ export async function runScan(options: ScanOptions = {}): Promise<void> {
     forceUpdate,
     publisherMap,
     seriesMap,
+    existingComicsMap,
   );
 
   console.log();

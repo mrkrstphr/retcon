@@ -1,5 +1,5 @@
 import { createSlug, normalizePublisherName } from '@retcon/common/lib';
-import { and, count, desc, eq, ilike, inArray, isNull, lt, not, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, isNull, like, lt, not, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { notNil } from '../lib/notNil.js';
 import { db } from './index.js';
@@ -67,6 +67,13 @@ export function getInProgressComics(userId: number, limit: number = 10) {
 
 export function findComicByFileName(fileName: string) {
   return db.select().from(comics).where(eq(comics.fileName, fileName)).limit(1);
+}
+
+export function getComicsByDirectory(directory: string) {
+  return db
+    .select()
+    .from(comics)
+    .where(like(comics.fileName, `${directory}%`));
 }
 
 export function getComicByIdForUser(id: number, userId: number) {
