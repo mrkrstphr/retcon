@@ -1,5 +1,5 @@
 import { APP_NAME } from '@retcon/common/constants';
-import { getComicByIdForUser } from '@retcon/common/db/queries';
+import { getComicByIdForUser, getNextComicInSeries } from '@retcon/common/db/queries';
 import { useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { MdFullscreen, MdFullscreenExit, MdGridView, MdMoreVert } from 'react-icons/md';
@@ -12,7 +12,8 @@ import { ProgressBar } from '~/components/ProgressBar';
 
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
 import { comicTitle } from '~/lib/comicTitle';
-import { comicPageHref } from '~/lib/links';
+import { getCoverPath } from '~/lib/getCoverPath';
+import { comicPageHref, comicReaderHref, seriesDetailsHref } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
@@ -45,7 +46,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw new Response('Comic not found', { status: 404 });
   }
 
-  return { comic };
+  const nextComic = comic.seriesId
+    ? await getNextComicInSeries(comic.seriesId, comic.id, user.id)
+    : null;
+
+  return { comic, nextComic };
 }
 
 const useProgressUpdater = (comicId: number) => {
@@ -81,7 +86,7 @@ const usePageManager = ({
 };
 
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
-  const { comic } = loaderData;
+  const { comic, nextComic } = loaderData;
   const readerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(comic.pageCount);
   const { pageNumber, setPageNumber, nextPage, previousPage } = usePageManager({
@@ -343,18 +348,50 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
       {issueCompleteDialogOpen && (
         <div
           className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-slate-900/50 transition-opacity duration-500 ease-in-out ${issueCompleteDialogOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-slate-900/80 text-slate-100 p-4 max-w-3/4 md:max-w-[400px]">
-            <h3 className="text-xl font-bold mb-2">Issue Complete!</h3>
-            <p className="mb-2">You've reached the end of this one!</p>
-            <p className="mb-4 text-sm">
-              At some point we'll have some suggestions of what to read next here...
-            </p>
-            <div className="flex items-center justify-center gap-2">
-              <Button variant="secondary" onClick={() => setIssueCompleteDialogOpen(false)}>
+          <div className="bg-slate-900 border border-slate-700 text-slate-100 p-6 w-[min(440px,90vw)] rounded shadow-xl">
+            <h3 className="text-xl font-bold mb-1">Issue Complete!</h3>
+            <p className="text-slate-400 mb-5">You've reached the end of this one!</p>
+            {nextComic ? (
+              <div className="flex gap-5 mb-6 items-center bg-slate-800 rounded-lg p-4">
+                <img
+                  src={getCoverPath(nextComic.id)}
+                  alt={`Cover of ${nextComic.series} #${nextComic.number}`}
+                  className="w-28 flex-shrink-0 object-contain rounded shadow"
+                />
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Up next</p>
+                  <p className="font-semibold text-base leading-snug">{nextComic.series}</p>
+                  <p className="text-slate-300 mt-0.5">Issue #{nextComic.number}</p>
+                </div>
+              </div>
+            ) : null}
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIssueCompleteDialogOpen(false);
+                  readerRef.current?.focus();
+                }}
+              >
                 Close
               </Button>
-              <Button onClick={() => window.history.back()}>Exit</Button>
+              {nextComic ? (
+                <a href={comicReaderHref(nextComic)}>
+                  <Button>Read Next Issue</Button>
+                </a>
+              ) : (
+                <a
+                  href={
+                    comic.seriesId && comic.seriesSlug
+                      ? seriesDetailsHref({ id: comic.seriesId, slug: comic.seriesSlug })
+                      : '/'
+                  }
+                >
+                  <Button>Exit</Button>
+                </a>
+              )}
             </div>
           </div>
         </div>

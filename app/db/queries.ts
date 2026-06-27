@@ -549,6 +549,41 @@ export function getSeriesComicsForUser(
     .offset(offset);
 }
 
+export async function getNextComicInSeries(seriesId: number, comicId: number, userId: number) {
+  const ordered = await db
+    .select({ id: comics.id })
+    .from(comics)
+    .where(eq(comics.seriesId, seriesId))
+    .orderBy(
+      sql`${comics.releaseDate} nulls last`,
+      sql`(case when ${comics.number} ~ '^[0-9]+$' then ${comics.number}::integer end) nulls last`,
+      comics.number,
+      desc(comics.createdAt),
+    );
+
+  const currentIndex = ordered.findIndex((c) => c.id === comicId);
+  if (currentIndex === -1 || currentIndex === ordered.length - 1) return null;
+
+  const nextId = ordered[currentIndex + 1].id;
+
+  return firstOrNull(
+    db
+      .select({
+        id: comics.id,
+        slug: comics.slug,
+        number: comics.number,
+        series: series.name,
+        currentPage: userComics.currentPage,
+        isRead: userComics.isRead,
+      })
+      .from(comics)
+      .leftJoin(series, eq(comics.seriesId, series.id))
+      .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
+      .where(eq(comics.id, nextId))
+      .limit(1),
+  );
+}
+
 export function getLooseComicsCount() {
   return countOrZero(db.select({ count: count() }).from(comics).where(isNull(comics.seriesId)));
 }
