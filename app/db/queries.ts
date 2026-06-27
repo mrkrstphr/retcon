@@ -184,8 +184,8 @@ export function searchComics(searchTerm: string, limit: number = 25, offset: num
     .where(
       or(
         ilike(series.name, searchPattern),
-        sql`(${series.name} || ' #' || ${comics.number}) ILIKE ${searchPattern}`,
-        sql`(${series.name} || ' ' || ${comics.number}) ILIKE ${searchPattern}`,
+        sql`(COALESCE(${series.name}, '') || ' #' || COALESCE(${comics.number}, '')) ILIKE ${searchPattern}`,
+        sql`(COALESCE(${series.name}, '') || ' ' || COALESCE(${comics.number}, '')) ILIKE ${searchPattern}`,
         ilike(comics.fileName, searchPattern),
       ),
     )
