@@ -129,7 +129,7 @@ export function MetadataSearchModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={isFetching ? undefined : onClose}
+      onClick={isFetching && !fetchError ? undefined : onClose}
     >
       <div
         ref={focusTrapRef}
@@ -253,7 +253,7 @@ export function MetadataSearchModal({
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={onClose} disabled={isFetching}>
+            <Button variant="secondary" onClick={onClose} disabled={isFetching && !fetchError}>
               Cancel
             </Button>
             <Button onClick={handleApply} disabled={!selectedResult || isFetching}>
