@@ -105,11 +105,13 @@ export function Search() {
         if (selectedIndex >= 0 && searchResults[selectedIndex]) {
           const comic = searchResults[selectedIndex];
           navigate(comicDetailsHref({ id: comic.id, slug: comic.slug }));
-          setSearchQuery('');
-          setSearchOpen(false);
-          setSelectedIndex(-1);
-          searchInputRef.current?.blur();
+        } else if (searchQuery.trim()) {
+          navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
         }
+        setSearchQuery('');
+        setSearchOpen(false);
+        setSelectedIndex(-1);
+        searchInputRef.current?.blur();
         break;
       case 'Escape':
         setSearchOpen(false);
@@ -142,6 +144,7 @@ export function Search() {
           className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-800 rounded-md leading-5 bg-white dark:bg-slate-900 placeholder-slate-500 dark:placeholder-slate-400 text-slate-900 dark:text-slate-100 focus:outline-none focus:placeholder-slate-400 dark:focus:placeholder-slate-300 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
           placeholder="Search comics..."
           type="search"
+          autoComplete="off"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}

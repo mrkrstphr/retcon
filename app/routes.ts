@@ -9,6 +9,7 @@ export default [
     route('comic/:sqid/:slug', 'routes/ComicDetails.tsx'),
     route('loose', 'routes/Loose.tsx'),
     route('unread', 'routes/Unread.tsx'),
+    route('search', 'routes/Search.tsx'),
   ]),
   layout('./layouts/AuthLayout.tsx', [
     route('login', 'routes/Login.tsx'),
@@ -27,7 +28,6 @@ export default [
   route('issue/:sqid/read', 'routes/MarkIssueReadOrUnread.ts'),
   route('issue/:sqid/rating', 'routes/IssueRating.ts'),
   route('series/:sqid/read', 'routes/MarkSeriesReadOrUnread.ts'),
-  route('search', 'routes/Search.tsx'),
   route('comics/:sqid/metadata-search', 'routes/MetadataSearch.ts'),
   route('comics/:sqid/apply-metadata', 'routes/ApplyMetadata.ts'),
   route('comics/:sqid/metadata-edit', 'routes/MetadataEdit.ts'),
