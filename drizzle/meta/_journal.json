@@ -76,7 +76,14 @@
       "idx": 10,
       "version": "7",
       "when": 1782591621198,
-      "tag": "0010_abnormal_pandemic",
+      "tag": "0010_user_comic_rating",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782600312965,
+      "tag": "0011_fk_cascade_delete",
       "breakpoints": true
     }
   ]
