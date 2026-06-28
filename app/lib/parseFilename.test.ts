@@ -40,9 +40,9 @@ describe('parseFilename', () => {
 
   describe('publisher dash prefix', () => {
     it('extracts known publisher from "Publisher - Series" format', () => {
-      const result = parseFilename('Marvel - Superman #1.cbz');
+      const result = parseFilename('Marvel - Amazing Spider-Man #1.cbz');
       expect(result.publisher).toBe('Marvel');
-      expect(result.series).toBe('Superman');
+      expect(result.series).toBe('Amazing Spider-Man');
       expect(result.number).toBe('1');
     });
 
@@ -104,10 +104,17 @@ describe('parseFilename', () => {
       expect(result.publisher).toBeUndefined();
     });
 
-    it('handles multi-word series names without hyphens', () => {
-      const result = parseFilename('The Amazing Superman #1.cbz');
-      expect(result.series).toBe('The Amazing Superman');
+    it('handles hyphenated series names without truncation', () => {
+      const result = parseFilename('The Amazing Spider-Man #1.cbz');
+      expect(result.series).toBe('The Amazing Spider-Man');
       expect(result.number).toBe('1');
+    });
+
+    it('extracts issue title separated by space-dash-space', () => {
+      const result = parseFilename('Batman #1 - The Dark Knight.cbz');
+      expect(result.series).toBe('Batman');
+      expect(result.number).toBe('1');
+      expect(result.title).toBe('The Dark Knight');
     });
   });
 });

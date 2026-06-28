@@ -78,12 +78,14 @@ export function parseFilename(filename: string): ParsedFilename {
     }
   }
 
-  // Extract title after a colon or dash (if issue number was found)
+  // Extract title after a colon or dash (if issue number was found).
+  // Require whitespace before the separator so that hyphens in series names
+  // like "Spider-Man" are not mistaken for title separators.
   if (result.number) {
-    const titleMatch = name.match(/[-:]\s*(.+)$/);
+    const titleMatch = name.match(/\s+[-:]\s*(.+)$/);
     if (titleMatch) {
       result.title = titleMatch[1].trim();
-      name = name.replace(/[-:]\s*.+$/, '').trim();
+      name = name.replace(/\s+[-:]\s*.+$/, '').trim();
     }
   }
 
