@@ -1,5 +1,7 @@
 import type { HTMLAttributes } from 'react';
+import { useState } from 'react';
 import { APP_VERSION } from '~/constants';
+import { ChangelogModal } from '~/components/ChangelogModal';
 import { integerFormat } from '~/lib/integerFormat';
 
 export type StatsProps = HTMLAttributes<HTMLDivElement> & {
@@ -8,6 +10,8 @@ export type StatsProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const Stats = ({ className, comicCount, lastScanTime, ...props }: StatsProps) => {
+  const [changelogOpen, setChangelogOpen] = useState(false);
+
   const classes = [
     'flex flex-col gap-1',
     'pt-2 mx-2',
@@ -31,7 +35,13 @@ export const Stats = ({ className, comicCount, lastScanTime, ...props }: StatsPr
     <div className={classes} {...props}>
       <div>{integerFormat(comicCount)} total comics</div>
       <div>Last Scan: {lastScan}</div>
-      <div className="text-gray-400 dark:text-gray-600">v{APP_VERSION}</div>
+      <button
+        onClick={() => setChangelogOpen(true)}
+        className="text-orange-600 dark:text-orange-400 underline underline-offset-2 hover:text-orange-800 dark:hover:text-orange-200 cursor-pointer transition-colors"
+      >
+        v{APP_VERSION}
+      </button>
+      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
     </div>
   );
 };

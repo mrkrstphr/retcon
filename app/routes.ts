@@ -28,6 +28,7 @@ export default [
   route('issue/:sqid/read', 'routes/MarkIssueReadOrUnread.ts'),
   route('issue/:sqid/rating', 'routes/IssueRating.ts'),
   route('series/:sqid/read', 'routes/MarkSeriesReadOrUnread.ts'),
+  route('changelog', 'routes/Changelog.ts'),
   route('comics/:sqid/metadata-search', 'routes/MetadataSearch.ts'),
   route('comics/:sqid/apply-metadata', 'routes/ApplyMetadata.ts'),
   route('comics/:sqid/metadata-edit', 'routes/MetadataEdit.ts'),
