@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaX } from 'react-icons/fa6';
 import { useFetcher } from 'react-router';
+import { Label } from '~/components/Form/Label';
 import { useFocusTrap } from '~/hooks/useFocusTrap';
 import { makeClassName } from '~/lib/makeClassName';
 import { idToSqid } from '~/lib/sqids';
@@ -42,14 +43,6 @@ type SaveResponse = {
   message: string;
 };
 
-const Label = ({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => {
-  const classNames = makeClassName(
-    'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1',
-    className,
-  );
-  return <label {...props} className={classNames} />;
-};
-
 const Input = ({
   id,
   name,
@@ -85,7 +78,12 @@ const InputWithLabel = ({
 } & React.InputHTMLAttributes<HTMLInputElement>) => {
   return (
     <div>
-      <Label htmlFor={inputProps.id || inputProps.name}>{label}</Label>
+      <Label
+        className="text-gray-700 dark:text-gray-300"
+        htmlFor={inputProps.id || inputProps.name}
+      >
+        {label}
+      </Label>
       <Input {...inputProps} />
     </div>
   );
@@ -99,7 +97,12 @@ const TextareaWithLabel = ({
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) => {
   return (
     <div>
-      <Label htmlFor={textareaProps.id || textareaProps.name}>{label}</Label>
+      <Label
+        className="text-gray-700 dark:text-gray-300"
+        htmlFor={textareaProps.id || textareaProps.name}
+      >
+        {label}
+      </Label>
       <Textarea {...textareaProps} />
     </div>
   );
