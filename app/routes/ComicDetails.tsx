@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { useState } from 'react';
 import Markdown from 'react-markdown';
-import { Link, useFetcher, useNavigate, useRevalidator } from 'react-router';
+import { Link, useFetcher, useLocation, useNavigate, useRevalidator } from 'react-router';
 import remarkGfm from 'remark-gfm';
 import { Box } from '~/components/Box';
 import { StarRating } from '~/components/StarRating';
@@ -277,6 +277,7 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
     { provider: string; id: string } | undefined
   >(undefined);
 
+  const location = useLocation();
   const displayTitle = comicTitle(comic);
 
   // Determine if comic has metadata
@@ -289,7 +290,9 @@ export default function ComicDetails({ loaderData }: Route.ComponentProps) {
   };
 
   const handleReadComic = () => {
-    navigate(comicReaderHref(comic));
+    navigate(comicReaderHref(comic), {
+      state: { from: location.pathname + location.search },
+    });
   };
 
   const handleMarkAsRead = () => {

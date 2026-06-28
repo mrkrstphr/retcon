@@ -1,5 +1,11 @@
 import { idToSqid } from './sqids';
 
+export type ReaderLocationState = { from?: string };
+
+// Same-origin relative paths only; reject absolute and protocol-relative ("//evil").
+export const isInAppPath = (p: unknown): p is string =>
+  typeof p === 'string' && p.startsWith('/') && !p.startsWith('//');
+
 export const comicDetailsHref = ({ id, slug }: { id: number; slug: string }) =>
   `/comic/${idToSqid(id)}/${slug}`;
 

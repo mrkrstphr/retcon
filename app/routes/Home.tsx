@@ -3,7 +3,7 @@ import {
   getRecentComicsForUser,
   getUpNextComics,
 } from '@retcon/common/db/queries';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { Box } from '~/components/Box';
 import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
@@ -69,6 +69,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { recentComics, continueReading } = loaderData;
+  const location = useLocation();
+  const from = location.pathname + location.search;
 
   return (
     <div className="flex flex-col gap-2">
@@ -85,6 +87,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               >
                 <Link
                   to={comicReaderHref(comic)}
+                  state={{ from }}
                   className="aspect-3/4 mb-3 bg-slate-200 dark:bg-slate-700 rounded relative block hover:opacity-90 transition-opacity no-underline!"
                 >
                   <Cover comic={comic} />

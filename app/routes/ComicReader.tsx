@@ -3,7 +3,7 @@ import { getComicByIdForUser, getNextComicInSeries } from '@retcon/common/db/que
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaWindowClose } from 'react-icons/fa';
 import { MdFullscreen, MdFullscreenExit, MdGridView, MdMoreVert } from 'react-icons/md';
-import { Link, useFetcher, useNavigate } from 'react-router';
+import { Link, useFetcher, useLocation, useNavigate } from 'react-router';
 import { useSwipeable } from 'react-swipeable';
 import { Button } from '~/components/Button';
 import { OverlayBar } from '~/components/Overlay';
@@ -13,7 +13,8 @@ import { ProgressBar } from '~/components/ProgressBar';
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
 import { comicTitle } from '~/lib/comicTitle';
 import { getCoverPath } from '~/lib/getCoverPath';
-import { comicPageHref, comicReaderHref, seriesDetailsHref } from '~/lib/links';
+import { comicPageHref, comicReaderHref, isInAppPath, seriesDetailsHref } from '~/lib/links';
+import type { ReaderLocationState } from '~/lib/links';
 import { protectRoute } from '~/lib/protectRoute';
 import { idToSqid, sqidToIdOr404 } from '~/lib/sqids';
 import type { Route } from './+types/ComicReader';
@@ -92,6 +93,14 @@ const usePageManager = ({
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
   const { comic, nextComic } = loaderData;
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as ReaderLocationState | null;
+  const from = isInAppPath(locationState?.from) ? locationState.from : undefined;
+  const fallbackDestination =
+    comic.seriesId && comic.seriesSlug
+      ? seriesDetailsHref({ id: comic.seriesId, slug: comic.seriesSlug })
+      : '/';
+  const closeDestination = from ?? fallbackDestination;
   const readerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(comic.pageCount);
   const { pageNumber, setPageNumber, nextPage, previousPage } = usePageManager({
@@ -189,11 +198,7 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
 
   const handleCloseReader = (e?: React.MouseEvent<HTMLDivElement>) => {
     e?.stopPropagation();
-    const destination =
-      comic.seriesId && comic.seriesSlug
-        ? seriesDetailsHref({ id: comic.seriesId, slug: comic.seriesSlug })
-        : '/';
-    navigate(destination);
+    navigate(closeDestination);
   };
 
   const handleKeyboardInput = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -386,17 +391,11 @@ export default function ComicReader({ loaderData }: Route.ComponentProps) {
                 Close
               </Button>
               {nextComic ? (
-                <Link to={comicReaderHref(nextComic)}>
+                <Link to={comicReaderHref(nextComic)} state={{ from }} replace>
                   <Button>Read Next Issue</Button>
                 </Link>
               ) : (
-                <Link
-                  to={
-                    comic.seriesId && comic.seriesSlug
-                      ? seriesDetailsHref({ id: comic.seriesId, slug: comic.seriesSlug })
-                      : '/'
-                  }
-                >
+                <Link to={closeDestination}>
                   <Button>Exit</Button>
                 </Link>
               )}
