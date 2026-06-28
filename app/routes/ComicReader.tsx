@@ -86,10 +86,7 @@ const usePageManager = ({
   const initialPage = currentPage && currentPage >= pageCount ? 1 : (currentPage ?? 1);
   const [pageNumber, setPageNumber] = useState(initialPage);
 
-  const nextPage = () => setPageNumber((prev) => Math.min(prev + 1, pageCount));
-  const previousPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
-
-  return { pageNumber, setPageNumber, nextPage, previousPage };
+  return { pageNumber, setPageNumber };
 };
 
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
@@ -109,7 +106,7 @@ function ComicReaderContent({ loaderData }: Route.ComponentProps) {
   const closeDestination = from ?? fallbackDestination;
   const readerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(comic.pageCount);
-  const { pageNumber, setPageNumber, nextPage, previousPage } = usePageManager({
+  const { pageNumber, setPageNumber } = usePageManager({
     pageCount,
     currentPage: comic.currentPage,
   });
@@ -152,11 +149,15 @@ function ComicReaderContent({ loaderData }: Route.ComponentProps) {
   }, [combinePagesDialogOpen]);
 
   const goNextPage = () => {
-    nextPage();
+    const newPage = Math.min(pageNumber + 1, pageCount);
+    setPageNumber(newPage);
+    updateProgress(newPage);
     setOverlayOpen(false);
   };
   const goPreviousPage = () => {
-    previousPage();
+    const newPage = Math.max(pageNumber - 1, 1);
+    setPageNumber(newPage);
+    updateProgress(newPage);
     setOverlayOpen(false);
   };
 
@@ -171,10 +172,6 @@ function ComicReaderContent({ loaderData }: Route.ComponentProps) {
       readerRef.current.focus();
     }
   }, []);
-
-  useEffect(() => {
-    updateProgress(pageNumber);
-  }, [pageNumber, updateProgress]);
 
   const handleOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (issueCompleteDialogOpen || deletePageDialogOpen || combinePagesDialogOpen || thumbnailsOpen)
@@ -358,6 +355,7 @@ function ComicReaderContent({ loaderData }: Route.ComponentProps) {
           currentPage={pageNumber}
           onSelectPage={(page) => {
             setPageNumber(page);
+            updateProgress(page);
             setThumbnailsOpen(false);
           }}
           onClose={() => setThumbnailsOpen(false)}
