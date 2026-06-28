@@ -1,7 +1,9 @@
 import { config } from 'dotenv';
 import { spawn } from 'node:child_process';
+import { validateEnvironment } from '../lib/validateEnvironment.js';
 
 config(); // Load .env into process.env before spawning children
+validateEnvironment();
 
 const services = [
   {
