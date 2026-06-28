@@ -56,10 +56,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 const useProgressUpdater = (comicId: number) => {
   const fetcher = useFetcher();
+  const submitRef = useRef(fetcher.submit);
+  submitRef.current = fetcher.submit;
 
   const updateProgress = useCallback(
     (currentPage: number) => {
-      fetcher.submit(
+      submitRef.current(
         { currentPage },
         {
           method: 'POST',
@@ -68,7 +70,7 @@ const useProgressUpdater = (comicId: number) => {
         },
       );
     },
-    [fetcher, comicId],
+    [comicId],
   );
 
   return updateProgress;
