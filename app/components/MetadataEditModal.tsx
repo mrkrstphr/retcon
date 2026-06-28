@@ -224,7 +224,7 @@ export function MetadataEditModal({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
+              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
               disabled={isSaving}
             >
               <FaX />
