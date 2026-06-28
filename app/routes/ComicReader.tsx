@@ -11,6 +11,7 @@ import { PageThumbnailGrid } from '~/components/PageThumbnailGrid';
 import { ProgressBar } from '~/components/ProgressBar';
 
 import { useFullScreenManager } from '~/hooks/useFullscreenManager';
+import { usePageManager } from '~/hooks/usePageManager';
 import { comicTitle } from '~/lib/comicTitle';
 import { getCoverPath } from '~/lib/getCoverPath';
 import { comicPageHref, comicReaderHref, isInAppPath, seriesDetailsHref } from '~/lib/links';
@@ -74,19 +75,6 @@ const useProgressUpdater = (comicId: number) => {
   );
 
   return updateProgress;
-};
-
-const usePageManager = ({
-  pageCount,
-  currentPage,
-}: {
-  pageCount: number;
-  currentPage?: number | null;
-}) => {
-  const initialPage = currentPage && currentPage >= pageCount ? 1 : (currentPage ?? 1);
-  const [pageNumber, setPageNumber] = useState(initialPage);
-
-  return { pageNumber, setPageNumber };
 };
 
 export default function ComicReader(props: Route.ComponentProps) {
@@ -193,7 +181,7 @@ function ComicReaderContent({ loaderData }: Route.ComponentProps) {
     } else if (clickPosition > width * 0.6) {
       goNextPage();
       // if we try to page past the last page, show a completion dialog
-      if (pageNumber + 1 >= pageCount) setIssueCompleteDialogOpen(true);
+      if (pageNumber + 1 > pageCount) setIssueCompleteDialogOpen(true);
     } else {
       setOverlayOpen((open) => !open);
     }
