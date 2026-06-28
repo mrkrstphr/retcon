@@ -89,8 +89,8 @@ const usePageManager = ({
   return { pageNumber, setPageNumber };
 };
 
-export default function ComicReader({ loaderData }: Route.ComponentProps) {
-  return <ComicReaderContent key={loaderData.comic.id} loaderData={loaderData} />;
+export default function ComicReader(props: Route.ComponentProps) {
+  return <ComicReaderContent key={props.loaderData.comic.id} {...props} />;
 }
 
 function ComicReaderContent({ loaderData }: Route.ComponentProps) {
