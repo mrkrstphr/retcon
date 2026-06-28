@@ -1,24 +1,29 @@
 import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useFetcher } from 'react-router';
 import { useFocusTrap } from '~/hooks/useFocusTrap';
-import type { ChangelogResult } from '~/services/changelog.server';
+import type { Release } from '~/services/changelog.server';
 
 type ChangelogModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  releases: Release[];
+  isLoading: boolean;
+  hasUpdate?: boolean;
+  latestVersion?: string;
+  error?: string;
 };
 
-export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
-  const fetcher = useFetcher<ChangelogResult>();
+export function ChangelogModal({
+  isOpen,
+  onClose,
+  releases,
+  isLoading,
+  hasUpdate,
+  latestVersion,
+  error,
+}: ChangelogModalProps) {
   const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen);
-
-  useEffect(() => {
-    if (isOpen && fetcher.state === 'idle' && !fetcher.data) {
-      fetcher.load('/changelog');
-    }
-  }, [isOpen, fetcher]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -30,10 +35,6 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-
-  const releases = fetcher.data?.releases ?? [];
-  const fetchError = fetcher.data?.error;
-  const isLoading = fetcher.state === 'loading';
 
   return (
     <div
@@ -56,6 +57,22 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
           </button>
         </div>
 
+        {hasUpdate && latestVersion && (
+          <div className="mx-4 mt-4 rounded-md border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20 px-4 py-3 flex items-center justify-between gap-4">
+            <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
+              Version {latestVersion} is available
+            </span>
+            <a
+              href={releases[0].html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-orange-600 dark:text-orange-400 hover:underline shrink-0"
+            >
+              View release &rarr;
+            </a>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading && (
             <div className="flex items-center justify-center py-12">
@@ -63,13 +80,13 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
             </div>
           )}
 
-          {!isLoading && fetchError && (
+          {!isLoading && error && (
             <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-              Could not fetch releases from GitHub: {fetchError}
+              Could not fetch releases from GitHub: {error}
             </div>
           )}
 
-          {!isLoading && releases.length === 0 && !fetchError && (
+          {!isLoading && releases.length === 0 && !error && (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               No releases found.
             </div>
