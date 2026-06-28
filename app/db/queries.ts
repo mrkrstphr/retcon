@@ -49,6 +49,7 @@ export function getInProgressComics(userId: number, limit: number = 10) {
       fileName: comics.fileName,
       slug: comics.slug,
       series: series.name,
+      seriesId: comics.seriesId,
       number: comics.number,
       volume: comics.volume,
       currentPage: userComics.currentPage,
@@ -57,6 +58,7 @@ export function getInProgressComics(userId: number, limit: number = 10) {
       pageCount: comics.pageCount,
       publisher: publishers.name,
       lastSynced: comics.lastSynced,
+      updatedAt: userComics.updatedAt,
     })
     .from(comics)
     .leftJoin(publishers, eq(comics.publisherId, publishers.id))
@@ -65,6 +67,99 @@ export function getInProgressComics(userId: number, limit: number = 10) {
     .where(and(eq(userComics.userId, userId), eq(userComics.isRead, false)))
     .orderBy(desc(userComics.updatedAt))
     .limit(limit);
+}
+
+export async function getUpNextComics(userId: number, limit: number = 10) {
+  const rows = await db.execute(sql`
+    WITH last_read_per_series AS (
+      SELECT DISTINCT ON (c.series_id)
+        c.id AS comic_id,
+        c.series_id,
+        uc.updated_at
+      FROM user_comics uc
+      JOIN comics c ON c.id = uc.comic_id
+      WHERE uc.user_id = ${userId}
+        AND uc.is_read = true
+        AND c.series_id IS NOT NULL
+      ORDER BY c.series_id, uc.updated_at DESC
+    ),
+    series_comics_ranked AS (
+      SELECT
+        c.id,
+        c.series_id,
+        ROW_NUMBER() OVER (
+          PARTITION BY c.series_id
+          ORDER BY
+            c.release_date NULLS LAST,
+            (CASE WHEN c.number ~ '^[0-9]+$' THEN c.number::integer END) NULLS LAST,
+            c.number NULLS LAST,
+            c.created_at DESC
+        ) AS rn
+      FROM comics c
+      WHERE c.series_id IN (SELECT series_id FROM last_read_per_series)
+    ),
+    last_read_ranks AS (
+      SELECT scr.series_id, scr.rn AS last_rn
+      FROM series_comics_ranked scr
+      JOIN last_read_per_series lrps ON lrps.comic_id = scr.id
+    ),
+    next_comics AS (
+      SELECT DISTINCT ON (scr.series_id)
+        scr.id,
+        scr.series_id,
+        lrps.updated_at AS series_last_read_at,
+        uc.current_page,
+        uc.is_read,
+        uc.rating
+      FROM series_comics_ranked scr
+      JOIN last_read_ranks lrr ON lrr.series_id = scr.series_id
+      JOIN last_read_per_series lrps ON lrps.series_id = scr.series_id
+      LEFT JOIN user_comics uc ON uc.comic_id = scr.id AND uc.user_id = ${userId}
+      WHERE scr.rn > lrr.last_rn
+        AND (uc.is_read IS NULL OR uc.is_read = false)
+        AND (uc.current_page IS NULL OR uc.current_page <= 1)
+      ORDER BY scr.series_id, scr.rn ASC
+    )
+    SELECT
+      c.id,
+      c.file_name AS "fileName",
+      c.slug,
+      c.number,
+      c.volume,
+      c.page_count AS "pageCount",
+      c.series_id AS "seriesId",
+      s.name AS series,
+      p.name AS publisher,
+      nc.current_page AS "currentPage",
+      nc.is_read AS "isRead",
+      nc.rating,
+      c.last_synced AS "lastSynced",
+      nc.series_last_read_at AS "seriesLastReadAt"
+    FROM next_comics nc
+    JOIN comics c ON c.id = nc.id
+    LEFT JOIN series s ON s.id = c.series_id
+    LEFT JOIN publishers p ON p.id = s.publisher_id
+    ORDER BY nc.series_last_read_at DESC
+    LIMIT ${limit}
+  `);
+
+  // postgres-js returns bigint/bigserial columns as strings; coerce at the boundary
+  return (rows as Record<string, unknown>[]).map((row) => ({
+    id: Number(row.id),
+    fileName: row.fileName as string,
+    slug: row.slug as string,
+    number: (row.number as string | null) ?? null,
+    volume: (row.volume as string | null) ?? null,
+    pageCount: Number(row.pageCount),
+    seriesId: row.seriesId == null ? null : Number(row.seriesId),
+    series: (row.series as string | null) ?? null,
+    publisher: (row.publisher as string | null) ?? null,
+    currentPage: row.currentPage == null ? null : Number(row.currentPage),
+    isRead: (row.isRead as boolean | null) ?? null,
+    rating: row.rating == null ? null : Number(row.rating),
+    lastSynced: new Date(row.lastSynced as string),
+    seriesLastReadAt: new Date(row.seriesLastReadAt as string),
+  }));
 }
 
 export function findComicByFileName(fileName: string) {
