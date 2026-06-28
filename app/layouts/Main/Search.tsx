@@ -158,7 +158,7 @@ export function Search() {
 
       {/* Search Results Dropdown */}
       {searchOpen && (
-        <div className="absolute z-50 mt-1 w-[150%] -ml-[25%] md:w-full md:ml-0 bg-white dark:bg-slate-900 shadow-lg rounded-md border border-slate-200 dark:border-slate-800 max-h-96 overflow-y-auto">
+        <div className="absolute z-50 mt-1 left-0 right-0 bg-white dark:bg-slate-900 shadow-lg rounded-md border border-slate-200 dark:border-slate-800 max-h-96 overflow-y-auto">
           {state === 'searching' && (
             <div className="p-4 text-center text-slate-500 dark:text-slate-400">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
