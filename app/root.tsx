@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   isRouteErrorResponse,
   Links,
@@ -13,6 +14,7 @@ import { ConnectionError } from './ConnectionError';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'icon', type: 'image/png', href: '/logo-small.png' },
+  { rel: 'manifest', href: '/manifest.json' },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -21,6 +23,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#f97316" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Retcon" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
         <Meta />
         <Links />
       </head>
@@ -34,6 +41,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
+
   return <Outlet />;
 }
 
