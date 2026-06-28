@@ -3,7 +3,6 @@ import { getComicCount, getLastScanTime } from '@retcon/common/db/queries';
 import { useState } from 'react';
 import { FaFileCircleQuestion } from 'react-icons/fa6';
 import { HiCollection, HiHome, HiX } from 'react-icons/hi';
-import { ImBooks } from 'react-icons/im';
 import type { IconType } from 'react-icons/lib';
 import { MdFiberNew } from 'react-icons/md';
 import { Link, Outlet, useLocation, type LinkProps } from 'react-router';
@@ -78,15 +77,15 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
       {/* New header area */}
       <Box className="flex items-center gap-2 md:gap-4 w-full">
         <div className="flex items-center shrink-0 px-4">
-          <ImBooks
-            className="h-8 w-8 text-orange-600 dark:text-orange-400 cursor-pointer md:cursor-auto"
+          <img
+            src="/logo-small.png"
+            alt={APP_NAME}
+            className="h-8 w-auto cursor-pointer md:hidden"
             onClick={() => setSidebarOpen(true)}
           />
-          <Link
-            to="/"
-            className="ml-2 text-xl font-bold hidden no-underline! md:block text-slate-900 dark:text-white"
-          >
-            {APP_NAME}
+          <Link to="/" className="no-underline! hidden md:block">
+            <img src="/logo.png" alt={APP_NAME} className="h-8 w-auto dark:hidden" />
+            <img src="/logo-white.png" alt={APP_NAME} className="h-8 w-auto hidden dark:block" />
           </Link>
         </div>
 
@@ -116,10 +115,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
 
             <div className="flex-1 flex flex-col h-0 pt-5 pb-4 overflow-y-auto">
               <div className="shrink-0 flex items-center px-4">
-                <ImBooks className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                <span className="ml-2 text-xl font-bold text-slate-900 dark:text-white">
-                  {APP_NAME}
-                </span>
+                <img src="/logo-small.png" alt={APP_NAME} className="h-8 w-auto" />
               </div>
               <nav className="flex-1 mt-5 px-2 space-y-1">
                 {navigation.map((item) => (
