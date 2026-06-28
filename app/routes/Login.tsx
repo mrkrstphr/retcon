@@ -55,6 +55,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
               type="email"
               name="email"
               id="email"
+              autoComplete="email"
               className="bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="you@domain.com"
               required
@@ -69,6 +70,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
               type="password"
               name="password"
               id="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               className="bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-slate-700 dark:border-slate-600 dark:placeholder-slate-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               required

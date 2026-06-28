@@ -88,6 +88,7 @@ export default function SetupPage({ actionData }: Route.ComponentProps) {
               id="email"
               label="Email Address"
               name="email"
+              autoComplete="email"
               required
               placeholder="admin@example.com"
               errors={actionData?.fieldErrors?.email}
@@ -100,6 +101,7 @@ export default function SetupPage({ actionData }: Route.ComponentProps) {
               label="Password"
               name="password"
               type="password"
+              autoComplete="new-password"
               required
               minLength={8}
               placeholder="••••••••"
@@ -113,6 +115,7 @@ export default function SetupPage({ actionData }: Route.ComponentProps) {
               label="Confirm Password"
               name="confirmPassword"
               type="password"
+              autoComplete="new-password"
               required
               minLength={8}
               placeholder="••••••••"
