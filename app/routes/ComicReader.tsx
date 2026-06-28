@@ -93,6 +93,10 @@ const usePageManager = ({
 };
 
 export default function ComicReader({ loaderData }: Route.ComponentProps) {
+  return <ComicReaderContent key={loaderData.comic.id} loaderData={loaderData} />;
+}
+
+function ComicReaderContent({ loaderData }: Route.ComponentProps) {
   const { comic, nextComic } = loaderData;
   const navigate = useNavigate();
   const location = useLocation();
