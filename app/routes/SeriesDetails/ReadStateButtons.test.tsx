@@ -44,7 +44,7 @@ describe('ReadStateButtons', () => {
       renderButtons({ totalComics: 5, allRead: false, noneRead: false });
       const toggle = screen.getByRole('button', { name: 'Toggle dropdown' });
       fireEvent.click(toggle);
-      expect(screen.getByRole('button', { name: 'Mark Series as Unread' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Mark Series as Unread' })).toBeInTheDocument();
     });
   });
 });
