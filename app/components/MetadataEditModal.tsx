@@ -202,6 +202,9 @@ export function MetadataEditModal({
     >
       <div
         ref={focusTrapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="metadata-edit-title"
         className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
@@ -222,7 +225,9 @@ export function MetadataEditModal({
         <div className="border-b border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Edit Metadata</h2>
+              <h2 id="metadata-edit-title" className="text-xl font-semibold">
+                Edit Metadata
+              </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{comicFileName}</p>
             </div>
             <button

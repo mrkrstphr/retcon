@@ -355,8 +355,15 @@ function ComicReaderContent({ loaderData }: Route.ComponentProps) {
           className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-slate-900/50 transition-opacity duration-500 ease-in-out ${issueCompleteDialogOpen ? 'opacity-100' : 'opacity-0'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-slate-900 border border-slate-700 text-slate-100 p-6 w-[min(440px,90vw)] rounded shadow-xl">
-            <h3 className="text-xl font-bold mb-1">Issue Complete!</h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="issue-complete-title"
+            className="bg-slate-900 border border-slate-700 text-slate-100 p-6 w-[min(440px,90vw)] rounded shadow-xl"
+          >
+            <h3 id="issue-complete-title" className="text-xl font-bold mb-1">
+              Issue Complete!
+            </h3>
             <p className="text-slate-400 mb-5">You've reached the end of this one!</p>
             {nextComic ? (
               <div className="flex gap-5 mb-6 items-center bg-slate-800 rounded-lg p-4">
