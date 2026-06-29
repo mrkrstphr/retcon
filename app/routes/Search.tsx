@@ -34,6 +34,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  await protectRoute(request);
   const formData = await request.formData();
   const searchTerm = formData.get('search') as string;
 
