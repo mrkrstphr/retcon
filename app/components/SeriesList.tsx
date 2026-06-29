@@ -23,14 +23,19 @@ export function SeriesList({ series }: SeriesListProps) {
           className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
         >
           {result.firstComicId && (
-            <Cover
-              comic={{
-                id: result.firstComicId,
-                isRead: result.readCount === result.comicCount,
-                pageCount: result.comicCount,
-                currentPage: result.readCount ?? 0,
-              }}
-            />
+            <div className="relative">
+              <Cover
+                comic={{
+                  id: result.firstComicId,
+                  isRead: result.readCount === result.comicCount,
+                }}
+              />
+              {result.readCount > 0 && result.readCount < result.comicCount && (
+                <span className="absolute top-2 right-2 bg-indigo-600 text-white text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded">
+                  {result.readCount}/{result.comicCount}
+                </span>
+              )}
+            </div>
           )}
 
           <div className="text-sm text-center mt-2">
