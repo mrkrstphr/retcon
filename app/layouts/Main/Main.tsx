@@ -77,12 +77,14 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
       {/* New header area */}
       <Box className="flex items-center gap-2 md:gap-4 w-full">
         <div className="flex items-center shrink-0 px-4">
-          <img
-            src="/logo-small.png"
-            alt={APP_NAME}
-            className="h-8 w-auto cursor-pointer md:hidden"
+          <button
+            type="button"
             onClick={() => setSidebarOpen(true)}
-          />
+            className="md:hidden p-0 bg-transparent border-0 cursor-pointer"
+            aria-label="Open navigation"
+          >
+            <img src="/logo-small.png" alt="" className="h-8 w-auto" />
+          </button>
           <Link to="/" className="no-underline! hidden md:block">
             <img src="/logo.png" alt={APP_NAME} className="h-8 w-auto dark:hidden" />
             <img src="/logo-white.png" alt={APP_NAME} className="h-8 w-auto hidden dark:block" />
@@ -108,8 +110,9 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
                 type="button"
                 className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                 onClick={() => setSidebarOpen(false)}
+                aria-label="Close navigation"
               >
-                <HiX className="h-6 w-6 text-white" />
+                <HiX className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
             </div>
 
