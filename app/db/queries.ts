@@ -946,6 +946,72 @@ export function countUnreadSeriesForUser(
   return countOrZero(db.select({ count: count() }).from(subquery));
 }
 
+export function findUnreadComicsForUser(
+  userId: number,
+  searchTerm: string = '',
+  limit: number = 25,
+  offset: number = 0,
+  publisherId?: number,
+) {
+  return db
+    .select({
+      id: comics.id,
+      fileName: comics.fileName,
+      slug: comics.slug,
+      number: comics.number,
+      volume: comics.volume,
+      pageCount: comics.pageCount,
+      currentPage: userComics.currentPage,
+      isRead: userComics.isRead,
+      series: series.name,
+      publisher: publishers.name,
+    })
+    .from(comics)
+    .leftJoin(series, eq(comics.seriesId, series.id))
+    .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+    .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
+    .where(
+      and(
+        sql`(${userComics.isRead} IS NULL OR ${userComics.isRead} = false)`,
+        searchTerm
+          ? sql`REGEXP_REPLACE(LOWER(${series.name}), '[^a-z0-9 ]', '', 'g') ILIKE ${`%${cleanSearchTerm(searchTerm)}%`}`
+          : undefined,
+        publisherId ? eq(comics.publisherId, publisherId) : undefined,
+      ),
+    )
+    .orderBy(
+      series.name,
+      sql`(case when ${comics.number} ~ '^[0-9]+$' then ${comics.number}::integer end) nulls last`,
+      comics.number,
+    )
+    .limit(limit)
+    .offset(offset);
+}
+
+export function countUnreadComicsForUser(
+  userId: number,
+  searchTerm: string = '',
+  publisherId?: number,
+) {
+  return countOrZero(
+    db
+      .select({ count: count() })
+      .from(comics)
+      .leftJoin(series, eq(comics.seriesId, series.id))
+      .leftJoin(publishers, eq(comics.publisherId, publishers.id))
+      .leftJoin(userComics, and(eq(userComics.comicId, comics.id), eq(userComics.userId, userId)))
+      .where(
+        and(
+          sql`(${userComics.isRead} IS NULL OR ${userComics.isRead} = false)`,
+          searchTerm
+            ? sql`REGEXP_REPLACE(LOWER(${series.name}), '[^a-z0-9 ]', '', 'g') ILIKE ${`%${cleanSearchTerm(searchTerm)}%`}`
+            : undefined,
+          publisherId ? eq(comics.publisherId, publisherId) : undefined,
+        ),
+      ),
+  );
+}
+
 /**
  * Get a comic by ID (without user-specific data)
  */

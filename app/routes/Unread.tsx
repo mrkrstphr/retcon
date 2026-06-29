@@ -1,18 +1,23 @@
 import { APP_NAME } from '@retcon/common/constants';
 import {
+  countUnreadComicsForUser,
   countUnreadSeriesForUser,
+  findUnreadComicsForUser,
   findUnreadSeriesForUser,
   getAllPublishers,
 } from '@retcon/common/db/queries';
 import { FaAward } from 'react-icons/fa6';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import { PiFileText, PiFiles } from 'react-icons/pi';
-import { Form, useSubmit } from 'react-router';
+import { Form, Link, useSubmit } from 'react-router';
 import { useRef } from 'react';
 import { Box } from '~/components/Box';
+import { Cover } from '~/components/Cover';
 import { NoResults } from '~/components/NoResults';
 import { Pagination } from '~/components/Pagination';
 import { SeriesList } from '~/components/SeriesList';
+import { comicTitle } from '~/lib/comicTitle';
+import { comicDetailsHref } from '~/lib/links';
 import { paginateRecords } from '~/lib/paginateRecords';
 import { protectRoute } from '~/lib/protectRoute';
 import type { Route } from './+types/Unread';
@@ -62,15 +67,26 @@ export async function loader({ request }: Route.LoaderArgs) {
     };
   }
 
+  const [{ records: results, totalRecords, currentPage, totalPages }, allPublishers] =
+    await Promise.all([
+      paginateRecords(
+        request,
+        (limit, offset) =>
+          findUnreadComicsForUser(user.id, searchQuery, limit, offset, publisherId),
+        countUnreadComicsForUser(user.id, searchQuery, publisherId),
+      ),
+      getAllPublishers(),
+    ]);
+
   return {
-    mode: mode as Mode,
-    results: [],
-    totalRecords: 0,
-    currentPage: 1,
-    totalPages: 0,
-    searchQuery: '',
-    publisherId: undefined as number | undefined,
-    publishers: [],
+    mode: 'comic' as Mode,
+    results,
+    totalRecords,
+    currentPage,
+    totalPages,
+    searchQuery,
+    publisherId,
+    publishers: allPublishers,
   };
 }
 
@@ -186,7 +202,7 @@ export default function UnreadPage({ loaderData }: Route.ComponentProps) {
               <input
                 type="text"
                 name="search"
-                placeholder="Search series..."
+                placeholder={mode === 'series' ? 'Search series...' : 'Search by series...'}
                 defaultValue={searchQuery}
                 onChange={handleSearchInput}
                 className="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -222,9 +238,9 @@ export default function UnreadPage({ loaderData }: Route.ComponentProps) {
         </Form>
       </Box>
 
-      {results.length > 0 && (
+      {results.length > 0 && mode === 'series' && (
         <Box>
-          <SeriesList series={results} />
+          <SeriesList series={results as Parameters<typeof SeriesList>[0]['series']} />
 
           <Pagination
             currentPage={currentPage}
@@ -232,6 +248,42 @@ export default function UnreadPage({ loaderData }: Route.ComponentProps) {
             totalRecords={totalRecords}
             generatePageUrl={generatePageUrl}
             recordName="series"
+          />
+        </Box>
+      )}
+
+      {results.length > 0 && mode === 'comic' && (
+        <Box>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {(results as Awaited<ReturnType<typeof findUnreadComicsForUser>>).map((comic) => (
+              <Link
+                key={comic.id}
+                to={comicDetailsHref(comic)}
+                className="bg-slate-50 dark:bg-slate-900 rounded-lg no-underline! p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors block"
+              >
+                <Cover comic={comic} />
+                <div className="text-sm text-center mt-2">
+                  <div className="font-medium text-slate-900 dark:text-slate-100 mb-1 overflow-hidden">
+                    <div className="line-clamp-2 leading-tight" title={comicTitle(comic)}>
+                      {comicTitle(comic)}
+                    </div>
+                  </div>
+                  {comic.publisher && (
+                    <div className="text-xs text-slate-500 dark:text-slate-500 truncate">
+                      {comic.publisher}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalRecords={totalRecords}
+            generatePageUrl={generatePageUrl}
+            recordName={totalRecords === 1 ? 'comic' : 'comics'}
           />
         </Box>
       )}
